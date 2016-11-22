@@ -1,0 +1,11 @@
+--- Modules/FindLua51.cmake~	2016-07-22 06:50:22.000000000 -0700
++++ Modules/FindLua51.cmake	2016-09-10 00:47:40.000000000 -0700
+@@ -60,7 +60,7 @@
+   NAMES lua51 lua5.1 lua-5.1 lua
+   HINTS
+     ENV LUA_DIR
+-  PATH_SUFFIXES lib
++  PATH_SUFFIXES lib/lua51 lib/lua5.1 lib/lua-5.1 lib/lua lib
+   PATHS
+   ~/Library/Frameworks
+   /Library/Frameworks
