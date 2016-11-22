@@ -1211,10 +1211,30 @@ post-destroot {
     }
 }
 
-variant odbc description {Enable iODBC SQL Driver} {
-    depends_lib-append port:libiodbc
+variant odbc description {Enable ODBC SQL Driver} {
     configure.args-delete -no-sql-odbc
     configure.args-append -plugin-sql-odbc
+}
+
+variant iodbc description {Link to libiodbc for the ODBC SQL Driver} requires odbc conflicts unixodbc {
+    depends_lib-append port:libiodbc
+    # This patch makes qmake use pkg-config to find libiodbc--crucial because,
+    # in our setup, iodbc has different include and lib paths.
+    patchfiles-append  patch-iodbc-pkgconfig.diff
+}
+
+variant unixodbc description {Link to unixODBC for the ODBC SQL Driver} requires odbc conflicts iodbc {
+    depends_lib-append port:unixODBC
+    # TODO: If the target OS is OS X, Qt always prefers iodbc to unixODBC.
+    # Fix this.
+}
+
+if {[variant_isset odbc] && !([variant_isset iodbc] || [variant_isset unixodbc])} {
+    error "The odbc variant requires either the +iodbc or +unixodbc variants to be set."
+}
+
+if {[variant_isset unixodbc]} {
+    error "Qt must be taught that Mac OS X != iODBC."
 }
 
 variant raster description {Use raster graphics system by default} {

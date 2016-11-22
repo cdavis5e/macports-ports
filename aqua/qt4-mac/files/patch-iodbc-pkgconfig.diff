@@ -1,0 +1,28 @@
+--- config.tests/unix/iodbc/iodbc.pro	2015-05-07 08:14:42.000000000 -0600
++++ config.tests/unix/iodbc/iodbc.pro	2016-02-23 00:01:51.000000000 -0700
+@@ -1,4 +1,7 @@
+ SOURCES = iodbc.cpp
+ CONFIG -= qt dylib
+ mac:CONFIG -= app_bundle
+-LIBS += -liodbc
++!contains(QT_CONFIG, no-pkg-config): {
++	PKGCONFIG = libiodbc
++	CONFIG += link_pkgconfig
++}else:LIBS += -liodbc
+--- src/sql/drivers/odbc/qsql_odbc.pri	2015-05-07 08:14:48.000000000 -0600
++++ src/sql/drivers/odbc/qsql_odbc.pri	2016-02-23 00:40:32.000000000 -0700
+@@ -4,8 +4,12 @@
+ unix {
+     DEFINES += UNICODE
+     !contains(LIBS, .*odbc.*) {
+-        macx:LIBS += -liodbc
+-        else:LIBS += $$QT_LFLAGS_ODBC
++        macx:{
++            !contains(QT_CONFIG, "no-pkg-config") {
++                PKGCONFIG = libiodbc
++                CONFIG += link_pkgconfig
++            } else:LIBS += -liodbc
++        } else:LIBS += $$QT_LFLAGS_ODBC
+     }
+ } else {
+     win32-borland:LIBS *= $(BCB)/lib/PSDK/odbc32.lib
