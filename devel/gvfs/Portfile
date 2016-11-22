@@ -111,6 +111,33 @@ post-destroot {
         ${destroot}${docdir}
 }
 
+variant avahi description {Enable mDNS support with Avahi} {
+    depends_lib-append     port:avahi
+    configure.args-replace --disable-avahi --enable-avahi
+}
+
+#variant fuse description {Enable FUSE backend} {
+#    depends_lib-append     path:lib/pkgconfig/fuse.pc:osxfuse
+#    configure.args-replace --disable-fuse --enable-fuse
+#}
+
+variant cdda description {Enable CDDA backend} {
+    depends_lib-append     port:libcdio-paranoia
+    configure.args-replace --disable-cdda --enable-cdda
+}
+
+variant samba description {Enable Samba support} {
+    depends_lib-append     port:samba3
+    configure.args-replace --disable-samba --enable-samba
+    configure.args-append  --with-samba-includes=/opt/local/include \
+                           --with-samba-libs=/opt/local/lib/samba3
+}
+
+variant bluray description {Enable Blu-Ray support} {
+    depends_lib-append     port:libbluray
+    configure.args-replace --disable-bluray --enable-bluray
+}
+
 variant python35 conflicts python36 python37 description {Use Python 3.5 for testing} {
     depends_build-append port:py35-gobject3
     post-patch {
