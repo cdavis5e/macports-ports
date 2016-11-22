@@ -1,0 +1,45 @@
+--- Modules/CMakeDetermineCompilerId.cmake.orig	2019-04-12 07:10:08.000000000 -0500
++++ Modules/CMakeDetermineCompilerId.cmake	2019-04-14 01:17:42.000000000 -0500
+@@ -545,6 +545,9 @@
+ #-----------------------------------------------------------------------------
+ # Function to extract the compiler id from an executable.
+ function(CMAKE_DETERMINE_COMPILER_ID_CHECK lang file)
++  if(NOT CMAKE_${lang}_COMPILER_ID OR NOT CMAKE_EXECUTABLE_FORMAT)
++    file(READ ${file} CMAKE_EXECUTABLE_MAGIC LIMIT 4 HEX)
++  endif()
+   # Look for a compiler id if not yet known.
+   if(NOT CMAKE_${lang}_COMPILER_ID)
+     # Read the compiler identification string from the executable file.
+@@ -577,9 +580,13 @@
+     list(REMOVE_DUPLICATES CMAKE_${lang}_COMPILER_ID_STRINGS)
+
+     set(COMPILER_ID_TWICE)
++    set(COMPILER_ID_UNIVERSAL)
++    if("${CMAKE_EXECUTABLE_MAGIC}" MATCHES "cafebabe")
++      set(COMPILER_ID_UNIVERSAL 1)
++    endif()
+     foreach(info ${CMAKE_${lang}_COMPILER_ID_STRINGS})
+       if("${info}" MATCHES "INFO:compiler\\[([^]\"]*)\\]")
+-        if(COMPILER_ID)
++        if(COMPILER_ID AND NOT COMPILER_ID_UNIVERSAL)
+           set(COMPILER_ID_TWICE 1)
+         endif()
+         set(COMPILER_ID "${CMAKE_MATCH_1}")
+@@ -598,7 +605,7 @@
+       if("${info}" MATCHES "INFO:platform\\[([^]\"]*)\\]")
+         set(PLATFORM_ID "${CMAKE_MATCH_1}")
+       endif()
+-      if("${info}" MATCHES "INFO:arch\\[([^]\"]*)\\]")
++      if(NOT COMPILER_ID_UNIVERSAL AND "${info}" MATCHES "INFO:arch\\[([^]\"]*)\\]")
+         set(ARCHITECTURE_ID "${CMAKE_MATCH_1}")
+       endif()
+       if("${info}" MATCHES "INFO:compiler_version\\[([^]\"]*)\\]")
+@@ -707,8 +714,6 @@
+ 
+   # try to figure out the executable format: ELF, COFF, Mach-O
+   if(NOT CMAKE_EXECUTABLE_FORMAT)
+-    file(READ ${file} CMAKE_EXECUTABLE_MAGIC LIMIT 4 HEX)
+-
+     # ELF files start with 0x7f"ELF"
+     if("${CMAKE_EXECUTABLE_MAGIC}" STREQUAL "7f454c46")
+       set(CMAKE_EXECUTABLE_FORMAT "ELF" CACHE INTERNAL "Executable file format")
