@@ -29,8 +29,7 @@ configure.args-append   --disable-libodbc
 
 variant libodbc description {install extra libodbc.a library} {
     configure.args-replace  --disable-libodbc --enable-libodbc
-    configure.args-delete   --includedir=${prefix}/include/${name}
-    conflicts               unixODBC
+    configure.args-append   --libdir=${prefix}/lib/${name}
 }
 
 variant x11 conflicts gui {

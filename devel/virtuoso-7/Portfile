@@ -46,6 +46,8 @@ configure.args-append   --disable-all-vads \
                         --disable-silent-rules \
                         --program-transform-name='s/isql/isql-vt/\;s/isqlw/isqlw-vt/'
 
+configure.cppflags      ""
+
 post-configure {
     reinplace "s|\"gcc\"|\"${configure.cc}\"|" ${worksrcpath}/bin/libtool.macosx
     foreach note $PortInfo(notes) {

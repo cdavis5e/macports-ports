@@ -4,10 +4,6 @@ PortSystem          1.0
 PortGroup           legacysupport 1.1
 
 name                unixODBC
-conflicts           virtuoso virtuoso-7
-if {[file exists ${prefix}/lib/libodbc.a]} {
-    conflicts-append libiodbc
-}
 version             2.3.12
 revision            0
 checksums           rmd160  2886fcb0bd0c006a1077e6fd9acc62f52329b15e \
