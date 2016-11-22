@@ -764,6 +764,12 @@ variant universal {
                                             ui_debug "universal: merge: ${prefixDir}/${fl} differs in ${base1} and ${base2}; assume trivial difference"
                                             copy ${dir1}/${fl} ${dir}
                                         }
+                                        *.pyc -
+                                        *.pyo {
+                                            # pyc files can be different because of timestamp
+                                            ui_debug "universal: merge: ${prefixDir}/${fl} differs in ${base1} and ${base2}; assume timestamp difference"
+                                            copy ${dir1}/${fl} ${dir}
+                                        }
                                         *.el.gz -
                                         *.el.bz2 {
                                             # Emacs lisp files should be same across architectures
