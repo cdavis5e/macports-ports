@@ -293,7 +293,7 @@
 +  c.strPos = a5; \
 +  c.pos = a6; \
 +  c.length = a7; \
-+  c.revision = a8;
++  c.revision = a8
  #else
  #  define QT_INIT_TEXTUNDOCOMMAND(c, a1, a2, a3, a4, a5, a6, a7, a8) \
            QTextUndoCommand c = { a1, a2, 0, 0, a3, a4, a5, a6 }; c.blockFormat = a7; c.revision = a8
@@ -592,3 +592,80 @@
      return true;
  }
  
+--- src/gui/kernel/qwidget_mac.mm.orig	2015-03-21 15:00:00.000000000 -0600
++++ src/gui/kernel/qwidget_mac.mm	2015-03-21 15:47:00.000000000 -0600
+@@ -3620,7 +3620,11 @@
+ #else
+             // Only needed if it exists from 10.7 or later
+             if ((q->windowType() == Qt::Tool) && [window respondsToSelector: @selector(setAnimationBehavior:)])
++#ifdef MAC_OS_X_VERSION_10_7
++                [window setAnimationBehavior: NSWindowAnimationBehaviorNone];
++#else
+                 [window setAnimationBehavior: 2]; // NSWindowAnimationBehaviorNone == 2
++#endif
+ 
+             [window orderOut:window];
+             // Unfortunately it is not as easy as just hiding the window, we need
+--- src/gui/kernel/qcocoamenuloader_mac.mm.orig	2015-04-02 14:24:42.000000000 -0600
++++ src/gui/kernel/qcocoamenuloader_mac.mm	2015-04-02 15:01:40.000000000 -0600
+@@ -125,7 +125,7 @@
+ - (void)removeActionsFromAppMenu
+ {
+     for (NSMenuItem *item in [appMenu itemArray])
+-        [item setTag:nil];
++        [item setTag:0L];
+ }
+ 
+ - (void)dealloc
+--- src/gui/widgets/qmenu_mac.mm.orig	2015-04-02 14:24:43.000000000 -0600
++++ src/gui/widgets/qmenu_mac.mm	2015-04-02 15:10:47.000000000 -0600
+@@ -769,7 +769,7 @@
+                    && menuItem != [getMenuLoader() quitMenuItem]) {
+             [menuItem setHidden:YES];
+         }
+-        [menuItem setTag:nil];
++        [menuItem setTag:0L];
+     }
+     [menuItem release];
+ #endif
+--- src/3rdparty/javascriptcore/JavaScriptCore/runtime/Structure.h.orig	2014-04-10 12:37:12.000000000 -0600
++++ src/3rdparty/javascriptcore/JavaScriptCore/runtime/Structure.h	2015-04-02 16:13:30.000000000 -0600
+@@ -316,8 +316,10 @@
+         Structure* existingTransition = singleTransition();
+         TransitionTable* transitionTable = new TransitionTable;
+         setTransitionTable(transitionTable);
+-        if (existingTransition)
+-            add(StructureTransitionTableHash::Key(RefPtr<UString::Rep>(existingTransition->m_nameInPrevious.get()), existingTransition->m_attributesInPrevious), existingTransition, existingTransition->m_specificValueInPrevious);
++        if (existingTransition) {
++            unsigned attributesInPrevious = existingTransition->m_attributesInPrevious;
++            add(StructureTransitionTableHash::Key(RefPtr<UString::Rep>(existingTransition->m_nameInPrevious.get()), attributesInPrevious), existingTransition, existingTransition->m_specificValueInPrevious);
++        }
+     }
+ } // namespace JSC
+ 
+--- src/3rdparty/javascriptcore/JavaScriptCore/runtime/Structure.cpp.orig	2014-04-10 12:37:12.000000000 -0600
++++ src/3rdparty/javascriptcore/JavaScriptCore/runtime/Structure.cpp	2015-04-02 16:20:32.000000000 -0600
+@@ -156,9 +156,10 @@
+ Structure::~Structure()
+ {
+     if (m_previous) {
+-        if (m_nameInPrevious)
+-            m_previous->table.remove(StructureTransitionTableHash::Key(RefPtr<UString::Rep>(m_nameInPrevious.get()), m_attributesInPrevious), m_specificValueInPrevious);
+-        else
++        if (m_nameInPrevious) {
++            unsigned attributesInPrevious = m_attributesInPrevious;
++            m_previous->table.remove(StructureTransitionTableHash::Key(RefPtr<UString::Rep>(m_nameInPrevious.get()), attributesInPrevious), m_specificValueInPrevious);
++		} else
+             m_previous->table.removeAnonymousSlotTransition(m_anonymousSlotsInPrevious);
+ 
+     }
+--- src/3rdparty/webkit/Source/JavaScriptCore/wtf/HashTable.h.orig	2014-04-10 12:37:11.000000000 -0600
++++ src/3rdparty/webkit/Source/JavaScriptCore/wtf/HashTable.h	2015-04-03 01:27:59.000000000 -0600
+@@ -1122,6 +1122,7 @@
+     template<typename HashTableType, typename ValueType> struct HashTableConstIteratorAdapter {
+         HashTableConstIteratorAdapter() {}
+         HashTableConstIteratorAdapter(const typename HashTableType::const_iterator& impl) : m_impl(impl) {}
++        HashTableConstIteratorAdapter(const typename HashTableType::iterator& impl) : m_impl(impl) {}
+ 
+         const ValueType* get() const { return (const ValueType*)m_impl.get(); }
+         const ValueType& operator*() const { return *get(); }

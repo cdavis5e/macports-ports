@@ -1254,23 +1254,9 @@ variant openvg description {Build with support for OpenVG} {
     }
 }
 
-variant cxx11 description {Add library support for C++11 (EXPERIMENTAL; does not work with libc++)} {
+variant cxx11 description {Add library support for C++11 (EXPERIMENTAL)} {
 
     compiler.cxx_standard 2011
-
-    pre-fetch {
-
-        # This variant does not work with Clang libc++
-
-        if {[info exists configure.cxx_stdlib] &&
-            ${configure.cxx_stdlib} eq "libc++" &&
-            [string match *clang* ${configure.cxx}]} {
-
-            ui_msg "\nERROR: C++11 support for Qt4 is not available when using Clang and libc++.\n"
-            error "unsupported platform for C++11 support"
-
-        }
-    }
 
     pre-extract {
 
