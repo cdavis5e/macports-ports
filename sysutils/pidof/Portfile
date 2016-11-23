@@ -10,6 +10,7 @@ maintainers         {devans @dbevans} openmaintainer
 description         A utility to display the PID number for a given process name
 long_description    ${description} 
 platforms           darwin
+installs_libs       no
 
 homepage            http://nightproductions.net/cli.htm
 master_sites        http://nightproductions.net/downloads/
