@@ -1,0 +1,24 @@
+--- gtk/meson.build	2023-03-02 17:31:52.000000000 -0700
++++ gtk/meson.build	2023-05-18 17:25:37.000000000 -0600
+@@ -739,12 +739,10 @@
+ gtk_use_win32_sources = files(
+ 	'gtkwin32embed.c',
+ 	'gtkwin32embedwidget.c',
+-	'gtkmountoperation-stub.c',
+ )
+ 
+ gtk_use_quartz_sources = files(
+   'gtksearchenginequartz.c',
+-  'gtkmountoperation-stub.c',
+   'gtkapplication-quartz.c',
+   'gtkapplication-quartz-menu.c',
+   'gtkfilechoosernativequartz.c',
+@@ -916,7 +914,7 @@
+   gtk_deps += pangoft_dep
+ endif
+ 
+-if not (x11_enabled or win32_enabled or quartz_enabled)
++if not (x11_enabled)
+   gtk_sources += gtk_stub_sources
+ endif
+ 

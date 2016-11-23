@@ -148,7 +148,10 @@ configure.args-append \
                     -Ddemos=false \
                     -Dexamples=false \
                     -Dprofiler=false \
-                    -Dwayland_backend=false
+                    -Dwayland_backend=false \
+                    -Dx11_backend=false \
+                    -Dquartz_backend=false \
+                    -Dxinerama=no
 
 post-destroot {
     set docdir ${prefix}/share/doc/${name}
@@ -188,6 +191,10 @@ platform darwin {
         configure.args-append \
             -Dprint_backends=file,lpr,test
     }
+}
+
+if {[variant_isset quartz] && [variant_isset x11]} {
+    patchfiles-append   patch-gtk_Makefile.am-x11-quartz-mountoperation.diff
 }
 
 if {${universal_possible} && [variant_isset universal]} {
@@ -288,18 +295,15 @@ variant demos description {Build demos and examples} {
                             -Dexamples=true
 }
 
-variant quartz conflicts x11 {
+variant quartz {
     require_active_variants path:lib/pkgconfig/cairo.pc:cairo quartz
     require_active_variants path:lib/pkgconfig/pango.pc:pango quartz
     require_active_variants path:lib/pkgconfig/glib-2.0.pc:glib2 quartz
 
-    configure.args-append \
-                            -Dx11_backend=false \
-                            -Dquartz_backend=true \
-                            -Dxinerama=no
+    configure.args-replace  -Dquartz_backend=false -Dquartz_backend=true
 }
 
-variant x11 conflicts quartz {
+variant x11 {
     require_active_variants path:lib/pkgconfig/cairo.pc:cairo x11
     require_active_variants path:lib/pkgconfig/pango.pc:pango x11
     require_active_variants path:lib/pkgconfig/glib-2.0.pc:glib2 x11
@@ -320,10 +324,8 @@ variant x11 conflicts quartz {
     # Upstream disables X11 for macOS; disable that behavior
     patchfiles-append       patch-meson.build-x11-enabled.diff
 
-    configure.args-append \
-                            -Dx11_backend=true \
-                            -Dquartz_backend=false \
-                            -Dxinerama=yes
+    configure.args-replace  -Dx11_backend=false -Dx11_backend=true \
+                            -Dxinerama=no -Dxinerama=yes
 }
 
 if {![variant_isset quartz]} {
