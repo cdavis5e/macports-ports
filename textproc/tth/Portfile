@@ -26,6 +26,7 @@ checksums       rmd160  11b05a79ede2da2769328d11da920a0f7bc32053 \
                 size    337901
 
 use_configure   no
+installs_libs   no
 
 variant universal {}
 
