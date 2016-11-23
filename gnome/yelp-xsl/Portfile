@@ -16,6 +16,9 @@ platforms           any
 homepage            https://wiki.gnome.org/Apps/Yelp
 master_sites        gnome:sources/${name}/${branch}/
 
+universal_variant   no
+installs_libs       no
+
 use_xz              yes
 
 checksums           rmd160  a5fa2ae8fbfd4949efe2aff20798853df115bf85 \
