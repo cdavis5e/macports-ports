@@ -1,0 +1,55 @@
+--- Source/WebCore/platform/audio/FFTFrame.h~	2015-10-17 11:47:54.000000000 -0600
++++ Source/WebCore/platform/audio/FFTFrame.h	2015-10-17 16:18:05.000000000 -0600
+@@ -31,7 +31,7 @@
+ 
+ #include "AudioArray.h"
+ 
+-#if OS(DARWIN) && !USE(WEBAUDIO_FFMPEG)
++#if OS(DARWIN) && !USE(WEBAUDIO_FFMPEG) && !USE(WEBAUDIO_GSTREAMER)
+ #define USE_ACCELERATE_FFT 1
+ #else
+ #define USE_ACCELERATE_FFT 0
+@@ -54,8 +54,6 @@
+ struct RDFTContext;
+ #endif
+ 
+-#endif // !USE_ACCELERATE_FFT
+-
+ #if USE(WEBAUDIO_GSTREAMER)
+ #include <glib.h>
+ G_BEGIN_DECLS
+@@ -67,6 +65,8 @@
+ #include <ipps.h>
+ #endif // USE(WEBAUDIO_IPP)
+ 
++#endif // !USE_ACCELERATE_FFT
++
+ #include <memory>
+ #include <wtf/Forward.h>
+ #include <wtf/Threading.h>
+--- Source/autotools/FindDependencies.m4~	2015-10-24 22:11:15.000000000 -0600
++++ Source/autotools/FindDependencies.m4	2015-10-24 22:59:18.000000000 -0600
+@@ -449,6 +449,13 @@
+     AC_SUBST([GSTREAMER_LIBS])
+ fi
+ 
++case "$host_os" in
++    darwin*)
++        ACCELERATE_LIBS="-framework Accelerate"
++        AC_SUBST([ACCELERATE_LIBS])
++        ;;
++esac
++
+ acceleration_description=
+ if test "$found_opengl" = "yes"; then
+     acceleration_description="OpenGL"
+--- Source/WebKit2/GNUmakefile.am~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/GNUmakefile.am	2015-10-24 23:51:45.000000000 -0600
+@@ -778,6 +778,7 @@
+ 	libjavascriptcoregtk-@WEBKITGTK_API_MAJOR_VERSION@.@WEBKITGTK_API_MINOR_VERSION@.la \
+ 	libWebCoreLayerGtk2.a \
+ 	libWebKit2Platform.la \
++	$(ACCELERATE_LIBS) \
+ 	$(CAIRO_LIBS) \
+ 	$(COVERAGE_LDFLAGS) \
+ 	$(FREETYPE_LIBS) \

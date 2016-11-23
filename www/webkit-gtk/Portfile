@@ -73,6 +73,7 @@ patchfiles          clang-assertions.patch \
                     ruby-1.8.patch \
                     quartz-webcore.patch \
                     gstreamer.patch \
+                    gstreamer-audio.patch \
                     leopard-platform.patch \
                     leopard-malloc.patch \
                     libedit.patch \
@@ -98,15 +99,14 @@ configure.perl      /usr/bin/perl
 configure.python    ${prefix}/bin/python2.7
 
 # --disable-webkit2: https://bugs.webkit.org/show_bug.cgi?id=126416
-# --disable-web-audio: https://bugs.webkit.org/show_bug.cgi?id=126438
 # --disable-jit: https://bugs.webkit.org/show_bug.cgi?id=133293
 configure.args      --disable-webkit2 \
-                    --disable-web-audio \
                     --enable-x11-target=yes \
                     --enable-quartz-target=no \
                     --enable-wayland-target=no \
                     --enable-introspection \
                     --disable-video \
+                    --disable-web-audio \
                     --enable-svg \
                     --enable-geolocation \
                     --enable-webgl \
@@ -247,12 +247,16 @@ variant quartz {
 }
 
 variant video description {Enable HTML5 video support using gstreamer} {
-        depends_lib-append      port:gstreamer1-gst-plugins-base
-        configure.args-delete   --disable-video
-        configure.args-append   --enable-video
+    depends_lib-append      port:gstreamer1-gst-plugins-base
+    configure.args-replace  --disable-video --enable-video
 }
 
-default_variants    +video
+variant audio description {Enable HTML5 web audio support using gstreamer} {
+    depends_lib-append      port:gstreamer1-gst-plugins-base
+    configure.args-replace  --disable-web-audio --enable-web-audio
+}
+
+default_variants    +video+audio
 
 livecheck.type      regex
 livecheck.url       http://webkitgtk.org/releases/
