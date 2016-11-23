@@ -1,0 +1,11 @@
+--- etc/papd/print_cups.c~	2009-03-29 00:23:23.000000000 -0700
++++ etc/papd/print_cups.c	2016-03-19 17:56:08.000000000 -0700
+@@ -474,7 +474,7 @@
+ 	{
+ 		memset ( pr->p_name, 0, name_len);
+ 		strncpy ( pr->p_name, name, MAXCHOOSERLEN-3);
+-		sprintf ( pr->p_name, "%s#%2.2u", pr->p_name, count++);
++		sprintf ( pr->p_name, "%s#%2.2zu", pr->p_name, count++);
+ 	}
+ 
+ 	if ( count > 99) 

@@ -27,6 +27,8 @@ startupitem.start   "${prefix}/etc/netatalk/initscript start"
 startupitem.stop    "${prefix}/etc/netatalk/initscript stop"
 startupitem.restart "${prefix}/etc/netatalk/initscript restart"
 
+patchfiles          patch-etc-papd-print_cups.c-warnings
+
 depends_build-append \
                     port:pkgconfig
 
