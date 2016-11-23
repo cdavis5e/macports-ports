@@ -132,7 +132,8 @@ variant zlib description {Build with zlib compression support} {
 
 variant lua description {Build with Lua dissector support} {
     configure.args-replace  -DENABLE_LUA=OFF -DENABLE_LUA=ON
-    depends_lib-append      port:lua52
+    depends_lib-append      port:lua
+    patchfiles-append       patch-epan-wslua-lua-bitop.c-lua53.diff
 }
 
 variant libsmi description {Build with libsmi snmp support} {

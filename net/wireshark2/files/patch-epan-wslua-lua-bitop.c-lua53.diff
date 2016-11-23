@@ -1,0 +1,38 @@
+--- epan/wslua/lua_bitop.c~	2015-08-12 10:47:43.000000000 -0600
++++ epan/wslua/lua_bitop.c	2015-10-10 18:54:17.000000000 -0600
+@@ -48,7 +48,7 @@
+ 
+ typedef union {
+   lua_Number n;
+-#ifdef LUA_NUMBER_DOUBLE
++#if defined(LUA_NUMBER_DOUBLE)
+   uint64_t b;
+ #else
+   UBits b;
+@@ -65,7 +65,7 @@
+ #else
+   bn.n = luaL_checknumber(L, idx);
+ #endif
+-#if defined(LUA_NUMBER_DOUBLE)
++#if defined(LUA_NUMBER_DOUBLE) || (defined(LUA_FLOAT_TYPE) && LUA_FLOAT_TYPE == LUA_FLOAT_DOUBLE)
+   bn.n += 6755399441055744.0;  /* 2^52+2^51 */
+ #ifdef SWAPPED_DOUBLE
+   b = (UBits)(bn.b >> 32);
+@@ -79,7 +79,7 @@
+     b = bn.b;
+   else
+     b = (UBits)(SBits)bn.n;
+-#elif defined(LUA_NUMBER_FLOAT)
++#elif defined(LUA_NUMBER_FLOAT) || (defined(LUA_FLOAT_TYPE) && LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT)
+ #error "A 'float' lua_Number type is incompatible with this library"
+ #else
+ #error "Unknown number type, check LUA_NUMBER_* in luaconf.h"
+@@ -169,7 +169,7 @@
+   b = barg(L, -1);
+   if (b != (UBits)1437217655L || BAD_SAR) {  /* Perform a simple self-test. */
+     const char *msg = "compiled with incompatible luaconf.h";
+-#ifdef LUA_NUMBER_DOUBLE
++#if defined(LUA_NUMBER_DOUBLE) || (defined(LUA_FLOAT_TYPE) && LUA_FLOAT_TYPE == LUA_FLOAT_DOUBLE)
+ #ifdef _WIN32
+     if (b == (UBits)1610612736L)
+       msg = "use D3DCREATE_FPU_PRESERVE with DirectX";
