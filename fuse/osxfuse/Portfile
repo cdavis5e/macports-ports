@@ -235,4 +235,4 @@ notes {
 }
 
 # Could probably be supported by setting ARCHS correctly above
-universal_variant no
+universal_variant yes
