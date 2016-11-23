@@ -1,0 +1,57 @@
+--- src/engine.c	2002-08-15 01:26:08.000000000 -0600
++++ src/engine.c	2014-09-10 18:03:00.000000000 -0600
+@@ -549,7 +549,7 @@
+     if ( turn + 1 < scen_info->turn_limit )
+         sprintf( text, "Remaining Turns: %i", scen_info->turn_limit - turn );
+     else
+-        sprintf( text, "Remaining Turns: Last Turn" );
++        strcpy( text, "Remaining Turns: Last Turn" );
+     write_text( gui->font_turn_info, sdl.screen, text_x, text_y, text, OPAQUE );
+     text_y += gui->font_turn_info->height;
+     sprintf( text, "Weather: %s", weather_types[scen_get_weather()].name );
+@@ -861,9 +861,9 @@
+         FULL_DEST( sdl.screen );
+         fill_surf( 0x0 );
+         gui->font_turn_info->align = ALIGN_X_CENTER | ALIGN_Y_CENTER;
+-        sprintf( text, "CPU thinks..." );
++        strcpy( text, "CPU thinks..." );
+         write_text( gui->font_turn_info, sdl.screen, sdl.screen->w >> 1, sdl.screen->h >> 1, text, OPAQUE );
+-        sprintf( text, "( Enable option 'Show Cpu Turn' if you want to see what it is doing. )" );
++        strcpy( text, "( Enable option 'Show Cpu Turn' if you want to see what it is doing. )" );
+         write_text( gui->font_turn_info, sdl.screen, sdl.screen->w >> 1, ( sdl.screen->h >> 1 )+ 20, text, OPAQUE );
+         refresh_screen( 0, 0, 0, 0 );
+         blind_cpu_turn = 1;
+@@ -1895,7 +1895,7 @@
+                 if ( gui->module_dlg->subdir[0] != 0 )
+                     sprintf( path, "%s/%s", gui->module_dlg->subdir, (char*)gui->module_dlg->lbox->cur_item );
+                 else
+-                    sprintf( path, (char*)gui->module_dlg->lbox->cur_item );
++                    strcpy( path, (char*)gui->module_dlg->lbox->cur_item );
+                 free( setup.modules[gui->setup->sel_id] );
+                 setup.modules[gui->setup->sel_id] = strdup( path );
+                 gui_handle_player_select( gui->setup->list->cur_item );
+@@ -2326,12 +2326,12 @@
+         /* set message if seen */
+         if ( !blind_cpu_turn ) {
+             if ( cur_atk->sel_prop->flags & ARTILLERY )
+-                sprintf( str, "Defensive Fire" );
++                strcpy( str, "Defensive Fire" );
+             else
+                 if ( cur_atk->sel_prop->flags & AIR_DEFENSE )
+-                    sprintf( str, "Air-Defense" );
++                    strcpy( str, "Air-Defense" );
+                 else
+-                    sprintf( str, "Interceptors" );
++                    strcpy( str, "Interceptors" );
+             label_write( gui->label, gui->font_error, str );
+         }
+     }
+@@ -3442,7 +3442,7 @@
+                 }
+                 else {
+                     /* next scenario */
+-                    sprintf( setup.fname, camp_cur_scen->scen );
++                    strcpy( setup.fname, camp_cur_scen->scen );
+                     setup.type = SETUP_DEFAULT_SCEN;
+                 }
+             }

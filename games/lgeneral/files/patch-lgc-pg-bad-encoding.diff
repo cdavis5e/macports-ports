@@ -1,0 +1,662 @@
+--- src/maps.c	2002-07-15 14:12:49.000000000 -0600
++++ src/maps.c	2014-09-10 20:29:23.000000000 -0600
+@@ -148,7 +148,7 @@
+         if ( map_id == -1 ) /* only a new file needs this magic */
+             fprintf( dest_file, "@\n" );
+         /* terrain types */
+-        fprintf( dest_file, "terrain_db»pg.tdb\n" );
++        fprintf( dest_file, "terrain_db\xBBpg.tdb\n" );
+         /* read/write map size */
+         width = height = 0;
+         fseek( source_file, 101, SEEK_SET );
+@@ -156,10 +156,10 @@
+         fseek( source_file, 103, SEEK_SET );
+         fread( &height, 2, 1, source_file );
+         width++; height++;
+-        fprintf( dest_file, "width»%i\nheight»%i\n", width, height );
++        fprintf( dest_file, "width\xBB%i\nheight\xBB%i\n", width, height );
+         /* picture ids */
+         fseek( source_file, 123 + 5 * width * height, SEEK_SET );
+-        fprintf( dest_file, "tiles»" );
++        fprintf( dest_file, "tiles\xBB" );
+         for ( y = 0; y < height; y++ ) {
+             for ( x = 0; x < width; x++ ) {
+                 tile_id = 0;
+@@ -167,11 +167,11 @@
+                 tile_get_id_string( tile_id, map_tile_str );
+                 fprintf( dest_file, "%s", map_tile_str );
+                 if ( y < height - 1 || x < width - 1 )
+-                    fprintf( dest_file, "°" );
++                    fprintf( dest_file, "\xB0" );
+             }
+         }
+         fprintf( dest_file, "\n" );
+-        fprintf( dest_file, "names»" );
++        fprintf( dest_file, "names\xBB" );
+         fseek( source_file, 123, SEEK_SET );
+         for ( y = 0; y < height; y++ ) {
+             for ( x = 0; x < width; x++ ) {
+@@ -179,7 +179,7 @@
+                 tile_get_name( name_file, ibuf, name_buf );
+                 fprintf( dest_file, "%s", name_buf );
+                 if ( y < height - 1 || x < width - 1 )
+-                    fprintf( dest_file, "°" );
++                    fprintf( dest_file, "\xB0" );
+             }
+         }
+         fprintf( dest_file, "\n" );
+--- src/nations.c	2002-07-12 09:28:18.000000000 -0600
++++ src/nations.c	2014-09-10 20:27:05.000000000 -0600
+@@ -81,11 +81,11 @@
+         return 0;
+     }
+     fprintf( file, "@\n" );
+-    fprintf( file, "icons»pg.bmp\n" );
+-    fprintf( file, "icon_width»20\nicon_height»13\n" );
++    fprintf( file, "icons\xBBpg.bmp\n" );
++    fprintf( file, "icon_width\xBB20\nicon_height\xBB13\n" );
+     fprintf( file, "<nations\n" );
+     for ( i = 0; i < nation_count; i++ )
+-        fprintf( file, "<%s\nname»%s\nicon_id»%s\n>\n", nations[i * 3], nations[i * 3 + 1], nations[i * 3 + 2] );
++        fprintf( file, "<%s\nname\xBB%s\nicon_id\xBB%s\n>\n", nations[i * 3], nations[i * 3 + 1], nations[i * 3 + 2] );
+     fprintf( file, ">\n" );
+     fclose( file );
+     /* nation graphics */
+--- src/parser.c	2002-07-12 08:35:42.000000000 -0600
++++ src/parser.c	2014-09-10 20:31:36.000000000 -0600
+@@ -467,14 +467,14 @@
+                 /* read values as subsection */
+                 pd = calloc( 1, sizeof( PData ) );
+                 /* check name */
+-                if ( ( cur = strchr( line, '»' ) ) == 0 ) {
+-                    sprintf( parser_sub_error, "parse error: use '»' for assignment or '<' for section" );
++                if ( ( cur = strchr( line, '\xBB' ) ) == 0 ) {
++                    sprintf( parser_sub_error, "parse error: use '\xBB' for assignment or '<' for section" );
+                     return 0;
+                 }
+                 cur[0] = 0; cur++;
+                 pd->name = strdup( line );
+                 /* get values */
+-                pd->values = parser_explode_string( cur, '°' );
++                pd->values = parser_explode_string( cur, '\xB0' );
+                 /* add to section */
+                 list_add( section->entries, pd );
+                 break;
+--- src/scenarios.c	2002-07-13 14:09:35.000000000 -0600
++++ src/scenarios.c	2014-09-10 20:30:04.000000000 -0600
+@@ -243,7 +243,7 @@
+                     if ( vic_hexes[i * 2] == x && vic_hexes[i * 2 + 1] == y ) {
+                         obj = 1; break;
+                     }
+-                fprintf( dest_file, "<flag\nx»%i\ny»%i\nnation»%s\nobj»%i\n>\n", x, y, nations[(ibuf - 1) * 3], obj );
++                fprintf( dest_file, "<flag\nx\xBB%i\ny\xBB%i\nnation\xBB%s\nobj\xBB%i\n>\n", x, y, nations[(ibuf - 1) * 3], obj );
+             }
+         }
+     }
+@@ -300,12 +300,12 @@
+                 weather[i]++;
+     }
+     /* write weather */
+-    fprintf( dest_file, "weather»" );
++    fprintf( dest_file, "weather\xBB" );
+     i = 0;
+     while ( i < turns ) {
+         fprintf( dest_file, "%s", weather_types[weather[i] * 3] );
+         if ( i < turns - 1 )
+-            fprintf( dest_file, "°" );
++            fprintf( dest_file, "\xB0" );
+         i++;
+     }
+     fprintf( dest_file, "\n" );
+@@ -339,16 +339,16 @@
+             unit_entry_used[org_trsp_id - 1] = 1;
+     /* write unit */
+     fprintf( dest_file, "<unit\n" );
+-    fprintf( dest_file, "id»%i\nnation»%s\n", id - 1, nations[nation * 3] );
+-    fprintf( dest_file, "x»%i\ny»%i\n", x, y );
+-    fprintf( dest_file, "str»%i\nentr»%i\nexp»%i\n", str, entr, exp );
++    fprintf( dest_file, "id\xBB%i\nnation\xBB%s\n", id - 1, nations[nation * 3] );
++    fprintf( dest_file, "x\xBB%i\ny\xBB%i\n", x, y );
++    fprintf( dest_file, "str\xBB%i\nentr\xBB%i\nexp\xBB%i\n", str, entr, exp );
+     if ( trsp_id == 0 && org_trsp_id == 0 )
+-        fprintf( dest_file, "trsp»none\n" );
++        fprintf( dest_file, "trsp\xBBnone\n" );
+     else {
+         if ( trsp_id ) 
+-            fprintf( dest_file, "trsp»%i\n", trsp_id - 1 );
++            fprintf( dest_file, "trsp\xBB%i\n", trsp_id - 1 );
+         else
+-            fprintf( dest_file, "trsp»%i\n", org_trsp_id - 1 );
++            fprintf( dest_file, "trsp\xBB%i\n", org_trsp_id - 1 );
+     }
+     fprintf( dest_file, ">\n" );
+ }
+@@ -404,26 +404,26 @@
+ };
+ #define COND_BEGIN fprintf( file, "<cond\n" )
+ #define COND_END   fprintf( file, ">\n" )
+-#define COND_RESULT( str ) fprintf( file, "result»%s\n", str )
+-#define COND_MESSAGE( str ) fprintf( file, "message»%s\n", str )
++#define COND_RESULT( str ) fprintf( file, "result\xBB%s\n", str )
++#define COND_MESSAGE( str ) fprintf( file, "message\xBB%s\n", str )
+ void scen_add_vic_conds( FILE *file, int id )
+ {
+     /* for panzer general the check is run every turn with only one
+        exception Market-Garden where Arnhem must be captured and 
+        hold until end */
+     if ( id == 19 )
+-        fprintf( file, "<result\ncheck»last_turn\n" );
++        fprintf( file, "<result\ncheck\xBBlast_turn\n" );
+     else
+-        fprintf( file, "<result\ncheck»every_turn\n" );
++        fprintf( file, "<result\ncheck\xBBevery_turn\n" );
+     /* add conditions */
+     if ( major_limits[id] != -1 ) {
+         COND_BEGIN;
+-        fprintf( file, "<and\n<control_all_hexes\nplayer»axis\n>\n<turns_left\ncount»%i\n>\n>\n", major_limits[id] );
++        fprintf( file, "<and\n<control_all_hexes\nplayer\xBBaxis\n>\n<turns_left\ncount\xBB%i\n>\n>\n", major_limits[id] );
+         COND_RESULT( "major" ); 
+         COND_MESSAGE( "Axis Major Victory" );
+         COND_END;
+         COND_BEGIN;
+-        fprintf( file, "<and\n<control_all_hexes\nplayer»axis\n>\n>\n" );
++        fprintf( file, "<and\n<control_all_hexes\nplayer\xBBaxis\n>\n>\n" );
+         COND_RESULT( "minor" ); 
+         COND_MESSAGE( "Axis Minor Victory" );
+         COND_END;
+@@ -439,17 +439,17 @@
+         switch ( id ) {
+             case 17: /* ARDENNES */
+                 fprintf( file, "<and\n"\
+-                               "<control_hex\nplayer»axis\nx»16\ny»16\n>\n"\
+-                               "<control_hex\nplayer»axis\nx»26\ny»4\n>\n"\
+-                               "<control_hex\nplayer»axis\nx»27\ny»21\n>\n"\
+-                               "<control_hex\nplayer»axis\nx»39\ny»21\n>\n"\
+-                               "<control_hex\nplayer»axis\nx»48\ny»8\n>\n"\
+-                               "<control_hex\nplayer»axis\nx»54\ny»14\n>\n"\
+-                               "<control_hex\nplayer»axis\nx»59\ny»18\n>\n"\
++                               "<control_hex\nplayer\xBBaxis\nx\xBB16\ny\xBB16\n>\n"\
++                               "<control_hex\nplayer\xBBaxis\nx\xBB26\ny\xBB4\n>\n"\
++                               "<control_hex\nplayer\xBBaxis\nx\xBB27\ny\xBB21\n>\n"\
++                               "<control_hex\nplayer\xBBaxis\nx\xBB39\ny\xBB21\n>\n"\
++                               "<control_hex\nplayer\xBBaxis\nx\xBB48\ny\xBB8\n>\n"\
++                               "<control_hex\nplayer\xBBaxis\nx\xBB54\ny\xBB14\n>\n"\
++                               "<control_hex\nplayer\xBBaxis\nx\xBB59\ny\xBB18\n>\n"\
+                                ">\n" );
+                 break;
+             case 19: /* MARKET-GARDEN */
+-                fprintf( file, "<and\n<control_hex\nplayer»axis\nx»37\ny»10>\n>\n" );
++                fprintf( file, "<and\n<control_hex\nplayer\xBBaxis\nx\xBB37\ny\xBB10>\n>\n" );
+                 break;
+         }
+         COND_RESULT( "axis" );
+@@ -464,37 +464,37 @@
+         COND_BEGIN;
+         switch ( id ) {
+             case 12: /* TORCH */
+-                fprintf( file, "<or\n<control_hex\nplayer»allies\nx»27\ny»5\n>\n<control_hex_num\nplayer»allies\ncount»6>\n>\n" );
++                fprintf( file, "<or\n<control_hex\nplayer\xBBallies\nx\xBB27\ny\xBB5\n>\n<control_hex_num\nplayer\xBBallies\ncount\xBB6>\n>\n" );
+                 break;
+             case 13: /* HUSKY */
+-                fprintf( file, "<or\n<control_hex_num\nplayer»allies\ncount»14\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex_num\nplayer\xBBallies\ncount\xBB14\n>\n>\n" );
+                 break;
+             case 14: /* ANZIO */
+-                fprintf( file, "<or\n<control_hex\nplayer»allies\nx»13\ny»17\n>\n<control_hex_num\nplayer»allies\ncount»5\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex\nplayer\xBBallies\nx\xBB13\ny\xBB17\n>\n<control_hex_num\nplayer\xBBallies\ncount\xBB5\n>\n>\n" );
+                 break;
+             case 15: /* D-DAY */
+-                fprintf( file, "<or\n<control_hex_num\nplayer»allies\ncount»4\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex_num\nplayer\xBBallies\ncount\xBB4\n>\n>\n" );
+                 break;
+             case 16: /* ANVIL */
+-                fprintf( file, "<or\n<control_hex_num\nplayer»allies\ncount»5\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex_num\nplayer\xBBallies\ncount\xBB5\n>\n>\n" );
+                 break;
+             case 18: /* COBRA */
+-                fprintf( file, "<or\n<control_hex_num\nplayer»allies\ncount»5\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex_num\nplayer\xBBallies\ncount\xBB5\n>\n>\n" );
+                 break;
+             case 20: /* BERLIN WEST */
+-                fprintf( file, "<or\n<control_hex\nplayer»allies\nx»36\ny»14\n>\n<control_hex_num\nplayer»allies\ncount»5\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex\nplayer\xBBallies\nx\xBB36\ny\xBB14\n>\n<control_hex_num\nplayer\xBBallies\ncount\xBB5\n>\n>\n" );
+                 break;
+             case 30: /* KURSK */
+-                fprintf( file, "<or\n<control_all_hexes\nplayer»allies\n>\n>\n" );
++                fprintf( file, "<or\n<control_all_hexes\nplayer\xBBallies\n>\n>\n" );
+                 break;
+             case 32: /* BYELORUSSIA */
+-                fprintf( file, "<or\n<control_hex\nplayer»allies\nx»3\ny»12\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex\nplayer\xBBallies\nx\xBB3\ny\xBB12\n>\n>\n" );
+                 break;
+             case 34: /* BERLIN EAST */
+-                fprintf( file, "<or\n<control_hex\nplayer»allies\nx»36\ny»14\n>\n<control_hex_num\nplayer»allies\ncount»8\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex\nplayer\xBBallies\nx\xBB36\ny\xBB14\n>\n<control_hex_num\nplayer\xBBallies\ncount\xBB8\n>\n>\n" );
+                 break;
+             case 35: /* BERLIN */
+-                fprintf( file, "<or\n<control_hex\nplayer»allies\nx»36\ny»14\n>\n>\n" );
++                fprintf( file, "<or\n<control_hex\nplayer\xBBallies\nx\xBB36\ny\xBB14\n>\n>\n" );
+                 break;
+         }
+         COND_RESULT( "allies" );
+@@ -567,17 +567,17 @@
+             }
+             fseek( aux_file, 40 + (i - 1) * 14, SEEK_SET );
+             fread( dummy, 14, 1, aux_file );
+-            fprintf( dest_file, "name»%s\n", dummy );
++            fprintf( dest_file, "name\xBB%s\n", dummy );
+             fseek( aux_file, 600 + (i - 1) * 160 , SEEK_SET );
+             fread( dummy, 160, 1, aux_file );
+-            fprintf( dest_file, "desc»%s\n", dummy );
+-            fprintf( dest_file, "authors»Strategic Simulation Inc.\n" );
++            fprintf( dest_file, "desc\xBB%s\n", dummy );
++            fprintf( dest_file, "authors\xBBStrategic Simulation Inc.\n" );
+             fclose( aux_file );
+         }
+         else {
+-            fprintf( dest_file, "name»%s\n", custom_name );
+-            fprintf( dest_file, "desc»none\n" );
+-            fprintf( dest_file, "authors»nobody\n" );
++            fprintf( dest_file, "name\xBB%s\n", custom_name );
++            fprintf( dest_file, "desc\xBBnone\n" );
++            fprintf( dest_file, "authors\xBBnobody\n" );
+         }
+         /* open scenario file */
+         sprintf( path, "%s/GAME%03i.SCN", source_path, i );
+@@ -593,23 +593,23 @@
+         day = 0; fread( &day, 1, 1, scen_file );
+         month = 0; fread( &month, 1, 1, scen_file );
+         year = 0; fread( &year, 1, 1, scen_file );
+-        fprintf( dest_file, "date»%02i.%02i.19%i\n", day, month, year );
++        fprintf( dest_file, "date\xBB%02i.%02i.19%i\n", day, month, year );
+         /* turn limit */
+         fseek( scen_file, 21, SEEK_SET );
+         turns = 0; fread( &turns, 1, 1, scen_file );
+-        fprintf( dest_file, "turns»%i\n", turns );
++        fprintf( dest_file, "turns\xBB%i\n", turns );
+         fseek( scen_file, 25, SEEK_SET );
+         turns_per_day = 0; fread( &turns_per_day, 1, 1, scen_file );
+-        fprintf( dest_file, "turns_per_day»%i\n", turns_per_day );
++        fprintf( dest_file, "turns_per_day\xBB%i\n", turns_per_day );
+         days_per_turn = 0; fread( &days_per_turn, 1, 1, scen_file );
+         if ( turns_per_day == 0 && days_per_turn == 0 )
+             days_per_turn = 1;
+-        fprintf( dest_file, "days_per_turn»%i\n", days_per_turn );
++        fprintf( dest_file, "days_per_turn\xBB%i\n", days_per_turn );
+         /* nations */
+-        fprintf( dest_file, "nation_db»pg.ndb\n" );
++        fprintf( dest_file, "nation_db\xBBpg.ndb\n" );
+         /* units */
+         if ( scen_id == -1 || !units_find_panzequp() )
+-            fprintf( dest_file, "<unit_db\nmain»pg.udb\n>\n" );
++            fprintf( dest_file, "<unit_db\nmain\xBBpg.udb\n>\n" );
+         /* if there modified units they are added to the 
+            scenario file. lgeneral loads from the scenario file
+            if no unit_db was specified. */
+@@ -618,7 +618,7 @@
+            will be checked when no map was specified.
+            */
+         if ( scen_id == -1 )
+-            fprintf( dest_file, "map»pg/map%02i\n", i );
++            fprintf( dest_file, "map\xBBpg/map%02i\n", i );
+         /* weather */
+         scen_create_weather( dest_file, scen_file, month, turns );
+         /* flags */
+@@ -647,26 +647,26 @@
+         else
+             axis_strat = -1;
+         /* definition */
+-        fprintf( dest_file, "<axis\nname»Axis\n" );
+-        fprintf( dest_file, "nations»ger°aus°it°hun°bul°rum°fin°esp\n" );
+-        fprintf( dest_file, "allied_players»\n" );
+-        fprintf( dest_file, "orientation»%s\ncontrol»human\nstrategy»%i\n", dummy, axis_strat );
++        fprintf( dest_file, "<axis\nname\xBBAxis\n" );
++        fprintf( dest_file, "nations\xBBger\xB0aus\xB0it\xB0hun\xB0bul\xB0rum\xB0fin\xB0esp\n" );
++        fprintf( dest_file, "allied_players\xBB\n" );
++        fprintf( dest_file, "orientation\xBB%s\ncontrol\xBBhuman\nstrategy\xBB%i\n", dummy, axis_strat );
+         if ( scen_id == -1 )
+-            fprintf( dest_file, "ai_module»%s\n", ai_modules[i*2] );
++            fprintf( dest_file, "ai_module\xBB%s\n", ai_modules[i*2] );
+         else
+-            fprintf( dest_file, "ai_module»default\n" );
++            fprintf( dest_file, "ai_module\xBBdefault\n" );
+         /* transporter */
+         fprintf( dest_file, "<transporters\n" );
+         /* air */
+         fseek( scen_file, unit_offset - 8, SEEK_SET );
+         ibuf = 0; fread( &ibuf, 2, 1, scen_file );
+         if ( ibuf )
+-            fprintf( dest_file, "<air\nunit»%i\ncount»50\n>\n", ibuf - 1 );
++            fprintf( dest_file, "<air\nunit\xBB%i\ncount\xBB50\n>\n", ibuf - 1 );
+         /* sea */
+         fseek( scen_file, unit_offset - 4, SEEK_SET );
+         ibuf = 0; fread( &ibuf, 2, 1, scen_file );
+         if ( ibuf )
+-            fprintf( dest_file, "<sea\nunit»%i\ncount»50\n>\n", ibuf - 1 );
++            fprintf( dest_file, "<sea\nunit\xBB%i\ncount\xBB50\n>\n", ibuf - 1 );
+         fprintf( dest_file, ">\n" );
+         fprintf( dest_file, ">\n" );
+         /* allies */
+@@ -678,26 +678,26 @@
+             allied_strat = -1;
+         else
+             allied_strat = 1;
+-        fprintf( dest_file, "<allies\nname»Allies\n" );
+-        fprintf( dest_file, "nations»bel°lux°den°fra°gre°usa°tur°net°nor°pol°por°so°swe°swi°eng°yug\n" );
+-        fprintf( dest_file, "allied_players»\n" );
+-        fprintf( dest_file, "orientation»%s\ncontrol»cpu\nstrategy»%i\n", dummy, allied_strat );
++        fprintf( dest_file, "<allies\nname\xBBAllies\n" );
++        fprintf( dest_file, "nations\xBBbel\xB0lux\xB0den\xB0fra\xB0gre\xB0usa\xB0tur\xB0net\xB0nor\xB0pol\xB0por\xB0so\xB0swe\xB0swi\xB0eng\xB0yug\n" );
++        fprintf( dest_file, "allied_players\xBB\n" );
++        fprintf( dest_file, "orientation\xBB%s\ncontrol\xBBcpu\nstrategy\xBB%i\n", dummy, allied_strat );
+         if ( scen_id == -1 )
+-            fprintf( dest_file, "ai_module»%s\n", ai_modules[i*2 + 1] );
++            fprintf( dest_file, "ai_module\xBB%s\n", ai_modules[i*2 + 1] );
+         else
+-            fprintf( dest_file, "ai_module»default\n" );
++            fprintf( dest_file, "ai_module\xBBdefault\n" );
+         /* transporter */
+         fprintf( dest_file, "<transporters\n" );
+         /* air */
+         fseek( scen_file, unit_offset - 6, SEEK_SET );
+         ibuf = 0; fread( &ibuf, 2, 1, scen_file );
+         if ( ibuf )
+-            fprintf( dest_file, "<air\nunit»%i\ncount»50\n>\n", ibuf - 1 );
++            fprintf( dest_file, "<air\nunit\xBB%i\ncount\xBB50\n>\n", ibuf - 1 );
+         /* sea */
+         fseek( scen_file, unit_offset - 2, SEEK_SET );
+         ibuf = 0; fread( &ibuf, 2, 1, scen_file );
+         if ( ibuf )
+-            fprintf( dest_file, "<sea\nunit»%i\ncount»50\n>\n", ibuf - 1 );
++            fprintf( dest_file, "<sea\nunit\xBB%i\ncount\xBB50\n>\n", ibuf - 1 );
+         fprintf( dest_file, ">\n" );
+         fprintf( dest_file, ">\n" );
+         fprintf( dest_file, ">\n" );
+@@ -707,17 +707,17 @@
+         else {
+             /* and the default is that the attacker must capture
+                all targets */
+-            fprintf( dest_file, "<result\ncheck»every_turn\n" );
++            fprintf( dest_file, "<result\ncheck\xBBevery_turn\n" );
+             fprintf( dest_file, "<cond\n" );
+-            fprintf( dest_file, "<and\n<control_all_hexes\nplayer»%s\n>\n>\n",
++            fprintf( dest_file, "<and\n<control_all_hexes\nplayer\xBB%s\n>\n>\n",
+                      (axis_strat > 0) ? "axis" : "allies" );
+-            fprintf( dest_file, "result»victory\n" );
+-            fprintf( dest_file, "message»%s\n", 
++            fprintf( dest_file, "result\xBBvictory\n" );
++            fprintf( dest_file, "message\xBB%s\n", 
+                      (axis_strat > 0) ? "Axis Victory" : "Allied Victory" );
+             fprintf( dest_file, ">\n" );
+             fprintf( dest_file, "<else\n" );
+-            fprintf( dest_file, "result»defeat\n" );
+-            fprintf( dest_file, "message»%s\n", 
++            fprintf( dest_file, "result\xBBdefeat\n" );
++            fprintf( dest_file, "message\xBB%s\n", 
+                      (axis_strat > 0) ? "Axis Defeat" : "Allied Defeat" );
+             fprintf( dest_file, ">\n" );
+             fprintf( dest_file, ">\n" );
+@@ -757,21 +757,21 @@
+                         if ( !strcmp( "unit", unit->name ) ) {
+                             /* add unit */
+                             fprintf( dest_file, "<unit\n" );
+-                            fprintf( dest_file, "nation»%s\n", nation->name );
++                            fprintf( dest_file, "nation\xBB%s\n", nation->name );
+                             if ( !parser_get_int( unit, "id", &ibuf ) )
+                                 goto failure;
+-                            fprintf( dest_file, "id»%i\n", ibuf );
++                            fprintf( dest_file, "id\xBB%i\n", ibuf );
+                             ibuf = def_str;  parser_get_int( unit, "str", &ibuf );
+-                            fprintf( dest_file, "str»%i\n", ibuf );
++                            fprintf( dest_file, "str\xBB%i\n", ibuf );
+                             ibuf = def_exp;  parser_get_int( unit, "exp", &ibuf );
+-                            fprintf( dest_file, "exp»%i\n", ibuf );
++                            fprintf( dest_file, "exp\xBB%i\n", ibuf );
+                             ibuf = def_entr; parser_get_int( unit, "entr", &ibuf );
+-                            fprintf( dest_file, "entr»%i\n", ibuf );
++                            fprintf( dest_file, "entr\xBB%i\n", ibuf );
+                             if ( parser_get_value( unit, "trsp", &str, 0 ) )
+-                                fprintf( dest_file, "trsp»%s\n", str );
++                                fprintf( dest_file, "trsp\xBB%s\n", str );
+                             if ( !parser_get_int( unit, "delay", &ibuf ) )
+                                 goto failure;
+-                            fprintf( dest_file, "delay»%i\n", ibuf );
++                            fprintf( dest_file, "delay\xBB%i\n", ibuf );
+                             fprintf( dest_file, ">\n" );
+                         }
+                 }
+--- src/terrain.c	2002-07-29 01:32:33.000000000 -0600
++++ src/terrain.c	2014-09-10 20:28:14.000000000 -0600
+@@ -42,8 +42,8 @@
+ char *weather_types[] = {
+     "fair",   "Fair",   "none", 
+     "clouds", "Clouds", "none", 
+-    "rain",   "Rain",   "no_air_attack°cut_strength°bad_sight", 
+-    "snow",   "Snow",   "no_air_attack°double_fuel_cost°cut_strength°bad_sight"
++    "rain",   "Rain",   "no_air_attack\xB0cut_strength\xB0bad_sight", 
++    "snow",   "Snow",   "no_air_attack\xB0double_fuel_cost\xB0cut_strength\xB0bad_sight"
+ };
+ /*
+ ====================================================================
+@@ -177,7 +177,7 @@
+         "1", "1", "1", "1",
+     "2", "7",
+     "99",
+-    "supply_air°supply_ground", "supply_air°supply_ground", "supply_air°supply_ground", "supply_air°supply_ground",
++    "supply_air\xB0supply_ground", "supply_air\xB0supply_ground", "supply_air\xB0supply_ground", "supply_air\xB0supply_ground",
+     
+     "t", "Town",
+     "pg/town.bmp", "default", "pg/town_rain.bmp", "pg/town_snow.bmp",
+@@ -192,7 +192,7 @@
+         "1", "1", "1", "1",
+     "3", "8",
+     "1",
+-    "inf_close_def°supply_ground", "inf_close_def°supply_ground", "inf_close_def°supply_ground", "inf_close_def°supply_ground",
++    "inf_close_def\xB0supply_ground", "inf_close_def\xB0supply_ground", "inf_close_def\xB0supply_ground", "inf_close_def\xB0supply_ground",
+     
+     "o", "Ocean",
+     "pg/ocean.bmp", "default", "pg/ocean_rain.bmp", "pg/ocean_snow.bmp",
+@@ -282,8 +282,8 @@
+         "1", "1", "1", "1",
+     "3", "8",
+     "5",
+-    "inf_close_def°supply_ground°supply_ships", "inf_close_def°supply_ground°supply_ships", 
+-    "inf_close_def°supply_ground°supply_ships", "inf_close_def°supply_ground°supply_ships"
++    "inf_close_def\xB0supply_ground\xB0supply_ships", "inf_close_def\xB0supply_ground\xB0supply_ships", 
++    "inf_close_def\xB0supply_ground\xB0supply_ships", "inf_close_def\xB0supply_ground\xB0supply_ships"
+     
+ };
+ /*
+@@ -443,44 +443,44 @@
+     fprintf( file, "@\n" );
+     fprintf( file, "<weather\n" );
+     for ( i = 0; i < WEATHER_TYPE_COUNT; i++ )
+-        fprintf( file, "<%s\nname»%s\nflags»%s\n>\n", 
++        fprintf( file, "<%s\nname\xBB%s\nflags\xBB%s\n>\n", 
+                  weather_types[i * 3], weather_types[i * 3 + 1], weather_types[i * 3 + 2] );
+     fprintf( file, ">\n" );
+     /* additional graphics and sounds */
+-    fprintf( file, "hex_width»60\nhex_height»50\nhex_x_offset»45\nhex_y_offset»25\n" );
+-    fprintf( file, "fog»pg/fog.bmp\ngrid»pg/grid.bmp\nframe»pg/select_frame.bmp\n" );
+-    fprintf( file, "crosshair»pg/crosshair.bmp\nexplosion»pg/explosion.bmp\ndamage_bar»pg/damage_bars.bmp\n" );
+-    fprintf( file, "explosion_sound»pg/explosion.wav\nselect_sound»pg/select.wav\n" );
++    fprintf( file, "hex_width\xBB60\nhex_height\xBB50\nhex_x_offset\xBB45\nhex_y_offset\xBB25\n" );
++    fprintf( file, "fog\xBBpg/fog.bmp\ngrid\xBBpg/grid.bmp\nframe\xBBpg/select_frame.bmp\n" );
++    fprintf( file, "crosshair\xBBpg/crosshair.bmp\nexplosion\xBBpg/explosion.bmp\ndamage_bar\xBBpg/damage_bars.bmp\n" );
++    fprintf( file, "explosion_sound\xBBpg/explosion.wav\nselect_sound\xBBpg/select.wav\n" );
+     /* terrain types */
+     fprintf( file, "<terrain\n" );
+     for ( i = 0; i < TERRAIN_TYPE_COUNT; i++ ) {
+         fprintf( file, "<%s\n", terrain_types[i * TERRAIN_ENTRY_COUNT] );
+-        fprintf( file, "name»%s\n", terrain_types[i * TERRAIN_ENTRY_COUNT + 1] );
++        fprintf( file, "name\xBB%s\n", terrain_types[i * TERRAIN_ENTRY_COUNT + 1] );
+         fprintf( file, "<image\n" );
+         for ( j = 0; j < WEATHER_TYPE_COUNT; j++ )
+-            fprintf( file, "%s»%s\n", weather_types[j * 3], terrain_types[i * TERRAIN_ENTRY_COUNT + 2 + j] );
++            fprintf( file, "%s\xBB%s\n", weather_types[j * 3], terrain_types[i * TERRAIN_ENTRY_COUNT + 2 + j] );
+         fprintf( file, ">\n" );
+         fprintf( file, "<spot_cost\n" );
+         for ( j = 0; j < WEATHER_TYPE_COUNT; j++ )
+-            fprintf( file, "%s»%s\n", weather_types[j * 3], 
++            fprintf( file, "%s\xBB%s\n", weather_types[j * 3], 
+                      terrain_types[i * TERRAIN_ENTRY_COUNT + 2 + WEATHER_TYPE_COUNT + j] );
+         fprintf( file, ">\n" );
+         fprintf( file, "<move_cost\n" );
+         for ( k = 0; k < move_type_count; k++ ) {
+             fprintf( file, "<%s\n", move_types[k * 3] );
+                 for ( j = 0; j < WEATHER_TYPE_COUNT; j++ )
+-                    fprintf( file, "%s»%s\n", weather_types[j * 3], 
++                    fprintf( file, "%s\xBB%s\n", weather_types[j * 3], 
+                              terrain_types[i * TERRAIN_ENTRY_COUNT + 2 + WEATHER_TYPE_COUNT * ( 2 + k ) + j] );
+             fprintf( file, ">\n" );
+         }
+         fprintf( file, ">\n" );
+-        fprintf( file, "min_entr»%s\nmax_entr»%s\n",
++        fprintf( file, "min_entr\xBB%s\nmax_entr\xBB%s\n",
+                  terrain_types[i * TERRAIN_ENTRY_COUNT + 2 + WEATHER_TYPE_COUNT * ( 2 + move_type_count )],
+                  terrain_types[i * TERRAIN_ENTRY_COUNT + 3 + WEATHER_TYPE_COUNT * ( 2 + move_type_count )]);
+-        fprintf( file, "max_init»%s\n", terrain_types[i * TERRAIN_ENTRY_COUNT + 4 + WEATHER_TYPE_COUNT * ( 2 + move_type_count )] );
++        fprintf( file, "max_init\xBB%s\n", terrain_types[i * TERRAIN_ENTRY_COUNT + 4 + WEATHER_TYPE_COUNT * ( 2 + move_type_count )] );
+         fprintf( file, "<flags\n" );
+         for ( j = 0; j < WEATHER_TYPE_COUNT; j++ )
+-            fprintf( file, "%s»%s\n", weather_types[j * 3],
++            fprintf( file, "%s\xBB%s\n", weather_types[j * 3],
+                      terrain_types[i * TERRAIN_ENTRY_COUNT + 5 + WEATHER_TYPE_COUNT * ( 2 + move_type_count ) + j] );
+         fprintf( file, ">\n" );
+         fprintf( file, ">\n" );
+--- src/units.c	2002-07-15 14:11:38.000000000 -0600
++++ src/units.c	2014-09-10 20:25:51.000000000 -0600
+@@ -122,23 +122,23 @@
+ };
+ char *unit_classes[] = {
+     "inf",      "Infantry",         "infantry",                         
+-    "tank",     "Tank",             "low_entr_rate°tank",                             
+-    "recon",    "Recon",            "recon°tank",                            
++    "tank",     "Tank",             "low_entr_rate\xB0tank",                             
++    "recon",    "Recon",            "recon\xB0tank",                            
+     "antitank", "Anti-Tank",        "anti_tank",                             
+-    "art",      "Artillery",        "artillery°suppr_fire°attack_first",                        
++    "art",      "Artillery",        "artillery\xB0suppr_fire\xB0attack_first",                        
+     "antiair",  "Anti-Aircraft",    "low_entr_rate",
+-    "airdef",   "Air-Defense",      "air_defense°attack_first",                      
+-    "fort",     "Fortification",    "low_entr_rate°suppr_fire",                             
+-    "fighter",  "Fighter",          "interceptor°carrier_ok°flying",    
+-    "tacbomb",  "Tactical Bomber",  "bomber°carrier_ok°flying",         
+-    "levbomb",  "Level Bomber",     "flying°suppr_fire",                           
+-    "sub",      "Submarine",        "swimming°diving",                  
+-    "dest",     "Destroyer",        "destroyer°swimming°suppr_fire",               
+-    "cap",      "Capital Ship",     "swimming°suppr_fire",                         
+-    "carrier",  "Aircraft Carrier", "carrier°swimming",                 
++    "airdef",   "Air-Defense",      "air_defense\xB0attack_first",                      
++    "fort",     "Fortification",    "low_entr_rate\xB0suppr_fire",                             
++    "fighter",  "Fighter",          "interceptor\xB0carrier_ok\xB0flying",    
++    "tacbomb",  "Tactical Bomber",  "bomber\xB0carrier_ok\xB0flying",         
++    "levbomb",  "Level Bomber",     "flying\xB0suppr_fire",                           
++    "sub",      "Submarine",        "swimming\xB0diving",                  
++    "dest",     "Destroyer",        "destroyer\xB0swimming\xB0suppr_fire",               
++    "cap",      "Capital Ship",     "swimming\xB0suppr_fire",                         
++    "carrier",  "Aircraft Carrier", "carrier\xB0swimming",                 
+     "landtrp",  "Land Transport",   "transporter",                      
+-    "airtrp",   "Air Transport",    "transporter°flying",               
+-    "seatrp",   "Sea Transport",    "transporter°swimming",             
++    "airtrp",   "Air Transport",    "transporter\xB0flying",               
++    "seatrp",   "Sea Transport",    "transporter\xB0swimming",             
+ };
+ int move_type_count = 8;
+ char *move_types[] = {
+@@ -365,16 +365,16 @@
+     int i;
+     fprintf( file, "<target_types\n" );
+     for ( i = 0; i < TARGET_TYPE_COUNT; i++ )
+-        fprintf( file, "<%s\nname»%s\n>\n", target_types[i * 2], target_types[i * 2 + 1] );
++        fprintf( file, "<%s\nname\xBB%s\n>\n", target_types[i * 2], target_types[i * 2 + 1] );
+     fprintf( file, ">\n" );
+     fprintf( file, "<move_types\n" );
+     for ( i = 0; i < move_type_count; i++ )
+-        fprintf( file, "<%s\nname»%s\nsound»%s\n>\n", 
++        fprintf( file, "<%s\nname\xBB%s\nsound\xBB%s\n>\n", 
+                  move_types[i * 3], move_types[i * 3 + 1], move_types[i * 3 + 2] );
+     fprintf( file, ">\n" );
+     fprintf( file, "<unit_classes\n" );
+     for ( i = 0; i < UNIT_CLASS_COUNT; i++ )
+-        fprintf( file, "<%s\nname»%s\n>\n", unit_classes[i * 3], unit_classes[i * 3 + 1] );
++        fprintf( file, "<%s\nname\xBB%s\n>\n", unit_classes[i * 3], unit_classes[i * 3 + 1] );
+     fprintf( file, ">\n" );
+ }
+ 
+@@ -425,11 +425,11 @@
+     fread( &entry_count, 2, 1, source_file );
+     if ( custom_name == 0 )
+         fprintf( dest_file, "@\n" ); /* only a new file needs this magic */
+-    fprintf( dest_file, "icons»%s\nicon_type»single\n", tac_icons );
+-    fprintf( dest_file, "strength_icons»pg_strength.bmp\n" );
+-    fprintf( dest_file, "strength_icon_width»16\nstrength_icon_height»12\n" );
+-    fprintf( dest_file, "attack_icon»pg_attack.bmp\n" );
+-    fprintf( dest_file, "move_icon»pg_move.bmp\n" );
++    fprintf( dest_file, "icons\xBB%s\nicon_type\xBBsingle\n", tac_icons );
++    fprintf( dest_file, "strength_icons\xBBpg_strength.bmp\n" );
++    fprintf( dest_file, "strength_icon_width\xBB16\nstrength_icon_height\xBB12\n" );
++    fprintf( dest_file, "attack_icon\xBBpg_attack.bmp\n" );
++    fprintf( dest_file, "move_icon\xBBpg_move.bmp\n" );
+     units_write_classes( dest_file );
+     fprintf( dest_file, "<unit_lib\n" );
+     /* first entry is RESERVED */
+@@ -479,37 +479,37 @@
+         sprintf( flags, unit_classes[entry.class * 3 + 2] );
+         while ( add_flags[i*2][0] != 'X' ) {
+             if ( atoi( add_flags[i * 2] ) == id ) {
+-                strcat( flags, "°" );
++                strcat( flags, "\xB0" );
+                 strcat( flags, add_flags[i * 2 + 1] );
+                 i = -1; break;
+             }
+             i++;
+         }
+         if ( entry.move_type == 3 || entry.move_type == 4 )
+-            strcat( flags, "°air_trsp_ok" );
++            strcat( flags, "\xB0air_trsp_ok" );
+         /* write entry */
+         fprintf( dest_file, "<%i\n", id++ );
+         string_replace_quote( entry.name, buf );
+-        fprintf( dest_file, "name»%s\n", buf );
+-        fprintf( dest_file, "class»%s\n", unit_classes[entry.class * 3] );
+-        fprintf( dest_file, "target_type»%s\n", target_types[entry.target_type * 2] );
+-        fprintf( dest_file, "initiative»%i\n", entry.init );
+-        fprintf( dest_file, "spotting»%i\n", entry.spot );
+-        fprintf( dest_file, "movement»%i\n", entry.move );
+-        fprintf( dest_file, "move_type»%s\n", move_types[entry.move_type * 3] );
+-        fprintf( dest_file, "fuel»%i\n", entry.fuel );
+-        fprintf( dest_file, "range»%i\n", entry.range );
+-        fprintf( dest_file, "ammo»%i\n", entry.ammo );
+-        fprintf( dest_file, "<attack\ncount»1\nsoft»%i\nhard»%i\nair»%i\nnaval»%i\n>\n",
++        fprintf( dest_file, "name\xBB%s\n", buf );
++        fprintf( dest_file, "class\xBB%s\n", unit_classes[entry.class * 3] );
++        fprintf( dest_file, "target_type\xBB%s\n", target_types[entry.target_type * 2] );
++        fprintf( dest_file, "initiative\xBB%i\n", entry.init );
++        fprintf( dest_file, "spotting\xBB%i\n", entry.spot );
++        fprintf( dest_file, "movement\xBB%i\n", entry.move );
++        fprintf( dest_file, "move_type\xBB%s\n", move_types[entry.move_type * 3] );
++        fprintf( dest_file, "fuel\xBB%i\n", entry.fuel );
++        fprintf( dest_file, "range\xBB%i\n", entry.range );
++        fprintf( dest_file, "ammo\xBB%i\n", entry.ammo );
++        fprintf( dest_file, "<attack\ncount\xBB1\nsoft\xBB%i\nhard\xBB%i\nair\xBB%i\nnaval\xBB%i\n>\n",
+                  entry.atk_soft, entry.atk_hard, entry.atk_air, entry.atk_naval );
+-        fprintf( dest_file, "def_ground»%i\n", entry.def_ground );
+-        fprintf( dest_file, "def_air»%i\n", entry.def_air );
+-        fprintf( dest_file, "def_close»%i\n", entry.def_close );
+-        fprintf( dest_file, "flags»%s\n", flags );
+-        fprintf( dest_file, "icon_id»%i\n", entry.pic_id );
+-        fprintf( dest_file, "start_year»19%i\n", entry.year );
+-        fprintf( dest_file, "start_month»%i\n", entry.month );
+-        fprintf( dest_file, "expired»19%i\n", entry.last_year );
++        fprintf( dest_file, "def_ground\xBB%i\n", entry.def_ground );
++        fprintf( dest_file, "def_air\xBB%i\n", entry.def_air );
++        fprintf( dest_file, "def_close\xBB%i\n", entry.def_close );
++        fprintf( dest_file, "flags\xBB%s\n", flags );
++        fprintf( dest_file, "icon_id\xBB%i\n", entry.pic_id );
++        fprintf( dest_file, "start_year\xBB19%i\n", entry.year );
++        fprintf( dest_file, "start_month\xBB%i\n", entry.month );
++        fprintf( dest_file, "expired\xBB19%i\n", entry.last_year );
+         fprintf( dest_file, ">\n" );
+     }
+     fprintf( dest_file, ">\n" );

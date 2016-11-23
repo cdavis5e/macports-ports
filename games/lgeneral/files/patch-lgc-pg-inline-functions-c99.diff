@@ -1,0 +1,11 @@
+--- src/misc.c	2002-07-13 13:27:34.000000000 -0600
++++ src/misc.c	2014-09-10 20:32:03.000000000 -0600
+@@ -55,7 +55,7 @@
+ }
+ 
+ 
+-inline void goto_tile( int *x, int *y, int d )
++static inline void goto_tile( int *x, int *y, int d )
+ {
+     /*  0 -up, clockwise, 5 - left up */
+     switch ( d ) {

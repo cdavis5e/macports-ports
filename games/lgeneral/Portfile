@@ -34,10 +34,24 @@ checksums           ${distname}.tar.gz md5 18b88069c91e7e7c75cc44a9aa90d0d9 \
 depends_lib         lib:libsdl:libsdl \
                     lib:libsdl_mixer:libsdl_mixer
 
+patchfiles          patch-bad-encoding.diff \
+                    patch-inline-functions-c99.diff \
+                    patch-lgc-pg-bad-encoding.diff \
+                    patch-lgc-pg-inline-functions-c99.diff \
+                    patch-src_engine.c-sprintf-no-format-inserts.diff
+
+patch {
+    system "cd ${worksrcpath} && patch -p0 <${filespath}/patch-bad-encoding.diff"
+    system "cd ${worksrcpath} && patch -p0 <${filespath}/patch-inline-functions-c99.diff"
+    system "cd ${worksrcpath} && patch -p0 <${filespath}/patch-src_engine.c-sprintf-no-format-inserts.diff"
+    system "cd ${workpath}/lgc-pg-0.32 && patch -p0 <${filespath}/patch-lgc-pg-bad-encoding.diff"
+    system "cd ${workpath}/lgc-pg-0.32 && patch -p0 <${filespath}/patch-lgc-pg-inline-functions-c99.diff"
+}
+
 configure {
     set conf "CPPFLAGS=-I${prefix}/include CFLAGS=-I${prefix}/include \
         LDFLAGS=-L${prefix}/lib ./configure --prefix=${prefix}"
-    system "cd ${worksrcpath} && ${conf} --disable-sdltest"
+    system "cd ${worksrcpath} && ${conf} --disable-sdltest --disable-dl"
     system "cd ${workpath}/${name}-data-1.1.3 && ${conf}"
     system "cd ${workpath}/lgc-pg-0.32 && ${conf} --disable-sdltest"
     reinplace "s|,-export-dynamic||g" ${worksrcpath}/src/Makefile

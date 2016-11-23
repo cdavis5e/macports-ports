@@ -1,0 +1,57 @@
+--- src/config.c	2002-07-31 09:10:20.000000000 -0600
++++ src/config.c	2014-09-10 17:55:28.000000000 -0600
+@@ -119,20 +119,20 @@
+         fprintf( stderr, "Cannot access config file '%s' to save settings\n", file_name );
+     else {
+         fprintf( file, "@\n" );
+-        fprintf( file, "grid»%i\n", config.grid );
+-        fprintf( file, "tran»%i\n", config.tran );
+-        fprintf( file, "bar»%i\n", config.show_bar );
+-        fprintf( file, "width»%i\n", config.width );
+-        fprintf( file, "height»%i\n", config.height );
+-        fprintf( file, "fullscreen»%i\n", config.fullscreen );
+-        fprintf( file, "supply»%i\n", config.supply );
+-        fprintf( file, "weather»%i\n", config.weather );
+-        fprintf( file, "fog_of_war»%i\n", config.fog_of_war );
+-        fprintf( file, "cpu_turn»%i\n", config.show_cpu_turn );
+-        fprintf( file, "sound_on»%i\n", config.sound_on );
+-        fprintf( file, "sound_volume»%i\n", config.sound_volume );
+-        fprintf( file, "music_on»%i\n", config.music_on );
+-        fprintf( file, "music_volume»%i\n", config.music_volume );
++        fprintf( file, "grid\xBB%i\n", config.grid );
++        fprintf( file, "tran\xBB%i\n", config.tran );
++        fprintf( file, "bar\xBB%i\n", config.show_bar );
++        fprintf( file, "width\xBB%i\n", config.width );
++        fprintf( file, "height\xBB%i\n", config.height );
++        fprintf( file, "fullscreen\xBB%i\n", config.fullscreen );
++        fprintf( file, "supply\xBB%i\n", config.supply );
++        fprintf( file, "weather\xBB%i\n", config.weather );
++        fprintf( file, "fog_of_war\xBB%i\n", config.fog_of_war );
++        fprintf( file, "cpu_turn\xBB%i\n", config.show_cpu_turn );
++        fprintf( file, "sound_on\xBB%i\n", config.sound_on );
++        fprintf( file, "sound_volume\xBB%i\n", config.sound_volume );
++        fprintf( file, "music_on\xBB%i\n", config.music_on );
++        fprintf( file, "music_volume\xBB%i\n", config.music_volume );
+         fclose( file );
+     }
+ }
+--- src/parser.c	2002-07-12 08:35:42.000000000 -0600
++++ src/parser.c	2014-09-10 18:00:16.000000000 -0600
+@@ -467,14 +467,14 @@
+                 /* read values as subsection */
+                 pd = calloc( 1, sizeof( PData ) );
+                 /* check name */
+-                if ( ( cur = strchr( line, '»' ) ) == 0 ) {
+-                    sprintf( parser_sub_error, "parse error: use '»' for assignment or '<' for section" );
++                if ( ( cur = strchr( line, '\xBB' ) ) == 0 ) {
++                    sprintf( parser_sub_error, "parse error: use '\xBB' for assignment or '<' for section" );
+                     return 0;
+                 }
+                 cur[0] = 0; cur++;
+                 pd->name = strdup( line );
+                 /* get values */
+-                pd->values = parser_explode_string( cur, '°' );
++                pd->values = parser_explode_string( cur, '\xB0' );
+                 /* add to section */
+                 list_add( section->entries, pd );
+                 break;

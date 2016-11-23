@@ -1,0 +1,94 @@
+--- src/misc.c	2002-08-08 03:03:59.000000000 -0600
++++ src/misc.c	2014-09-10 18:12:46.000000000 -0600
+@@ -23,41 +23,7 @@
+ 
+ extern int map_w, map_h; /* FIX ME! */
+ 
+-/* compares to strings and returns true if their first strlen(str1) chars are equal */
+-inline int equal_str( char *str1, char *str2 )
+-{
+-    if ( strlen( str1 ) != strlen( str2 ) ) return 0;
+-    return ( !strncmp( str1, str2, strlen( str1 ) ) );
+-}
+-
+-/* set delay to ms milliseconds */
+-inline void set_delay( Delay *delay, int ms )
+-{
+-    delay->limit = ms;
+-    delay->cur = 0;
+-}
+-
+-/* reset delay ( cur = 0 )*/
+-inline void reset_delay( Delay *delay )
+-{
+-    delay->cur = 0;
+-}
+-
+-/* check if times out and reset */
+-inline int timed_out( Delay *delay, int ms )
+-{
+-    delay->cur += ms;
+-    if ( delay->cur >= delay->limit ) {
+-
+-        delay->cur = 0;
+-        return 1;
+-
+-    }
+-    return 0;
+-}
+-
+-
+-inline void goto_tile( int *x, int *y, int d )
++static inline void goto_tile( int *x, int *y, int d )
+ {
+     /*  0 -up, clockwise, 5 - left up */
+     switch ( d ) {
+--- src/misc.h	2002-08-08 03:03:55.000000000 -0600
++++ src/misc.h	2014-09-10 18:12:46.000000000 -0600
+@@ -51,13 +51,30 @@
+ } Delay;
+ 
+ /* set delay to ms milliseconds */
+-inline void set_delay( Delay *delay, int ms );
++static inline void set_delay( Delay *delay, int ms )
++{
++    delay->limit = ms;
++    delay->cur = 0;
++}
+ 
+ /* reset delay ( cur = 0 )*/
+-inline void reset_delay( Delay *delay );
+-
+-/* check if time's out ( add ms milliseconds )and reset */
+-inline int timed_out( Delay *delay, int ms );
++static inline void reset_delay( Delay *delay )
++{
++    delay->cur = 0;
++}
++
++/* check if times out and reset */
++static inline int timed_out( Delay *delay, int ms )
++{
++    delay->cur += ms;
++    if ( delay->cur >= delay->limit ) {
++
++        delay->cur = 0;
++        return 1;
++
++    }
++    return 0;
++}
+ 
+ /* return distance betwteen to map positions */
+ int get_dist( int x1, int y1, int x2, int y2 );
+--- src/sdl.c	2002-08-01 02:29:03.000000000 -0600
++++ src/sdl.c	2014-09-10 18:22:20.000000000 -0600
+@@ -31,7 +31,7 @@
+ /* sdl surface */
+ 
+ /* return full path of bitmap */
+-inline void get_full_bmp_path( char *full_path, char *file_name )
++static inline void get_full_bmp_path( char *full_path, char *file_name )
+ {
+     sprintf(full_path,  "%s/gfx/%s", SRC_DIR, file_name );
+ }
