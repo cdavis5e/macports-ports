@@ -1,0 +1,228 @@
+--- Source/WebKit2/Platform/IPC/Attachment.h~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/Platform/IPC/Attachment.h	2015-10-23 20:31:55.000000000 -0600
+@@ -26,7 +26,7 @@
+ #ifndef Attachment_h
+ #define Attachment_h
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+ #include <mach/mach_init.h>
+ #include <mach/mach_traps.h>
+ #endif
+@@ -42,7 +42,7 @@
+ 
+     enum Type {
+         Uninitialized,
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+         MachPortType,
+ #elif USE(UNIX_DOMAIN_SOCKETS)
+         SocketType,
+@@ -50,7 +50,7 @@
+ #endif
+     };
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+     Attachment(mach_port_name_t port, mach_msg_type_name_t disposition);
+ #elif USE(UNIX_DOMAIN_SOCKETS)
+     Attachment(int fileDescriptor, size_t);
+@@ -59,7 +59,7 @@
+ 
+     Type type() const { return m_type; }
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+     void release();
+ 
+     // MachPortType
+@@ -81,7 +81,7 @@
+ private:
+     Type m_type;
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+     mach_port_name_t m_port;
+     mach_msg_type_name_t m_disposition;
+ #elif USE(UNIX_DOMAIN_SOCKETS)
+--- Source/WebKit2/Platform/IPC/Attachment.cpp~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/Platform/IPC/Attachment.cpp	2015-10-24 00:13:22.000000000 -0600
+@@ -36,7 +36,7 @@
+ {
+ }
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+ Attachment::Attachment(mach_port_name_t port, mach_msg_type_name_t disposition)
+     : m_type(MachPortType)
+     , m_port(port)
+--- Source/WebKit2/Platform/IPC/Connection.h~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/Platform/IPC/Connection.h	2015-10-24 12:35:30.000000000 -0600
+@@ -41,7 +41,7 @@
+ #include <wtf/OwnPtr.h>
+ #include <wtf/text/CString.h>
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+ #include <mach/mach_port.h>
+ #include <xpc/xpc.h>
+ #endif
+@@ -89,7 +89,7 @@
+     class WorkQueueMessageReceiver : public MessageReceiver, public ThreadSafeRefCounted<WorkQueueMessageReceiver> {
+     };
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+     struct Identifier {
+         Identifier()
+             : port(MACH_PORT_NULL)
+@@ -136,7 +136,7 @@
+ 
+     Client* client() const { return m_client; }
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+     void setShouldCloseConnectionOnMachExceptions();
+ #endif
+ 
+@@ -282,7 +282,7 @@
+     typedef HashMap<uint64_t, SecondaryThreadPendingSyncReply*> SecondaryThreadPendingSyncReplyMap;
+     SecondaryThreadPendingSyncReplyMap m_secondaryThreadPendingSyncReplyMap;
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+     // Called on the connection queue.
+     void receiveSourceEventHandler();
+     void initializeDeadNameSource();
+--- Source/WebKit2/Platform/SharedMemory.h~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/Platform/SharedMemory.h	2015-10-24 17:34:43.000000000 -0600
+@@ -66,7 +66,7 @@
+ #endif
+     private:
+         friend class SharedMemory;
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+         mutable mach_port_t m_port;
+ #elif USE(UNIX_DOMAIN_SOCKETS)
+         mutable int m_fileDescriptor;
+@@ -102,7 +102,7 @@
+     void* m_data;
+     bool m_shouldVMDeallocateData;
+ 
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+     mach_port_t m_port;
+ #elif USE(UNIX_DOMAIN_SOCKETS)
+     int m_fileDescriptor;
+--- Source/WebKit2/Shared/ChildProcessProxy.cpp~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/Shared/ChildProcessProxy.cpp	2015-10-24 18:00:18.000000000 -0600
+@@ -122,7 +122,7 @@
+     ASSERT(!m_connection);
+ 
+     m_connection = IPC::Connection::createServerConnection(connectionIdentifier, this, RunLoop::main());
+-#if OS(DARWIN)
++#if OS(DARWIN) && !USE(UNIX_DOMAIN_SOCKETS)
+     m_connection->setShouldCloseConnectionOnMachExceptions();
+ #endif
+ 
+--- Source/WebKit2/UIProcess/API/C/WKNativeEvent.h~	2015-03-04 00:19:43.000000000 -0700
++++ Source/WebKit2/UIProcess/API/C/WKNativeEvent.h	2015-10-24 19:06:01.000000000 -0600
+@@ -34,7 +34,10 @@
+ extern "C" {
+ #endif
+ 
+-#if defined(__APPLE__) && !TARGET_OS_IPHONE
++#if defined(BUILDING_GTK__)
++typedef union _GdkEvent GdkEvent;
++typedef const GdkEvent* WKNativeEventPtr;
++#elif defined(__APPLE__) && !TARGET_OS_IPHONE
+ #ifdef __OBJC__
+ @class NSEvent;
+ #elif __cplusplus
+@@ -43,9 +46,6 @@
+ struct NSEvent;
+ #endif
+ typedef NSEvent *WKNativeEventPtr;
+-#elif defined(BUILDING_GTK__)
+-typedef union _GdkEvent GdkEvent;
+-typedef const GdkEvent* WKNativeEventPtr;
+ #else
+ typedef const void* WKNativeEventPtr;
+ #endif
+--- Source/WebKit2/Platform/WorkQueue.h~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/Platform/WorkQueue.h	2015-10-24 20:13:00.000000000 -0600
+@@ -27,10 +27,6 @@
+ #ifndef WorkQueue_h
+ #define WorkQueue_h
+ 
+-#if OS(DARWIN)
+-#include <dispatch/dispatch.h>
+-#endif
+-
+ #include <chrono>
+ #include <functional>
+ #include <wtf/Forward.h>
+@@ -50,6 +46,8 @@
+ typedef gboolean (*GSourceFunc) (gpointer data);
+ #elif PLATFORM(EFL)
+ #include <DispatchQueueEfl.h>
++#elif OS(DARWIN)
++#include <dispatch/dispatch.h>
+ #endif
+ 
+ class WorkQueue : public ThreadSafeRefCounted<WorkQueue> {
+@@ -60,14 +58,14 @@
+     void dispatch(std::function<void ()>);
+     void dispatchAfter(std::chrono::nanoseconds, std::function<void ()>);
+ 
+-#if OS(DARWIN)
+-    dispatch_queue_t dispatchQueue() const { return m_dispatchQueue; }
+-#elif PLATFORM(GTK)
++#if PLATFORM(GTK)
+     void registerSocketEventHandler(int, std::function<void ()>, std::function<void ()>);
+     void unregisterSocketEventHandler(int);
+ #elif PLATFORM(EFL)
+     void registerSocketEventHandler(int, std::function<void ()>);
+     void unregisterSocketEventHandler(int);
++#elif OS(DARWIN)
++    dispatch_queue_t dispatchQueue() const { return m_dispatchQueue; }
+ #endif
+ 
+ private:
+@@ -76,10 +74,7 @@
+     void platformInitialize(const char* name);
+     void platformInvalidate();
+ 
+-#if OS(DARWIN)
+-    static void executeFunction(void*);
+-    dispatch_queue_t m_dispatchQueue;
+-#elif PLATFORM(GTK)
++#if PLATFORM(GTK)
+     class EventSource;
+     class SocketEventSource;
+ 
+@@ -95,6 +90,9 @@
+     HashMap<int, Vector<SocketEventSource*>> m_eventSources;
+ #elif PLATFORM(EFL)
+     RefPtr<DispatchQueue> m_dispatchQueue;
++#elif OS(DARWIN)
++    static void executeFunction(void*);
++    dispatch_queue_t m_dispatchQueue;
+ #endif
+ };
+ 
+--- Source/autotools/FindDependencies.m4~	2015-10-24 00:15:28.000000000 -0600
++++ Source/autotools/FindDependencies.m4	2015-10-24 22:11:15.000000000 -0600
+@@ -534,8 +534,11 @@
+ 
+     # On some Linux/Unix platforms, shm_* may only be available if linking against librt
+     if test "$os_win32" = "no"; then
+-        AC_SEARCH_LIBS([shm_open], [rt], [SHM_LIBS="-lrt"])
++        ac_save_LIBS="$LIBS"
++        LIBS=""
++        AC_SEARCH_LIBS([shm_open], [rt], [SHM_LIBS="$LIBS"])
+         AC_SUBST(SHM_LIBS)
++        LIBS="$ac_save_LIBS"
+     fi
+ fi
+ 

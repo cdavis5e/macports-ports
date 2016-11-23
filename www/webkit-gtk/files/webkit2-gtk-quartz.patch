@@ -1,0 +1,31 @@
+--- Source/WebKit2/Shared/API/c/WKBase.h~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/Shared/API/c/WKBase.h	2015-05-30 15:15:54.000000000 -0600
+@@ -42,7 +42,7 @@
+ #include <WebKit2/WKBaseEfl.h>
+ #endif
+ 
+-#if defined(__APPLE__)
++#if defined(__APPLE__) && !defined(BUILDING_GTK__)
+ #include <WebKit2/WKBaseMac.h>
+ #endif
+ 
+--- Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp~	2015-05-20 03:03:25.000000000 -0600
++++ Source/WebKit2/PluginProcess/unix/PluginProcessMainUnix.cpp	2015-10-24 21:25:48.000000000 -0600
+@@ -49,7 +49,7 @@
+ 
+ namespace WebKit {
+ 
+-#ifdef XP_UNIX
++#if defined(XP_UNIX) && PLUGIN_ARCHITECTURE(X11)
+ 
+ #if !LOG_DISABLED
+ static const char xErrorString[] = "The program '%s' received an X Window System error.\n"
+@@ -104,7 +104,7 @@
+     // Plugins can produce X errors that are handled by the GDK X error handler, which
+     // exits the process. Since we don't want to crash due to plugin bugs, we install a
+     // custom error handler to show a warning when a X error happens without aborting.
+-#if defined(XP_UNIX)
++#if defined(XP_UNIX) && PLUGIN_ARCHITECTURE(X11)
+     programName = basename(argv[0]);
+     XSetErrorHandler(webkitXError);
+ #endif

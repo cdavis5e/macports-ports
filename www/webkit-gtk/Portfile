@@ -86,7 +86,9 @@ patchfiles          clang-assertions.patch \
                     patch-support-arm64.diff \
                     patch-icu-68-true-false.diff \
                     patch-cxx17.diff \
-                    patch-fix-xml.diff
+                    patch-fix-xml.diff \
+                    webkit2-gtk-darwin.patch \
+                    webkit2-gtk-quartz.patch
 
 conflicts_build     google-test
 
@@ -98,10 +100,8 @@ configure.cxxflags-append   -std=c++17 -Wno-error=register
 configure.perl      /usr/bin/perl
 configure.python    ${prefix}/bin/python2.7
 
-# --disable-webkit2: https://bugs.webkit.org/show_bug.cgi?id=126416
 # --disable-jit: https://bugs.webkit.org/show_bug.cgi?id=133293
-configure.args      --disable-webkit2 \
-                    --enable-x11-target=yes \
+configure.args      --enable-x11-target=yes \
                     --enable-quartz-target=no \
                     --enable-wayland-target=no \
                     --enable-introspection \
@@ -148,7 +148,8 @@ subport webkit-gtk3 {
 if {${name} eq ${subport}} {
     conflicts webkit-gtk-2.0
     depends_lib-append      path:lib/pkgconfig/gtk+-2.0.pc:gtk2
-    configure.args-append   --with-gtk=2.0
+    configure.args-append   --with-gtk=2.0 \
+                            --disable-webkit2
 }
 
 # https://bugs.webkit.org/show_bug.cgi?id=94488
