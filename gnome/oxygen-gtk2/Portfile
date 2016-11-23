@@ -67,6 +67,8 @@ depends_lib-append  port:xorg-libX11 \
                     path:lib/pkgconfig/cairo.pc:cairo \
                     port:dbus
 
+patchfiles          patch-src_oxygencairoutils.cpp-cairo-xlib.diff
+
 post-configure {
     # Default libraries extension is ".dylib" on Darwin, not ".so", but gtk-engines must have a .so extension
     # NB: replacing the extension post-destroot seems to work too, but this seems cleaner to me even if more complicated.

@@ -1,0 +1,11 @@
+--- src/oxygencairoutils.cpp	2014-04-10 00:40:28.000000000 -0600
++++ src/oxygencairoutils.cpp	2015-06-20 15:47:23.000000000 -0600
+@@ -22,7 +22,7 @@
+ #include "oxygencairocontext.h"
+ #include "oxygenrgba.h"
+ 
+-#ifdef GDK_WINDOWING_X11
++#ifdef CAIRO_HAS_XLIB_SURFACE
+ #include <cairo/cairo-xlib.h>
+ #endif
+ 
