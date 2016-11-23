@@ -289,6 +289,10 @@ variant assertions description "Enable assertions for error detection (has perfo
     configure.args-append --enable-assertions
 }
 
+variant debug description {Enable debug binaries} {
+    configure.args-replace --disable-debug-symbols --enable-debug-symbols
+}
+
 platform darwin {
     if {${build_arch} eq "i386"} {
         configure.pre_args-append --build=i686-apple-darwin${os.major}
