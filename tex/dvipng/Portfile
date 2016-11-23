@@ -25,6 +25,8 @@ checksums       rmd160  a4ece1d7d5ec0359d67fe3de9d9408c174fe06d8 \
 
 extract.mkdir   yes
 
+installs_libs   no
+
 depends_build   port:ghostscript \
                 port:texinfo
 depends_lib     port:gd2 \
