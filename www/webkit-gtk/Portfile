@@ -100,7 +100,6 @@ configure.cxxflags-append   -std=c++17 -Wno-error=register
 configure.perl      /usr/bin/perl
 configure.python    ${prefix}/bin/python2.7
 
-# --disable-jit: https://bugs.webkit.org/show_bug.cgi?id=133293
 configure.args      --enable-x11-target=yes \
                     --enable-quartz-target=no \
                     --enable-wayland-target=no \
@@ -109,8 +108,7 @@ configure.args      --enable-x11-target=yes \
                     --disable-web-audio \
                     --enable-svg \
                     --enable-geolocation \
-                    --enable-webgl \
-                    --disable-jit
+                    --enable-webgl
 
 subport webkit-gtk3 {
     conflicts webkit-gtk3-2.0
