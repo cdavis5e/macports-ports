@@ -23,7 +23,8 @@ long_description        Aspell is a spell checker designed to eventually replace
 
 master_sites            gnu freebsd
 
-depends_lib             port:gettext port:texinfo port:ncurses
+depends_lib             port:gettext port:ncurses
+depends_run             port:texinfo
 
 # Teach glibtool to pass -stdlib at link time.
 use_autoreconf          yes
