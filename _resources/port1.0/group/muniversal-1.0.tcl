@@ -783,6 +783,11 @@ variant universal {
                                             ui_debug "universal: merge: ${prefixDir}/${fl} differs in ${base1} and ${base2}; assume trivial difference"
                                             copy ${dir1}/${fl} ${dir}
                                         }
+                                        *.pickle {
+                                            # Python pickle files should be the same across architectures
+                                            ui_debug "universal: merge: ${prefixDir}/${fl} differs in ${base1} and ${base2}; assume trivial difference"
+                                            copy ${dir1}/${fl} ${dir}
+                                        }
                                         *.lzma -
                                         *.xz -
                                         *.gz -
