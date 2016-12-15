@@ -777,6 +777,12 @@ variant universal {
                                             ui_debug "universal: merge: ${prefixDir}/${fl} differs in ${base1} and ${base2}; assume trivial difference"
                                             copy ${dir1}/${fl} ${dir}
                                         }
+                                        *.doctree {
+                                            # Sphinx doctree files should be the same across architectures
+                                            # the timestamp and path is recorded, however
+                                            ui_debug "universal: merge: ${prefixDir}/${fl} differs in ${base1} and ${base2}; assume trivial difference"
+                                            copy ${dir1}/${fl} ${dir}
+                                        }
                                         *.lzma -
                                         *.xz -
                                         *.gz -
