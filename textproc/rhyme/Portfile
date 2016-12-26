@@ -34,12 +34,15 @@ variant universal {}
 
 configure.cppflags-append \
                         -I${prefix}/include/readline
+configure.ldflags-append \
+                        -L${prefix}/lib -lgdbm -lreadline -ltermcap
 
 use_parallel_build      no
 build.args-append       PREFIX=${prefix}   \
                         CC=${configure.cc} \
                         FLAGS="${configure.cflags} [get_canonical_archflags cc]" \
-                        INCLUDES="${configure.cppflags}"
+                        INCLUDES="${configure.cppflags}" \
+                        LIBS="${configure.ldflags}"
 
 destroot.args-append    PREFIX=${prefix}
 
