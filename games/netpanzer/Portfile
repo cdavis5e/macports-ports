@@ -25,7 +25,9 @@ use_bzip2           yes
 
 patchfiles          patch-fd_set.diff \
                     patch-msg_nosignal.diff \
-                    patch-sockaddr.diff
+                    patch-sockaddr.diff \
+                    patch-_Bit_reference.diff \
+					patch-QueueTemplate-strict.diff
 
 depends_build       port:jam
 depends_lib         port:libsdl_net \

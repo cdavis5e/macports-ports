@@ -1,0 +1,17 @@
+--- src/Lib/optionmm/command_line.hpp~	2007-05-26 00:35:52.000000000 -0600
++++ src/Lib/optionmm/command_line.hpp	2015-10-15 23:16:55.000000000 -0600
+@@ -212,7 +212,13 @@
+     {
+         x = !x;
+     }
+-#if defined(__GNUC__) && __GNUC__ >= 2
++#if defined(_LIBCPP_VERSION)
++    template<typename C>
++    inline void operator()(std::__bit_reference<C> x)
++    {
++        x.flip();
++    }
++#elif defined(__GNUC__) && __GNUC__ >= 2
+     inline void operator()(std::_Bit_reference x)
+     {
+         x.flip();
