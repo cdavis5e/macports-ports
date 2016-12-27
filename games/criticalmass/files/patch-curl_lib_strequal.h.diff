@@ -1,0 +1,11 @@
+--- curl/lib/strequal.h~	2005-07-14 21:48:35.000000000 -0600
++++ curl/lib/strequal.h	2014-11-20 10:12:23.000000000 -0700
+@@ -37,7 +37,7 @@
+ 
+ #ifndef HAVE_STRLCAT
+ #define strlcat(x,y,z) Curl_strlcat(x,y,z)
++size_t Curl_strlcat(char *dst, const char *src, size_t siz);
+ #endif
+-size_t strlcat(char *dst, const char *src, size_t siz);
+ 
+ #endif

@@ -1,0 +1,217 @@
+--- utils/ResourceManager.hpp~	2015-07-21 13:11:48.000000000 -0600
++++ utils/ResourceManager.hpp	2015-07-21 13:28:46.000000000 -0600
+@@ -71,7 +71,7 @@
+     string _openFilename;
+     ifstream _infile;
+     ziStream *_activeInput;
+-    hash_map< const string, DirectoryEntry*, __gnu_cxx::hash<const string>, equal_to<const string> > _dirEntryMap;
++    hash_map< string, DirectoryEntry*, __gnu_cxx::hash<string>, equal_to<string> > _dirEntryMap;
+     string::size_type _baseLen;
+ };
+ 
+--- utils/FindHash.hpp~	2015-07-21 13:11:48.000000000 -0600
++++ utils/FindHash.hpp	2015-07-21 13:29:28.000000000 -0600
+@@ -20,7 +20,7 @@
+     _KeyT &trigger, 
+     hash_map< _KeyT, _ValT*, __gnu_cxx::hash<_KeyT>, equal_to<_KeyT> > & hashMap )
+ {
+-    typename hash_map< _KeyT, _ValT*, __gnu_cxx::hash<_KeyT> >::const_iterator ci;
++    typename hash_map< _KeyT, _ValT*, __gnu_cxx::hash<_KeyT>, equal_to<_KeyT> >::const_iterator ci;
+     ci = hashMap.find( trigger);
+     if( ci == hashMap.end())
+     {
+@@ -35,7 +35,7 @@
+     const _KeyT &trigger, 
+     hash_map< _KeyT, _ValT*, __gnu_cxx::hash<_KeyT>, equal_to<_KeyT> > & hashMap )
+ {
+-    typename hash_map< const _KeyT, _ValT*, __gnu_cxx::hash<const _KeyT> >::const_iterator ci;
++    typename hash_map< _KeyT, _ValT*, __gnu_cxx::hash<_KeyT>, equal_to<_KeyT> >::const_iterator ci;
+     ci = hashMap.find( trigger);
+     if( ci == hashMap.end())
+     {
+--- utils/ResourceManager.cpp~	2015-07-21 13:11:48.000000000 -0600
++++ utils/ResourceManager.cpp	2015-07-21 13:32:21.000000000 -0600
+@@ -31,7 +31,7 @@
+ //Destroy resource manager
+ ResourceManager::~ResourceManager()
+ {
+-    hash_map< const string, DirectoryEntry*, __gnu_cxx::hash<const string> >::const_iterator ci;
++    hash_map< string, DirectoryEntry*, __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+     for( ci=_dirEntryMap.begin(); ci!=_dirEntryMap.end(); ci++)
+     {
+         delete ci->second;
+@@ -285,7 +285,7 @@
+ 
+ void ResourceManager::getResourceList( list<string> &rNameList)
+ {
+-    hash_map< const string, DirectoryEntry*, __gnu_cxx::hash<const string> >::const_iterator ci;
++    hash_map< string, DirectoryEntry*, __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+     for( ci=_dirEntryMap.begin(); ci!=_dirEntryMap.end(); ci++)
+     {
+         rNameList.insert( rNameList.end(), ci->second->resourceName);
+@@ -297,7 +297,7 @@
+     int totalOrig = 0;
+     int totalComp = 0;
+ 
+-    hash_map< const string, DirectoryEntry*, __gnu_cxx::hash<const string> >::const_iterator ci;
++    hash_map< string, DirectoryEntry*, __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+     for( ci=_dirEntryMap.begin(); ci!=_dirEntryMap.end(); ci++)
+     {
+         DirectoryEntry &di = *(ci->second);
+--- utilsgl/GLBitmapCollection.hpp~	2015-07-21 13:11:48.000000000 -0600
++++ utilsgl/GLBitmapCollection.hpp	2015-07-21 14:26:20.000000000 -0600
+@@ -133,7 +133,7 @@
+     unsigned int _bitmapCount;
+     float _textureSize;
+ 
+-    hash_map< const string, BitmapInfo*, __gnu_cxx::hash<const string>, equal_to<const string> > _bitmapInfoMap;
++    hash_map< string, BitmapInfo*, __gnu_cxx::hash<string>, equal_to<string> > _bitmapInfoMap;
+ 
+ private:
+     GLBitmapCollection( const GLBitmapCollection&);
+--- utils/ResourceCache.hpp~	2015-07-21 13:11:48.000000000 -0600
++++ utils/ResourceCache.hpp	2015-07-21 14:39:29.000000000 -0600
+@@ -60,7 +60,7 @@
+     }
+     virtual ~ResourceCache()
+     {
+-	typename hash_map< const string, ResourceT*, __gnu_cxx::hash<const string>, equal_to<const string> >::const_iterator ci;
++	typename hash_map< string, ResourceT*, __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+ 	for( ci=_resourceMap.begin(); ci!=_resourceMap.end(); ci++)
+ 	{
+ 	    ResourceT *res = ci->second;
+@@ -70,7 +70,7 @@
+     }
+ 
+     virtual ResourceT *load( const string &resource) = 0;
+-    hash_map< const string, ResourceT*, __gnu_cxx::hash<const string>, equal_to<const string> > _resourceMap;
++    hash_map< string, ResourceT*, __gnu_cxx::hash<string>, equal_to<string> > _resourceMap;
+ 
+ private:
+     ResourceCache( const ResourceCache&);
+--- game/BitmapManager.cpp~	2015-07-21 13:11:48.000000000 -0600
++++ game/BitmapManager.cpp	2015-07-21 14:41:40.000000000 -0600
+@@ -29,7 +29,7 @@
+ void BitmapManager::reload( void)
+ {
+     XTRACE();
+-    hash_map< const string, GLBitmapCollection*, __gnu_cxx::hash<const string> >::const_iterator ci;
++    hash_map< string, GLBitmapCollection*, __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+     for( ci=_resourceMap.begin(); ci!=_resourceMap.end(); ci++)
+     {
+ 	GLBitmapCollection *bitmap = ci->second;
+--- game/FontManager.cpp~	2015-07-21 13:11:48.000000000 -0600
++++ game/FontManager.cpp	2015-07-21 14:48:02.000000000 -0600
+@@ -28,7 +28,7 @@
+ void FontManager::reload( void)
+ {
+     XTRACE();
+-    hash_map< const string, GLBitmapFont*, __gnu_cxx::hash<const string> >::const_iterator ci;
++    hash_map< string, GLBitmapFont*, __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+     for( ci=_resourceMap.begin(); ci!=_resourceMap.end(); ci++)
+     {
+ 	GLBitmapFont *font = ci->second;
+--- game/ParticleGroupManager.hpp~	2015-07-21 13:11:48.000000000 -0600
++++ game/ParticleGroupManager.hpp	2015-07-21 14:50:22.000000000 -0600
+@@ -47,7 +47,7 @@
+     ParticleGroupManager &operator=(const ParticleGroupManager&);
+ 
+     hash_map< 
+-        const string, ParticleGroup*, __gnu_cxx::hash<const string>, equal_to<const string> > _particleGroupMap;
++        string, ParticleGroup*, __gnu_cxx::hash<string>, equal_to<string> > _particleGroupMap;
+     list<ParticleGroup*> _particleGroupList;
+ 
+     struct LinkedParticleGroup
+--- game/ParticleGroup.hpp~	2015-07-21 13:11:48.000000000 -0600
++++ game/ParticleGroup.hpp	2015-07-21 14:53:19.000000000 -0600
+@@ -86,7 +86,7 @@
+ 
+     static void destroyParticleTypes( void)
+     {
+-	hash_map< const string, ParticleType*, __gnu_cxx::hash<const string> >::const_iterator ci;
++	hash_map< string, ParticleType*, __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+ 	for( ci=_particleTypeMap.begin(); ci!=_particleTypeMap.end(); ci++)
+ 	{
+ 	    //don't delete hero!
+@@ -100,11 +100,11 @@
+     ParticleGroup( const ParticleGroup&);
+     ParticleGroup &operator=(const ParticleGroup&);
+ 
+-    ParticleType * getParticleType( const string particleTypeName);
++    ParticleType * getParticleType( const string &particleTypeName);
+ 
+     //All Particle manager share the particleTypeMap
+     static hash_map< 
+-        const string, ParticleType*, __gnu_cxx::hash<const string>, equal_to<const string> > _particleTypeMap;
++        string, ParticleType*, __gnu_cxx::hash<string>, equal_to<string> > _particleTypeMap;
+ 
+     ParticleInfo *_particles;
+ 
+--- game/ParticleGroup.cpp~	2015-07-21 13:11:48.000000000 -0600
++++ game/ParticleGroup.cpp	2015-07-21 14:53:49.000000000 -0600
+@@ -17,7 +17,7 @@
+ #include <ParticleGroup.hpp>
+ #include <FindHash.hpp>
+ 
+-hash_map< const string, ParticleType*, __gnu_cxx::hash<const string>, equal_to<const string> > 
++hash_map< string, ParticleType*, __gnu_cxx::hash<string>, equal_to<string> > 
+     ParticleGroup::_particleTypeMap;
+ 
+ ParticleGroup::ParticleGroup( const string &groupName, int numParticles):
+@@ -299,7 +299,7 @@
+     }
+ }
+ 
+-ParticleType * ParticleGroup::getParticleType( const string particleTypeName)
++ParticleType * ParticleGroup::getParticleType( const string &particleTypeName)
+ {
+ //    XTRACE();
+     ParticleType * particleType = findHash( particleTypeName, _particleTypeMap);
+--- game/SampleManager.cpp~	2015-07-21 13:11:48.000000000 -0600
++++ game/SampleManager.cpp	2015-07-21 14:56:18.000000000 -0600
+@@ -30,7 +30,7 @@
+     //need to override base destructor behaviour, since we need
+     //to Mix_FreeChunk not delete.
+     
+-    hash_map< const string, Mix_Chunk*, __gnu_cxx::hash<const string> >::const_iterator ci;
++    hash_map< string, Mix_Chunk*, __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+     for( ci=_resourceMap.begin(); ci!=_resourceMap.end(); ci++)
+     {
+ 	Mix_Chunk *res = ci->second;
+--- game/SelectableFactory.hpp~	2015-07-21 13:11:48.000000000 -0600
++++ game/SelectableFactory.hpp	2015-07-21 14:59:27.000000000 -0600
+@@ -40,7 +40,7 @@
+     virtual ~SelectableFactory() {}
+ 
+     static hash_map< 
+-        const string, SelectableFactory*, __gnu_cxx::hash<const string>, equal_to<const string> > _sfMap;
++        string, SelectableFactory*, __gnu_cxx::hash<string>, equal_to<string> > _sfMap;
+ 
+     void posToPoint2D( const string &pos, Point2D &point);
+     string getAttribute( const TiXmlElement* elem, string attr);
+--- game/SelectableFactory.cpp~	2015-07-21 13:11:48.000000000 -0600
++++ game/SelectableFactory.cpp	2015-07-21 14:59:12.000000000 -0600
+@@ -15,9 +15,9 @@
+ #include <SelectableFactory.hpp>
+ 
+ hash_map< 
+-    const string, 
++    string, 
+     SelectableFactory*, 
+-    __gnu_cxx::hash<const string>, equal_to<const string> > SelectableFactory::_sfMap;
++    __gnu_cxx::hash<string>, equal_to<string> > SelectableFactory::_sfMap;
+ 
+ bool SelectableFactory::_initialized = false;
+ 
+@@ -42,9 +42,9 @@
+ 
+ void SelectableFactory::cleanup( void)
+ {
+-    hash_map< const string, 
++    hash_map< string, 
+               SelectableFactory*, 
+-	      __gnu_cxx::hash<const string> >::const_iterator ci;
++	      __gnu_cxx::hash<string>, equal_to<string> >::const_iterator ci;
+     for( ci=_sfMap.begin(); ci!=_sfMap.end(); ci++)
+     {
+ 	SelectableFactory *sf = ci->second;

@@ -1,0 +1,11 @@
+--- tools/Packer.cpp~	2015-07-21 13:11:48.000000000 -0600
++++ tools/Packer.cpp	2015-07-21 14:35:10.000000000 -0600
+@@ -19,7 +19,7 @@
+ //OS dependent seperator
+ const char PATH_SEPERATOR = '/';
+ 
+-bool operator<( DirectoryEntry &de1, DirectoryEntry &de2)
++bool operator<( const DirectoryEntry &de1, const DirectoryEntry &de2)
+ {
+     return( de1.resourceName < de2.resourceName);
+ }

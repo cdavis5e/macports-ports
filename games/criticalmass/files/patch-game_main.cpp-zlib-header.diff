@@ -1,0 +1,11 @@
+--- game/main.cpp~	2006-06-29 21:46:11.000000000 -0600
++++ game/main.cpp	2015-07-21 15:06:09.000000000 -0600
+@@ -25,6 +25,8 @@
+ #include <GetDataPath.hpp>
+ #include <OnlineUpdate.hpp>
+ 
++#include <zlib.h> //needed for zlibVersion
++
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ 

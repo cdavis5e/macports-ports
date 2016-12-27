@@ -29,7 +29,11 @@ depends_lib     port:libsdl \
 
 patchfiles      patch-configure.diff patch-utils_GetDataPath.hpp.diff \
                 patch-defines.h.in.diff patch-tools_Packer.cpp.diff \
-                patch-tools_Makefile.in.diff
+                patch-tools_Makefile.in.diff patch-curl_lib_strequal.h.diff \
+                patch-hash-qualification.diff patch-deconstification.diff \
+                patch-game_main.cpp-zlib-header.diff \
+                patch-tools_Packer.cpp-const-args.diff \
+                patch-utilssdl_PNG.cpp-new-libpng.diff
 
 configure.args  --mandir=${prefix}/share/man
 
