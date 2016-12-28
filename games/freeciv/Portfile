@@ -80,7 +80,7 @@ if {${name} eq ${subport}} {
                             port:libsdl_gfx \
                             port:libsdl_image \
                             port:libsdl_ttf
-        configure.args-append   --enable-client=sdl
+        configure.args-append   --enable-client=sdl --enable-fcmp=cli
         app.executable          freeciv-sdl
     }
 
