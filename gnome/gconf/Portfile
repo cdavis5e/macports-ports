@@ -73,11 +73,13 @@ variant openldap description {Enable support for openldap} {
 variant quartz conflicts x11 {}
 variant x11 conflicts quartz {}
 
-if {![variant_isset quartz]} {
+if {[variant_isset x11]} {
         require_active_variants gtk3 x11 quartz
-        default_variants +x11
-} else {
+}
+if {[variant_isset quartz]} {
         require_active_variants gtk3 quartz x11
+} else {
+        default_variants +x11
 }
 
 post-activate {
