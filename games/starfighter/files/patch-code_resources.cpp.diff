@@ -1,0 +1,45 @@
+--- code/resources.cpp.orig	2014-12-17 12:51:57.000000000 -0700
++++ code/resources.cpp	2014-12-17 13:24:30.000000000 -0700
+@@ -168,7 +168,41 @@
+ 		colors[i].b = blue;
+ 	}
+ 
+-	SDL_SetPalette(image, SDL_LOGPAL|SDL_PHYSPAL, colors, 0, 256);
++	if (!SDL_SetPalette(image, SDL_LOGPAL|SDL_PHYSPAL, colors, 0, 256))
++	{
++		/* This might happen on Mac OS X when SDL_image uses the Image I/O
++		 * framework to load DIB files. Now we have to set all the colors
++		 * ourselves. (Otherwise, the font bitmaps will be all blotchy, and
++		 * certainly not colored.)
++		 */
++		if (SDL_MUSTLOCK(image))
++			if (SDL_LockSurface(image) < 0)
++				return;
++		SDL_PixelFormat *format = image->format;
++		Uint32 cmask = format->Rmask|format->Gmask|format->Bmask;
++		Uint32 black = SDL_MapRGB(format, 0, 0, 0) & cmask;
++		Uint32 mycolor = SDL_MapRGB(format, red, green, blue);
++		for (Uint8 *pixels = reinterpret_cast<Uint8 *>(image->pixels),
++				  *end = pixels + (image->h*image->pitch);
++			 pixels != end;
++			 pixels += format->BytesPerPixel)
++		{
++			if (format->BytesPerPixel == 2)
++			{
++				Uint16 *pix = reinterpret_cast<Uint16 *>(pixels);
++				if ((*pix & cmask) != black)
++					*pix = static_cast<Uint16>(mycolor & 0xFFFF);
++			}
++			else
++			{
++				Uint32 *pix = reinterpret_cast<Uint32 *>(pixels);
++				if ((*pix & cmask) != black)
++					*pix = mycolor;
++			}
++		}
++		if (SDL_MUSTLOCK(image))
++			SDL_UnlockSurface(image);
++	}
+ }
+ 
+ /*

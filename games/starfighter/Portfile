@@ -27,6 +27,7 @@ master_sites            https://download.savannah.gnu.org/releases/starfighter/$
 distname                ${name}-${version}-src
 checksums               rmd160 2d8be37560103d5ed66e711bf423f2dc86c965b9 \
                         sha256 5b8c53ee680ad29558e244b59345fbc7c2100a542d2839dd74e22f84e5858698
+patchfiles              patch-code_resources.cpp.diff
 
 depends_build           port:pkgconfig
 depends_lib             port:libsdl2 \
