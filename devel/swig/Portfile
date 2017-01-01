@@ -105,35 +105,46 @@ subport swig-php {
     # patch to fix finding of "php-configXY"
     patchfiles-append patch-configure.diff
 
-    variant php70 conflicts php71 php72 php73 description {build using PHP 7.0} {
-        depends_lib-replace port:php73 port:php70
-        configure.args-replace --with-php=${prefix}/bin/php73 \
-                               --with-php=${prefix}/bin/php70
+    set php_suffixes {70 71 72 73 74 80 81 82 83}
+
+    set php_ports {}
+    foreach s ${php_suffixes} {
+        lappend php_ports php${s}
     }
 
-    variant php71 conflicts php70 php72 php73 description {build using PHP 7.1} {
-        depends_lib-replace port:php73 port:php71
-        configure.args-replace --with-php=${prefix}/bin/php73 \
-                               --with-php=${prefix}/bin/php71
+    foreach s ${php_suffixes} {
+        set p php${s}
+        set major [string index ${s} 0]
+        set v ${major}.[string range ${s} 1 end]
+        set i [lsearch -exact ${php_ports} ${p}]
+        set c [lreplace ${php_ports} ${i} ${i}]
+        if {${s} == 73} {
+            variant ${p} description "build using PHP ${v}" conflicts {*}${c} {}
+        } else {
+            variant ${p} description "build using PHP ${v}" conflicts {*}${c} "
+                depends_lib-replace port:php73 port:${p}
+                configure.args-replace --with-php=${prefix}/bin/php73 \
+                                       --with-php=${prefix}/bin/php${s}
+            "
+        }
     }
-
-    variant php72 conflicts php70 php71 php73 description {build using PHP 7.2} {
-        depends_lib-replace port:php73 port:php72
-        configure.args-replace --with-php=${prefix}/bin/php73 \
-                               --with-php=${prefix}/bin/php72
-    }
-
-    variant php73 conflicts php70 php71 php72 description {build using PHP 7.3} {}
 
     if {![variant_isset php70] && ![variant_isset php71] &&
-        ![variant_isset php72] && ![variant_isset php73]} {
+        ![variant_isset php72] && ![variant_isset php73] &&
+        ![variant_isset php74] && ![variant_isset php80] &&
+        ![variant_isset php81] && ![variant_isset php82] &&
+        ![variant_isset php83]} {
         default_variants +php73
     }
     if {![variant_isset php70] && ![variant_isset php71] &&
-        ![variant_isset php72] && ![variant_isset php73]} {
-        ui_error "\n\nA +phpXY variant must be selected; the variant '-php72' cannot be used alone.\n"
+        ![variant_isset php72] && ![variant_isset php73] &&
+        ![variant_isset php74] && ![variant_isset php80] &&
+        ![variant_isset php81] && ![variant_isset php82] &&
+        ![variant_isset php83]} {
+        ui_error "\n\nA +phpXY variant must be selected; the variant '-php73' cannot be used alone.\n"
         return -code error "Invalid variant selection"
     }
+
 }
 
 subport swig-gcj {
