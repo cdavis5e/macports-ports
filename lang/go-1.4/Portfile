@@ -51,6 +51,8 @@ switch ${build_arch} {
 
 use_configure       no
 
+patchfiles patch-src-cmd-go-build-nonexistent-libgcc.diff
+
 if {${os.platform} eq "darwin" && ${os.major} >= 16} {
     patchfiles-append patch-src-runtime-sys_darwin_386-sierra-clock_gettime.diff
 }

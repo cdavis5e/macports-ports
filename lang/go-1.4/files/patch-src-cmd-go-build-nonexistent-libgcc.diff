@@ -1,0 +1,15 @@
+--- src/cmd/go/build.go~	2015-09-22 21:37:36.000000000 -0700
++++ src/cmd/go/build.go	2017-07-30 10:52:01.000000000 -0700
+@@ -2032,6 +2032,12 @@
+ 		return "", nil
+ 	}
+ 
++	// Under certain circumstances, Clang can return a non-existent libgcc.
++	// Make sure the libgcc we got actually exists.
++	if _, err := os.Stat(string(f)); err != nil {
++		return "", nil
++	}
++
+ 	return strings.Trim(string(f), "\r\n"), nil
+ }
+ 
