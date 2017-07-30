@@ -350,9 +350,13 @@ patchfiles-append   \
     patch-src_gui_painting_qpaintengine_mac.cpp-tiger.diff \
     patch-webkit-tiger.diff
 
-# (31) Patch to fix build on macOS High Sierra
+# (31) Use new names for AssertMacros on High Sierra
 
-patchfiles-append patch-qt4-versions-without-underscores.diff
+platform darwin {
+    if {${MINOR} >= 13} {
+        patchfiles-append patch-src_gui_kernel_qt_cocoa_helpers_mac.mm-high-sierra.diff
+    }
+}
 
 # (32) Fix default thread stack size on Mac OS X (QTBUG-49607)
 # https://bugreports.qt.io/secure/attachment/52520/patch-qthread-stacksize.diff
