@@ -149,6 +149,7 @@ foreach s ${pythons_suffixes} {
         if {${major} == 2} {
             configure.args-append   --enable-pythoninterp --with-python-command=${prefix}/bin/python${v}
             patchfiles-append       patch-python.diff
+            build.args-append       PYTHON_CFLAGS_EXTRA=-F${frameworks_dir}
         } else {
             configure.args-append   --enable-python3interp --with-python3-command=${prefix}/bin/python${v}
         }
