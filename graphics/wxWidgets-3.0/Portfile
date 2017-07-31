@@ -144,7 +144,6 @@ platform darwin powerpc {
     }
 }
 
-
 if {${subport} eq "wxPython-3.0"} {
     master_sites            sourceforge:project/wxwindows/${version} \
                             http://biolpc22.york.ac.uk/pub/${version}/ \
@@ -189,6 +188,10 @@ if {${subport} eq "wxPython-3.0"} {
         # but this should work as a temporary workaround for Sierra users
         configure.args-append \
                             --disable-mediactrl
+    }
+    if {${os.platform} eq "darwin" && ${os.major} >= 17} {
+        patchfiles-append \
+                        patch-high-sierra-assertmacros.diff
     }
 
     post-destroot {
