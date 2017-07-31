@@ -71,3 +71,20 @@ diff -Nuar rogue5.4.4.orig/state.c rogue5.4.4/state.c
  
          memset(l,0,sizeof(THING));
  
+--- rogue5.4.4.orig/mdport.c	2007-09-05 12:08:06.000000000 -0700
++++ rogue5.4.4/mdport.c	2017-07-30 15:44:40.000000000 -0700
+@@ -261,9 +261,14 @@
+ #ifdef NCURSES_VERSION
+     if (cur_term == NULL)
+ 	return(0);
++#ifdef CUR
++    if (CUR Strings == NULL)
++	return(0);
++#else
+     if (cur_term->type.Strings == NULL)
+ 	return(0);
+ #endif
++#endif
+     return((clr_eol != NULL) && (*clr_eol != 0));
+ #elif defined(__PDCURSES__)
+     return(TRUE);
