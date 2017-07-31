@@ -38,9 +38,6 @@ depends_lib-append  port:ossp-uuid
 patchfiles          patch-configure.diff
 
 configure.args      --exec-prefix=${prefix} --with-fuse=external
-# do not try to use this function in macOS 10.13 to avoid compilation error
-# (older versions don't have this function)
-configure.env       ac_cv_func_utimensat=no
 
 platform darwin {
     depends_lib-append          port:gettext
