@@ -40,9 +40,10 @@ depends_lib-append  port:akonadi \
                     port:qjson \
                     port:shared-mime-info
 
+patchfiles          patch-bad-dependencies.diff
+
 #Suppress build of kioslaves which conflict with openssl
 patchfiles-append   patch-CMakeLists.diff \
-                    patch-do_not_include_cpp.diff \
                     patch-ical.diff \
                     patch-tests.diff
 
