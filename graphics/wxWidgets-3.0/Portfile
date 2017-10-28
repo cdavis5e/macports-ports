@@ -193,6 +193,7 @@ if {${subport} eq "wxPython-3.0"} {
         patchfiles-append \
                         patch-high-sierra-assertmacros.diff
     }
+    patchfiles-append   patch-export-ModalDialogDelegate.diff
 
     post-destroot {
         # copy a subset of wxPython to wxWidgets to prevent a conflict

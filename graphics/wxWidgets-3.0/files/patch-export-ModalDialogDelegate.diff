@@ -1,0 +1,12 @@
+--- include/wx/osx/cocoa/private.h~	2017-04-29 05:00:38.000000000 -0700
++++ include/wx/osx/cocoa/private.h	2017-10-20 00:52:41.000000000 -0700
+@@ -397,6 +397,9 @@
+     returns control to the app, whereas we don't want to return from ShowModal
+     until the sheet has been dismissed.
+     */
++#ifdef __LP64__
++    WXEXPORT
++#endif // 64 bit builds
+     @interface ModalDialogDelegate : NSObject
+     {
+         BOOL sheetFinished;
