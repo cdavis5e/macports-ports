@@ -78,6 +78,11 @@ if {![variant_isset no_freetype_config]} {
 
 configure.universal_args-delete --disable-dependency-tracking
 
+variant harfbuzz description {Use harfbuzz to improve font hinting} {
+    configure.args-replace --without-harfbuzz --with-harfbuzz
+    depends_lib-append     port:harfbuzz
+}
+
 platform macosx {
     if {${os.major} < 9} {
         configure.args-append \
