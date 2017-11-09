@@ -1,0 +1,22 @@
+--- a/git-sh-setup.sh	2017-10-29 22:56:17.000000000 -0700
++++ b/git-sh-setup.sh	2017-11-08 16:23:30.000000000 -0800
+@@ -44,7 +44,18 @@
+ # @@BROKEN_PATH_FIX@@
+ 
+ # Source git-sh-i18n for gettext support.
+-. "$(git --exec-path)/git-sh-i18n"
++save_IFS="$IFS"
++IFS=":"
++for p in $(git --exec-path)
++do
++	if test -r "$p/git-sh-i18n"
++	then
++		. "$p/git-sh-i18n"
++		break
++	fi
++done
++IFS="$save_IFS"
++unset save_IFS
+ 
+ die () {
+ 	die_with_status 1 "$@"
