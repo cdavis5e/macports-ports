@@ -82,6 +82,11 @@ foreach qt_major {4 5} {
             if {[string match *clang* ${configure.cxx}] && ${configure.cxx_stdlib} ne ""} {
                 configure.ldflags-append -stdlib=${configure.cxx_stdlib}
             }
+            if {[variant_isset debug]} {
+                configure.args-append CONFIG+="debug_and_release build_all"
+            } else {
+                configure.args-append CONFIG+=release
+            }
         } else {
             qt${qt_major}.depends_component qtmacextras
             configure.args-append CONFIG+=absolute_library_soname
