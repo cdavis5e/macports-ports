@@ -36,6 +36,8 @@ compiler.cxx_standard 2011
 
 configure.args      --libdir=${prefix}/lib/${name} \
                     --disable-sdltest
+# Must use ccache.
+configure.ccache    yes
 
 app.name            BZFlag
 app.icon            data/bzflag-256x256.png
