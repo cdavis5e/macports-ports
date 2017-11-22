@@ -1,6 +1,15 @@
 Use printf instead of echo -n to avoid literal "-n" printed onscreen.
 --- configure.orig	2011-07-31 19:31:11.000000000 -0500
 +++ configure	2011-09-12 21:47:50.000000000 -0500
+@@ -14422,7 +14422,7 @@
+       if test "x$enable_opt" = "xyes" -o \( "x$enable_opt" = "xmaybe" -a "x$CFLAGS" = "x" \); then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled" >&5
+ $as_echo "enabled" >&6; }
+-         LIBJ_CFLAGS_OPT="-O3 -fomit-frame-pointer -finline-functions -funroll-loops -fthread-jumps -DNDEBUG"
++         LIBJ_CFLAGS_OPT="-O3 -fomit-frame-pointer -finline-functions -funroll-loops -DNDEBUG"
+       else
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: not enabled" >&5
+ $as_echo "not enabled" >&6; }
 @@ -16936,7 +16936,7 @@
  echo "   Datadir:       $datadir"
  echo "   Mandir:        $mandir"
