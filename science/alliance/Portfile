@@ -61,7 +61,8 @@ post-destroot {
 }
 
 platform darwin {
-    patchfiles-append patch-xgra-src-XSB_parse.c.diff
+    patchfiles-append patch-xgra-src-XSB_parse.c.diff \
+                      patch-ocp-src-placer-PPlacement.h.diff
 }
 
 livecheck.type      regex
