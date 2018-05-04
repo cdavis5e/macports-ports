@@ -49,6 +49,10 @@ patchfiles          no-build-dependencies.patch \
                     no-homebrew.patch \
                     no-game_test.patch
 
+if {${os.major} >= 17} {
+    patchfiles-append high-sierra-assertmacros.patch
+}
+
 configure.args      -DBUILD_BOOST=OFF \
                     -DBUILD_JSONCPP=OFF \
                     -DBUILD_LIBPNG=OFF \

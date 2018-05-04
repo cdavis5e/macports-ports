@@ -1,0 +1,47 @@
+--- src/game/platform_macosx/music_osx.cpp~	2018-03-19 14:39:56.000000000 -0700
++++ src/game/platform_macosx/music_osx.cpp	2018-03-19 14:41:29.000000000 -0700
+@@ -211,13 +211,13 @@
+ 	}
+ 	
+ 	// Initialize the music player and attach the sequence
+-	require_noerr(result = NewMusicPlayer(&music_files[track].player), fail);
+-	require_noerr(result = MusicPlayerSetSequence(music_files[track].player, music_files[track].sequence), fail);
++	__Require_noErr(result = NewMusicPlayer(&music_files[track].player), fail);
++	__Require_noErr(result = MusicPlayerSetSequence(music_files[track].player, music_files[track].sequence), fail);
+ 	
+ 	// Determine the track length if we don't know it already
+ 	if (music_files[track].track_length <= 1.0) {
+ 		UInt32 track_count, i;
+-		require_noerr(result = MusicSequenceGetTrackCount(music_files[track].sequence, &track_count), fail);
++		__Require_noErr(result = MusicSequenceGetTrackCount(music_files[track].sequence, &track_count), fail);
+ 
+ 		for (i = 0; i < track_count; i++) {
+ 			MusicTrack midi_track;
+@@ -225,10 +225,10 @@
+ 			UInt32 property_size = sizeof(MusicTimeStamp);
+ 			
+ 			// Get the track within the MIDI file
+-			require_noerr(result = MusicSequenceGetIndTrack(music_files[track].sequence, i, &midi_track), fail);
++			__Require_noErr(result = MusicSequenceGetIndTrack(music_files[track].sequence, i, &midi_track), fail);
+ 			
+ 			// Determine its length
+-			require_noerr(result = MusicTrackGetProperty(midi_track, kSequenceTrackProperty_TrackLength, &track_length, &property_size), fail);
++			__Require_noErr(result = MusicTrackGetProperty(midi_track, kSequenceTrackProperty_TrackLength, &track_length, &property_size), fail);
+ 			
+ 			// Update the music track length if this MIDI track is longer
+ 			if (track_length > music_files[track].track_length)
+@@ -237,11 +237,11 @@
+ 	}
+ 	
+ 	// Seek and pre-roll to the beginning
+-	require_noerr(result = MusicPlayerSetTime(music_files[track].player, 0), fail);
+-	require_noerr(result = MusicPlayerPreroll(music_files[track].player), fail);
++	__Require_noErr(result = MusicPlayerSetTime(music_files[track].player, 0), fail);
++	__Require_noErr(result = MusicPlayerPreroll(music_files[track].player), fail);
+ 	
+ 	// Start playing
+-	require_noerr(result = MusicPlayerStart(music_files[track].player), fail);
++	__Require_noErr(result = MusicPlayerStart(music_files[track].player), fail);
+ 	
+ 	// Mark as playing
+ 	music_files[track].playing = 1;
