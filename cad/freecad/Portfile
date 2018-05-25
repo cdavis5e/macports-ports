@@ -107,6 +107,11 @@ configure.args-append   -DCMAKE_INSTALL_DATADIR=${prefix}/share/${name} \
                         -DPYSIDEUIC4BINARY=${prefix}/bin/pyside-uic-${python_branch} \
                         -DPYSIDERCC4BINARY=${prefix}/bin/pyside-rcc-${python_branch}
 
+if {${configure.ccache} ne "yes"} {
+    configure.args-append \
+                        -DCCACHE_PROGRAM=NO
+}
+
 pre-configure {
     # The c++ compiler is used for linking instead of fc.
     # -L needs a path to a directory.
