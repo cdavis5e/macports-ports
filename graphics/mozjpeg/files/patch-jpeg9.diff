@@ -1,0 +1,3680 @@
+diff -urNp CMakeLists.txt CMakeLists.txt
+--- CMakeLists.txt	2017-07-10 03:58:14.000000000 -0700
++++ CMakeLists.txt	2018-05-13 00:18:27.000000000 -0700
+@@ -38,6 +38,7 @@ option(WITH_ARITH_ENC "Include arithmeti
+ option(WITH_ARITH_DEC "Include arithmetic decoding support" TRUE)
+ option(WITH_JPEG7 "Emulate libjpeg v7 API/ABI (this makes mozjpeg backward incompatible with libjpeg v6b)" FALSE)
+ option(WITH_JPEG8 "Emulate libjpeg v8 API/ABI (this makes mozjpeg backward incompatible with libjpeg v6b)" FALSE)
++option(WITH_JPEG9 "Emulate libjpeg v9 API/ABI (this makes mozjpeg backward incompatible with libjpeg v6b)" FALSE)
+ option(WITH_MEM_SRCDST "Include in-memory source/destination manager functions when emulating the libjpeg v6b or v7 API/ABI" TRUE)
+ option(WITH_TURBOJPEG "Include the TurboJPEG wrapper library and associated test programs" TRUE)
+ option(WITH_JAVA "Build Java wrapper for the TurboJPEG library" FALSE)
+@@ -57,11 +58,11 @@ else()
+   set(BITS_IN_JSAMPLE 8)
+ endif()
+ 
+-if(WITH_JPEG8 OR WITH_JPEG7)
++if(WITH_JPEG9 OR WITH_JPEG8 OR WITH_JPEG7)
+   set(WITH_ARITH_ENC 1)
+   set(WITH_ARITH_DEC 1)
+ endif()
+-if(WITH_JPEG8)
++if(WITH_JPEG9 OR WITH_JPEG8)
+   set(WITH_MEM_SRCDST 1)
+ endif()
+ 
+@@ -99,7 +100,12 @@ endif()
+ set(JPEG_LIB_VERSION 62)
+ set(DLL_VERSION ${JPEG_LIB_VERSION})
+ set(FULLVERSION ${DLL_VERSION}.${SO_AGE}.0)
+-if(WITH_JPEG8)
++if(WITH_JPEG9)
++  set(JPEG_LIB_VERSION 90)
++  set(DLL_VERSION 9)
++  set(FULLVERSION ${DLL_VERSION}.0.3)
++  message(STATUS "Emulating libjpeg v9 API/ABI")
++elseif(WITH_JPEG8)
+   set(JPEG_LIB_VERSION 80)
+   set(DLL_VERSION 8)
+   set(FULLVERSION ${DLL_VERSION}.0.2)
+@@ -109,7 +115,7 @@ elseif(WITH_JPEG7)
+   set(DLL_VERSION 7)
+   set(FULLVERSION ${DLL_VERSION}.${SO_AGE}.0)
+   message(STATUS "Emulating libjpeg v7 API/ABI")
+-endif(WITH_JPEG8)
++endif(WITH_JPEG9)
+ 
+ if(WITH_MEM_SRCDST)
+   set(MEM_SRCDST_SUPPORTED 1)
+diff -urNp cjpeg.c cjpeg.c
+--- cjpeg.c	2017-07-10 03:58:14.000000000 -0700
++++ cjpeg.c	2018-05-12 22:59:45.000000000 -0700
+@@ -199,6 +199,10 @@ usage (void)
+ #ifdef C_ARITH_CODING_SUPPORTED
+   fprintf(stderr, "  -arithmetic    Use arithmetic coding\n");
+ #endif
++#if JPEG_LIB_VERSION >= 90
++  fprintf(stderr, "  -rgb1          Create RGB JPEG file with reversible color transform\n");
++  fprintf(stderr, "  -bgycc         Create big gamut YCbCr JPEG file\n");
++#endif
+ #ifdef DCT_ISLOW_SUPPORTED
+   fprintf(stderr, "  -dct int       Use integer DCT method%s\n",
+           (JDCT_DEFAULT == JDCT_ISLOW ? " (default)" : ""));
+@@ -355,10 +359,26 @@ parse_switches (j_compress_ptr cinfo, in
+       /* Force a monochrome JPEG file to be generated. */
+       jpeg_set_colorspace(cinfo, JCS_GRAYSCALE);
+ 
+-    } else if (keymatch(arg, "rgb", 3)) {
++    } else if (keymatch(arg, "rgb", 3) || keymatch(arg, "rgb1", 4)) {
+       /* Force an RGB JPEG file to be generated. */
++#if JPEG_LIB_VERSION >= 90
++      /* Note: Entropy table assignment in jpeg_set_colorspace depends
++       * on color_transform.
++       */
++      cinfo->color_transform = arg[3] ? JCT_SUBTRACT_GREEN : JCT_NONE;
++#endif
+       jpeg_set_colorspace(cinfo, JCS_RGB);
+ 
++    } else if (keymatch(arg, "bgycc", 5)) {
++      /* Force a big gamut YCbCr JPEG file to be generated. */
++#if JPEG_LIB_VERSION >= 90
++      jpeg_set_colorspace(cinfo, JCS_BG_YCC);
++#else
++      fprintf(stderr, "%s: sorry, BG_YCC colorspace not supported\n",
++          progname);
++      exit(EXIT_FAILURE);
++#endif
++
+     } else if (keymatch(arg, "lambda1", 7)) {
+       if (++argn >= argc)       /* advance to next argument */
+         usage();
+diff -urNp configure.ac configure.ac
+--- configure.ac	2017-07-10 03:58:14.000000000 -0700
++++ configure.ac	2018-05-13 00:16:09.000000000 -0700
+@@ -166,13 +166,20 @@ if test "x$JPEG_LIB_VERSION" = "x"; then
+   AC_ARG_WITH([jpeg8],
+     AC_HELP_STRING([--with-jpeg8],
+       [Emulate libjpeg v8 API/ABI (this makes mozjpeg backward incompatible with libjpeg v6b.)]))
+-  if test "x${with_jpeg8}" = "xyes"; then
+-    JPEG_LIB_VERSION=80
++  AC_ARG_WITH([jpeg9],
++    AC_HELP_STRING([--with-jpeg9],
++      [Emulate libjpeg v9 API/ABI (this makes mozjpeg backward incompatible with libjpeg v6b.)]))
++  if test "x${with_jpeg9}" = "xyes"; then
++    JPEG_LIB_VERSION=90
+   else
+-    if test "x${with_jpeg7}" = "xyes"; then
+-      JPEG_LIB_VERSION=70
++    if test "x${with_jpeg8}" = "xyes"; then
++      JPEG_LIB_VERSION=80
+     else
+-      JPEG_LIB_VERSION=62
++      if test "x${with_jpeg7}" = "xyes"; then
++        JPEG_LIB_VERSION=70
++      else
++        JPEG_LIB_VERSION=62
++      fi
+     fi
+   fi
+ fi
+@@ -204,7 +211,10 @@ RPM_CONFIG_ARGS=
+ # Memory source/destination managers
+ SO_AGE=1
+ MEM_SRCDST_FUNCTIONS=
+-if test "x${with_jpeg8}" != "xyes"; then
++if test "x${with_jpeg9}" == "xyes"; then
++  SO_AGE=3
++fi
++if test "x${with_jpeg8}" != "xyes" -a "x${with_jpeg9}" != "xyes"; then
+   AC_MSG_CHECKING([whether to include in-memory source/destination managers])
+   AC_ARG_WITH([mem-srcdst],
+     AC_HELP_STRING([--without-mem-srcdst],
+@@ -301,7 +311,7 @@ AC_ARG_WITH([arith-enc],
+ if test "x$with_12bit" = "xyes"; then
+   with_arith_enc=no
+ fi
+-if test "x${with_jpeg8}" = "xyes" -o "x${with_jpeg7}" = "xyes"; then
++if test "x${with_jpeg9}" = "xyes" -o "x${with_jpeg8}" = "xyes" -o "x${with_jpeg7}" = "xyes"; then
+   with_arith_enc=yes
+ fi
+ if test "x$with_arith_enc" = "xno"; then
+@@ -320,7 +330,7 @@ AC_ARG_WITH([arith-dec],
+ if test "x$with_12bit" = "xyes"; then
+   with_arith_dec=no
+ fi
+-if test "x${with_jpeg8}" = "xyes" -o "x${with_jpeg7}" = "xyes"; then
++if test "x${with_jpeg9}" = "xyes" -o "x${with_jpeg8}" = "xyes" -o "x${with_jpeg7}" = "xyes"; then
+   with_arith_dec=yes
+ fi
+ if test "x$with_arith_dec" = "xno"; then
+diff -urNp jccolext.c jccolext.c
+--- jccolext.c	2017-07-10 03:58:14.000000000 -0700
++++ jccolext.c	2018-05-13 00:16:02.000000000 -0700
+@@ -146,3 +146,49 @@ rgb_rgb_convert_internal (j_compress_ptr
+     }
+   }
+ }
++
++
++#if JPEG_LIB_VERSION >= 90
++/*
++ * Convert some rows of samples to the JPEG colorspace.
++ * [R,G,B] to [R-G,G,B-G] conversion with modulo calculation
++ * (forward reversible color transform).
++ * This can be seen as an adaptation of the general RGB->YCbCr
++ * conversion equation with Kr = Kb = 0, while replacing the
++ * normalization with modulo calculation.
++ * This version handles extended RGB->plain RGB conversion.
++ */
++
++INLINE
++LOCAL(void)
++rgb_rgb1_convert_internal (j_compress_ptr cinfo,
++                           JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
++                           JDIMENSION output_row, int num_rows)
++{
++  register int r, g, b;
++  register JSAMPROW inptr;
++  register JSAMPROW outptr0, outptr1, outptr2;
++  register JDIMENSION col;
++  JDIMENSION num_cols = cinfo->image_width;
++
++  while (--num_rows >= 0) {
++    inptr = *input_buf++;
++    outptr0 = output_buf[0][output_row];
++    outptr1 = output_buf[1][output_row];
++    outptr2 = output_buf[2][output_row];
++    output_row++;
++    for (col = 0; col < num_cols; col++) {
++      r = GETJSAMPLE(inptr[RGB_RED]);
++      g = GETJSAMPLE(inptr[RGB_GREEN]);
++      b = GETJSAMPLE(inptr[RGB_BLUE]);
++      /* Assume that MAXJSAMPLE+1 is a power of 2, so that the MOD
++       * (modulo) operator is equivalent to the bitmask operator AND.
++       */
++      outptr0[col] = (JSAMPLE) ((r - g + CENTERJSAMPLE) & MAXJSAMPLE);
++      outptr1[col] = (JSAMPLE) g;
++      outptr2[col] = (JSAMPLE) ((b - g + CENTERJSAMPLE) & MAXJSAMPLE);
++      inptr += RGB_PIXELSIZE;
++    }
++  }
++}
++#endif
+diff -urNp jccolor.c jccolor.c
+--- jccolor.c	2017-07-10 03:58:14.000000000 -0700
++++ jccolor.c	2018-05-13 00:28:00.000000000 -0700
+@@ -100,6 +100,7 @@ typedef my_color_converter *my_cconvert_
+ #define rgb_ycc_convert_internal extrgb_ycc_convert_internal
+ #define rgb_gray_convert_internal extrgb_gray_convert_internal
+ #define rgb_rgb_convert_internal extrgb_rgb_convert_internal
++#define rgb_rgb1_convert_internal extrgb_rgb1_convert_internal
+ #include "jccolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -108,6 +109,7 @@ typedef my_color_converter *my_cconvert_
+ #undef rgb_ycc_convert_internal
+ #undef rgb_gray_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb_rgb1_convert_internal
+ 
+ #define RGB_RED EXT_RGBX_RED
+ #define RGB_GREEN EXT_RGBX_GREEN
+@@ -116,6 +118,7 @@ typedef my_color_converter *my_cconvert_
+ #define rgb_ycc_convert_internal extrgbx_ycc_convert_internal
+ #define rgb_gray_convert_internal extrgbx_gray_convert_internal
+ #define rgb_rgb_convert_internal extrgbx_rgb_convert_internal
++#define rgb_rgb1_convert_internal extrgbx_rgb1_convert_internal
+ #include "jccolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -124,6 +127,7 @@ typedef my_color_converter *my_cconvert_
+ #undef rgb_ycc_convert_internal
+ #undef rgb_gray_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb_rgb1_convert_internal
+ 
+ #define RGB_RED EXT_BGR_RED
+ #define RGB_GREEN EXT_BGR_GREEN
+@@ -132,6 +136,7 @@ typedef my_color_converter *my_cconvert_
+ #define rgb_ycc_convert_internal extbgr_ycc_convert_internal
+ #define rgb_gray_convert_internal extbgr_gray_convert_internal
+ #define rgb_rgb_convert_internal extbgr_rgb_convert_internal
++#define rgb_rgb1_convert_internal extbgr_rgb1_convert_internal
+ #include "jccolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -140,6 +145,7 @@ typedef my_color_converter *my_cconvert_
+ #undef rgb_ycc_convert_internal
+ #undef rgb_gray_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb_rgb1_convert_internal
+ 
+ #define RGB_RED EXT_BGRX_RED
+ #define RGB_GREEN EXT_BGRX_GREEN
+@@ -148,6 +154,7 @@ typedef my_color_converter *my_cconvert_
+ #define rgb_ycc_convert_internal extbgrx_ycc_convert_internal
+ #define rgb_gray_convert_internal extbgrx_gray_convert_internal
+ #define rgb_rgb_convert_internal extbgrx_rgb_convert_internal
++#define rgb_rgb1_convert_internal extbgrx_rgb1_convert_internal
+ #include "jccolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -156,6 +163,7 @@ typedef my_color_converter *my_cconvert_
+ #undef rgb_ycc_convert_internal
+ #undef rgb_gray_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb_rgb1_convert_internal
+ 
+ #define RGB_RED EXT_XBGR_RED
+ #define RGB_GREEN EXT_XBGR_GREEN
+@@ -164,6 +172,7 @@ typedef my_color_converter *my_cconvert_
+ #define rgb_ycc_convert_internal extxbgr_ycc_convert_internal
+ #define rgb_gray_convert_internal extxbgr_gray_convert_internal
+ #define rgb_rgb_convert_internal extxbgr_rgb_convert_internal
++#define rgb_rgb1_convert_internal extxbgr_rgb1_convert_internal
+ #include "jccolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -172,6 +181,7 @@ typedef my_color_converter *my_cconvert_
+ #undef rgb_ycc_convert_internal
+ #undef rgb_gray_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb_rgb1_convert_internal
+ 
+ #define RGB_RED EXT_XRGB_RED
+ #define RGB_GREEN EXT_XRGB_GREEN
+@@ -180,6 +190,7 @@ typedef my_color_converter *my_cconvert_
+ #define rgb_ycc_convert_internal extxrgb_ycc_convert_internal
+ #define rgb_gray_convert_internal extxrgb_gray_convert_internal
+ #define rgb_rgb_convert_internal extxrgb_rgb_convert_internal
++#define rgb_rgb1_convert_internal extxrgb_rgb1_convert_internal
+ #include "jccolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -188,6 +199,7 @@ typedef my_color_converter *my_cconvert_
+ #undef rgb_ycc_convert_internal
+ #undef rgb_gray_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb_rgb1_convert_internal
+ 
+ 
+ /*
+@@ -367,6 +379,59 @@ rgb_rgb_convert (j_compress_ptr cinfo,
+ }
+ 
+ 
++#if JPEG_LIB_VERSION >= 90
++/*
++ * Convert some rows of samples to the JPEG colorspace.
++ * [R,G,B] to [R-G,G,B-G] conversion with modulo calculation
++ * (forward reversible color transform).
++ * This can be seen as an adaptation of the general RGB->YCbCr
++ * conversion equation with Kr = Kb = 0, while replacing the
++ * normalization with modulo calculation.
++ */
++
++METHODDEF(void)
++rgb_rgb1_convert (j_compress_ptr cinfo,
++                  JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
++                  JDIMENSION output_row, int num_rows)
++{
++  switch (cinfo->in_color_space) {
++    case JCS_EXT_RGB:
++      extrgb_rgb1_convert_internal(cinfo, input_buf, output_buf, output_row,
++                                   num_rows);
++      break;
++    case JCS_EXT_RGBX:
++    case JCS_EXT_RGBA:
++      extrgbx_rgb1_convert_internal(cinfo, input_buf, output_buf, output_row,
++                                    num_rows);
++      break;
++    case JCS_EXT_BGR:
++      extbgr_rgb1_convert_internal(cinfo, input_buf, output_buf, output_row,
++                                   num_rows);
++      break;
++    case JCS_EXT_BGRX:
++    case JCS_EXT_BGRA:
++      extbgrx_rgb1_convert_internal(cinfo, input_buf, output_buf, output_row,
++                                    num_rows);
++      break;
++    case JCS_EXT_XBGR:
++    case JCS_EXT_ABGR:
++      extxbgr_rgb1_convert_internal(cinfo, input_buf, output_buf, output_row,
++                                    num_rows);
++      break;
++    case JCS_EXT_XRGB:
++    case JCS_EXT_ARGB:
++      extxrgb_rgb1_convert_internal(cinfo, input_buf, output_buf, output_row,
++                                    num_rows);
++      break;
++    default:
++      rgb_rgb1_convert_internal(cinfo, input_buf, output_buf, output_row,
++                                num_rows);
++      break;
++  }
++}
++#endif
++
++
+ /*
+  * Convert some rows of samples to the JPEG colorspace.
+  * This version handles Adobe-style CMYK->YCCK conversion,
+@@ -562,11 +627,17 @@ jinit_color_converter (j_compress_ptr ci
+   case JCS_EXT_BGRA:
+   case JCS_EXT_ABGR:
+   case JCS_EXT_ARGB:
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_RGB:
++#endif
+     if (cinfo->input_components != rgb_pixelsize[cinfo->in_color_space])
+       ERREXIT(cinfo, JERR_BAD_IN_COLORSPACE);
+     break;
+ 
+   case JCS_YCbCr:
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_YCC:
++#endif
+     if (cinfo->input_components != 3)
+       ERREXIT(cinfo, JERR_BAD_IN_COLORSPACE);
+     break;
+@@ -583,34 +654,50 @@ jinit_color_converter (j_compress_ptr ci
+     break;
+   }
+ 
++#if JPEG_LIB_VERSION >= 90
++  /* Support color transform only for RGB colorspaces */
++  if (cinfo->color_transform &&
++      cinfo->jpeg_color_space != JCS_RGB &&
++      cinfo->jpeg_color_space != JCS_BG_RGB)
++    ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++#endif
++
+   /* Check num_components, set conversion method based on requested space */
+   switch (cinfo->jpeg_color_space) {
+   case JCS_GRAYSCALE:
+     if (cinfo->num_components != 1)
+       ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
+-    if (cinfo->in_color_space == JCS_GRAYSCALE)
++    switch (cinfo->in_color_space) {
++    case JCS_GRAYSCALE:
+       cconvert->pub.color_convert = grayscale_convert;
+-    else if (cinfo->in_color_space == JCS_RGB ||
+-             cinfo->in_color_space == JCS_EXT_RGB ||
+-             cinfo->in_color_space == JCS_EXT_RGBX ||
+-             cinfo->in_color_space == JCS_EXT_BGR ||
+-             cinfo->in_color_space == JCS_EXT_BGRX ||
+-             cinfo->in_color_space == JCS_EXT_XBGR ||
+-             cinfo->in_color_space == JCS_EXT_XRGB ||
+-             cinfo->in_color_space == JCS_EXT_RGBA ||
+-             cinfo->in_color_space == JCS_EXT_BGRA ||
+-             cinfo->in_color_space == JCS_EXT_ABGR ||
+-             cinfo->in_color_space == JCS_EXT_ARGB) {
++      break;
++    case JCS_RGB:
++    case JCS_EXT_RGB:
++    case JCS_EXT_RGBX:
++    case JCS_EXT_BGR:
++    case JCS_EXT_BGRX:
++    case JCS_EXT_XBGR:
++    case JCS_EXT_XRGB:
++    case JCS_EXT_RGBA:
++    case JCS_EXT_BGRA:
++    case JCS_EXT_ABGR:
++    case JCS_EXT_ARGB:
+       if (jsimd_can_rgb_gray())
+         cconvert->pub.color_convert = jsimd_rgb_gray_convert;
+       else {
+         cconvert->pub.start_pass = rgb_ycc_start;
+         cconvert->pub.color_convert = rgb_gray_convert;
+       }
+-    } else if (cinfo->in_color_space == JCS_YCbCr)
++      break;
++    case JCS_YCbCr:
++#if JPEG_LIB_VERSION >= 90
++    case JCS_BG_YCC:
++#endif
+       cconvert->pub.color_convert = grayscale_convert;
+-    else
++      break;
++    default:
+       ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++    }
+     break;
+ 
+   case JCS_RGB:
+@@ -620,27 +707,80 @@ jinit_color_converter (j_compress_ptr ci
+         rgb_green[cinfo->in_color_space] == 1 &&
+         rgb_blue[cinfo->in_color_space] == 2 &&
+         rgb_pixelsize[cinfo->in_color_space] == 3) {
++#if JPEG_LIB_VERSION >= 90
++      switch (cinfo->color_transform) {
++      case JCT_NONE:
++#endif
++#if defined(__mips__)
++        if (jsimd_c_can_null_convert())
++          cconvert->pub.color_convert = jsimd_c_null_convert;
++        else
++#endif
++          cconvert->pub.color_convert = null_convert;
++#if JPEG_LIB_VERSION >= 90
++        break;
++      case JCT_SUBTRACT_GREEN:
++        cconvert->pub.color_convert = rgb_rgb1_convert;
++        break;
++      default:
++        ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++      }
++#endif
++    } else switch (cinfo->in_color_space) {
++    case JCS_RGB:
++    case JCS_EXT_RGB:
++    case JCS_EXT_RGBX:
++    case JCS_EXT_BGR:
++    case JCS_EXT_BGRX:
++    case JCS_EXT_XBGR:
++    case JCS_EXT_XRGB:
++    case JCS_EXT_RGBA:
++    case JCS_EXT_BGRA:
++    case JCS_EXT_ABGR:
++    case JCS_EXT_ARGB:
++#if JPEG_LIB_VERSION >= 90
++      switch (cinfo->color_transform) {
++      case JCT_NONE:
++#endif
++        cconvert->pub.color_convert = rgb_rgb_convert;
++#if JPEG_LIB_VERSION >= 90
++        break;
++      case JCT_SUBTRACT_GREEN:
++        cconvert->pub.color_convert = rgb_rgb1_convert;
++        break;
++      default:
++        ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++      }
++#endif
++      break;
++    default:
++      ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++    }
++    break;
++
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_RGB:
++    if (cinfo->num_components != 3)
++      ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
++    if (cinfo->in_color_space != JCS_BG_RGB)
++      ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++    switch (cinfo->color_transform) {
++    case JCT_NONE:
+ #if defined(__mips__)
+       if (jsimd_c_can_null_convert())
+         cconvert->pub.color_convert = jsimd_c_null_convert;
+       else
+ #endif
+         cconvert->pub.color_convert = null_convert;
+-    } else if (cinfo->in_color_space == JCS_RGB ||
+-               cinfo->in_color_space == JCS_EXT_RGB ||
+-               cinfo->in_color_space == JCS_EXT_RGBX ||
+-               cinfo->in_color_space == JCS_EXT_BGR ||
+-               cinfo->in_color_space == JCS_EXT_BGRX ||
+-               cinfo->in_color_space == JCS_EXT_XBGR ||
+-               cinfo->in_color_space == JCS_EXT_XRGB ||
+-               cinfo->in_color_space == JCS_EXT_RGBA ||
+-               cinfo->in_color_space == JCS_EXT_BGRA ||
+-               cinfo->in_color_space == JCS_EXT_ABGR ||
+-               cinfo->in_color_space == JCS_EXT_ARGB)
+-      cconvert->pub.color_convert = rgb_rgb_convert;
+-    else
++      break;
++    case JCT_SUBTRACT_GREEN:
++      cconvert->pub.color_convert = rgb_rgb1_convert;
++      break;
++    default:
+       ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
+-    break;
++    }
++	break;
++#endif
+ 
+   case JCS_YCbCr:
+     if (cinfo->num_components != 3)
+@@ -673,6 +813,58 @@ jinit_color_converter (j_compress_ptr ci
+       ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
+     break;
+ 
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_YCC:
++    if (cinfo->num_components != 3)
++      ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
++    switch (cinfo->in_color_space) {
++    case JCS_RGB:
++    case JCS_EXT_RGB:
++    case JCS_EXT_RGBX:
++    case JCS_EXT_BGR:
++    case JCS_EXT_BGRX:
++    case JCS_EXT_XBGR:
++    case JCS_EXT_XRGB:
++    case JCS_EXT_RGBA:
++    case JCS_EXT_BGRA:
++    case JCS_EXT_ABGR:
++    case JCS_EXT_ARGB:
++      /* For conversion from normal RGB input to BG_YCC representation,
++       * the Cb/Cr values are first computed as usual, and then
++       * quantized further after DCT processing by a factor of
++       * 2 in reference to the nominal quantization factor.
++       */
++      /* need quantization scale by factor of 2 after DCT */
++      cinfo->comp_info[1].component_needed = TRUE;
++      cinfo->comp_info[2].component_needed = TRUE;
++      /* compute normal YCC first */
++      if (jsimd_can_rgb_ycc())
++        cconvert->pub.color_convert = jsimd_rgb_ycc_convert;
++      else {
++        cconvert->pub.start_pass = rgb_ycc_start;
++        cconvert->pub.color_convert = rgb_ycc_convert;
++      }
++      break;
++    case JCS_YCbCr:
++      /* need quantization scale by factor of 2 after DCT */
++      cinfo->comp_info[1].component_needed = TRUE;
++      cinfo->comp_info[2].component_needed = TRUE;
++      /*FALLTHROUGH*/
++    case JCS_BG_YCC:
++      /* Pass through */
++#if defined(__mips__)
++      if (jsimd_c_can_null_convert())
++        cconvert->pub.color_convert = jsimd_c_null_convert;
++      else
++#endif
++        cconvert->pub.color_convert = null_convert;
++      break;
++    default:
++      ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++    }
++    break;
++#endif
++
+   case JCS_CMYK:
+     if (cinfo->num_components != 4)
+       ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
+diff -urNp jcdctmgr.c jcdctmgr.c
+--- jcdctmgr.c	2017-07-10 03:58:14.000000000 -0700
++++ jcdctmgr.c	2018-05-13 00:23:52.000000000 -0700
+@@ -249,6 +249,8 @@ start_pass_fdctmgr (j_compress_ptr cinfo
+   jpeg_component_info *compptr;
+   JQUANT_TBL *qtbl;
+   DCTELEM *dtbl;
++  int fact;
++  FAST_FLOAT ffact;
+ 
+   for (ci = 0, compptr = cinfo->comp_info; ci < cinfo->num_components;
+        ci++, compptr++) {
+@@ -272,13 +274,18 @@ start_pass_fdctmgr (j_compress_ptr cinfo
+                                       (DCTSIZE2 * 4) * sizeof(DCTELEM));
+       }
+       dtbl = fdct->divisors[qtblno];
++#if JPEG_LIB_VERSION >= 90
++      fact = compptr->component_needed ? 4 : 3;
++#else
++      fact = 3;
++#endif
+       for (i = 0; i < DCTSIZE2; i++) {
+ #if BITS_IN_JSAMPLE == 8
+-        if (!compute_reciprocal(qtbl->quantval[i] << 3, &dtbl[i]) &&
++        if (!compute_reciprocal(qtbl->quantval[i] << fact, &dtbl[i]) &&
+             fdct->quantize == jsimd_quantize)
+           fdct->quantize = quantize;
+ #else
+-        dtbl[i] = ((DCTELEM) qtbl->quantval[i]) << 3;
++        dtbl[i] = ((DCTELEM) qtbl->quantval[i]) << fact;
+ #endif
+       }
+       break;
+@@ -312,19 +319,24 @@ start_pass_fdctmgr (j_compress_ptr cinfo
+                                         (DCTSIZE2 * 4) * sizeof(DCTELEM));
+         }
+         dtbl = fdct->divisors[qtblno];
++#if JPEG_LIB_VERSION >= 90
++        fact = compptr->component_needed ? CONST_BITS-4 : CONST_BITS-3;
++#else
++        fact = CONST_BITS-3;
++#endif
+         for (i = 0; i < DCTSIZE2; i++) {
+ #if BITS_IN_JSAMPLE == 8
+           if (!compute_reciprocal(
+                 DESCALE(MULTIPLY16V16((JLONG) qtbl->quantval[i],
+                                       (JLONG) aanscales[i]),
+-                        CONST_BITS-3), &dtbl[i]) &&
++                        fact), &dtbl[i]) &&
+               fdct->quantize == jsimd_quantize)
+             fdct->quantize = quantize;
+ #else
+            dtbl[i] = (DCTELEM)
+              DESCALE(MULTIPLY16V16((JLONG) qtbl->quantval[i],
+                                    (JLONG) aanscales[i]),
+-                     CONST_BITS-3);
++                     fact);
+ #endif
+         }
+       }
+@@ -355,11 +367,16 @@ start_pass_fdctmgr (j_compress_ptr cinfo
+         }
+         fdtbl = fdct->float_divisors[qtblno];
+         i = 0;
++#if JPEG_LIB_VERSION >= 90
++        ffact = compptr->component_needed ? 16.0 : 8.0;
++#else
++        ffact = 8.0;
++#endif
+         for (row = 0; row < DCTSIZE; row++) {
+           for (col = 0; col < DCTSIZE; col++) {
+             fdtbl[i] = (FAST_FLOAT)
+-              (1.0 / (((double) qtbl->quantval[i] *
+-                       aanscalefactor[row] * aanscalefactor[col] * 8.0)));
++              (1.0 / ((double) qtbl->quantval[i] *
++                      aanscalefactor[row] * aanscalefactor[col] * fact));
+             i++;
+           }
+         }
+diff -urNp jcmarker.c jcmarker.c
+--- jcmarker.c	2017-07-10 03:58:14.000000000 -0700
++++ jcmarker.c	2018-05-12 23:26:16.000000000 -0700
+@@ -77,6 +77,7 @@ typedef enum {                  /* JPEG 
+   M_APP15 = 0xef,
+ 
+   M_JPG0  = 0xf0,
++  M_JPG8  = 0xf8,
+   M_JPG13 = 0xfd,
+   M_COM   = 0xfe,
+ 
+@@ -459,6 +460,39 @@ emit_dri (j_compress_ptr cinfo)
+ }
+ 
+ 
++#if JPEG_LIB_VERSION >= 90
++LOCAL(void)
++emit_lse_ict (j_compress_ptr cinfo)
++/* Emit an LSE inverse color transform specification marker */
++{
++  /* Support only 1 transform */
++  if (cinfo->color_transform != JCT_SUBTRACT_GREEN ||
++      cinfo->num_components < 3)
++    ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++
++  emit_marker(cinfo, M_JPG8);
++
++  emit_2bytes(cinfo, 24);   /* fixed length */
++
++  emit_byte(cinfo, 0x0D);   /* ID inverse transform specification */
++  emit_2bytes(cinfo, MAXJSAMPLE);   /* MAXTRANS */
++  emit_byte(cinfo, 3);      /* Nt=3 */
++  emit_byte(cinfo, cinfo->comp_info[1].component_id);
++  emit_byte(cinfo, cinfo->comp_info[0].component_id);
++  emit_byte(cinfo, cinfo->comp_info[2].component_id);
++  emit_byte(cinfo, 0x80);   /* F1: CENTER1=1, NORM1=0 */
++  emit_2bytes(cinfo, 0);    /* A(1,1)=0 */
++  emit_2bytes(cinfo, 0);    /* A(1,2)=0 */
++  emit_byte(cinfo, 0);      /* F2: CENTER2=0, NORM1=0 */
++  emit_2bytes(cinfo, 1);    /* A(2,1)=1 */
++  emit_2bytes(cinfo, 0);    /* A(2,2)=0 */
++  emit_byte(cinfo, 0);      /* F3: CENTER3=0, NORM3=0 */
++  emit_2bytes(cinfo, 1);    /* A(3,1)=1 */
++  emit_2bytes(cinfo, 0);    /* A(3,2)=0 */
++}
++#endif
++
++
+ LOCAL(void)
+ emit_sof (j_compress_ptr cinfo, JPEG_MARKER code)
+ /* Emit a SOF marker */
+@@ -724,6 +758,12 @@ write_frame_header (j_compress_ptr cinfo
+     else
+       emit_sof(cinfo, M_SOF1);  /* SOF code for non-baseline Huffman file */
+   }
++
++#if JPEG_LIB_VERSION >= 90
++  /* Check to emit LSE inverse color transform specification marker */
++  if (cinfo->color_transform)
++    emit_lse_ict(cinfo);
++#endif
+ }
+ 
+ 
+diff -urNp jcmaster.c jcmaster.c
+--- jcmaster.c	2017-07-10 03:58:14.000000000 -0700
++++ jcmaster.c	2018-05-13 00:21:22.000000000 -0700
+@@ -129,8 +129,15 @@ initial_setup (j_compress_ptr cinfo, boo
+     compptr->downsampled_height = (JDIMENSION)
+       jdiv_round_up((long) cinfo->_jpeg_height * (long) compptr->v_samp_factor,
+                     (long) cinfo->max_v_samp_factor);
++#if JPEG_LIB_VERSION >= 90
++	/* Don't need quantization scale after DCT,
++	 * until color conversion says otherwise.
++	 */
++    compptr->component_needed = FALSE;
++#else
+     /* Mark component needed (this flag isn't actually used for compression) */
+     compptr->component_needed = TRUE;
++#endif
+   }
+ 
+   /* Compute number of fully interleaved MCU rows (number of times that
+diff -urNp jcparam.c jcparam.c
+--- jcparam.c	2017-07-10 03:58:14.000000000 -0700
++++ jcparam.c	2018-05-12 20:51:05.000000000 -0700
+@@ -483,6 +483,11 @@ jpeg_set_defaults (j_compress_ptr cinfo)
+   cinfo->X_density = 1;         /* Pixel aspect ratio is square by default */
+   cinfo->Y_density = 1;
+ 
++#if JPEG_LIB_VERSION >= 90
++  /* No color transform */
++  cinfo->color_transform = JCT_NONE;
++#endif
++
+   /* Choose JPEG colorspace based on input space, set defaults accordingly */
+ 
+   jpeg_default_colorspace(cinfo);
+@@ -547,6 +552,15 @@ jpeg_default_colorspace (j_compress_ptr 
+   case JCS_YCCK:
+     jpeg_set_colorspace(cinfo, JCS_YCCK);
+     break;
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_RGB:
++    /* No translation for now -- conversion to BG_YCC not yet supported */
++    jpeg_set_colorspace(cinfo, JCS_BG_RGB);
++    break;
++  case JCS_BG_YCC:
++    jpeg_set_colorspace(cinfo, JCS_BG_YCC);
++    break;
++#endif
+   case JCS_UNKNOWN:
+     jpeg_set_colorspace(cinfo, JCS_UNKNOWN);
+     break;
+@@ -598,9 +612,19 @@ jpeg_set_colorspace (j_compress_ptr cinf
+   case JCS_RGB:
+     cinfo->write_Adobe_marker = TRUE; /* write Adobe marker to flag RGB */
+     cinfo->num_components = 3;
++#if JPEG_LIB_VERSION >= 90
++    SET_COMP(0, 0x52 /* 'R' */, 1,1, 0,
++        cinfo->color_transform == JCT_SUBTRACT_GREEN ? 1 : 0,
++        cinfo->color_transform == JCT_SUBTRACT_GREEN ? 1 : 0);
++    SET_COMP(1, 0x47 /* 'G' */, 1,1, 0, 0,0);
++    SET_COMP(2, 0x42 /* 'B' */, 1,1, 0,
++        cinfo->color_transform == JCT_SUBTRACT_GREEN ? 1 : 0,
++        cinfo->color_transform == JCT_SUBTRACT_GREEN ? 1 : 0);
++#else
+     SET_COMP(0, 0x52 /* 'R' */, 1,1, 0, 0,0);
+     SET_COMP(1, 0x47 /* 'G' */, 1,1, 0, 0,0);
+     SET_COMP(2, 0x42 /* 'B' */, 1,1, 0, 0,0);
++#endif
+     break;
+   case JCS_YCbCr:
+     cinfo->write_JFIF_header = TRUE; /* Write a JFIF marker */
+@@ -627,6 +651,31 @@ jpeg_set_colorspace (j_compress_ptr cinf
+     SET_COMP(2, 3, 1,1, 1, 1,1);
+     SET_COMP(3, 4, 2,2, 0, 0,0);
+     break;
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_RGB:
++    cinfo->write_JFIF_header = TRUE; /* Write a JFIF marker */
++    cinfo->JFIF_major_version = 2;   /* Set JFIF major version = 2 */
++    cinfo->num_components = 3;
++    /* Add offset 0x20 to the normal R/G/B component IDs */
++    SET_COMP(0, 0x72 /* 'r' */, 1,1, 0,
++        cinfo->color_transform == JCT_SUBTRACT_GREEN ? 1 : 0,
++        cinfo->color_transform == JCT_SUBTRACT_GREEN ? 1 : 0);
++    SET_COMP(1, 0x67 /* 'g' */, 1,1, 0, 0,0);
++    SET_COMP(2, 0x62 /* 'b' */, 1,1, 0,
++        cinfo->color_transform == JCT_SUBTRACT_GREEN ? 1 : 0,
++        cinfo->color_transform == JCT_SUBTRACT_GREEN ? 1 : 0);
++    break;
++  case JCS_BG_YCC:
++    cinfo->write_JFIF_header = TRUE; /* Write a JFIF marker */
++    cinfo->JFIF_major_version = 2;   /* Set JFIF major version = 2 */
++    cinfo->num_components = 3;
++    /* Add offset 0x20 to the normal Cb/Cr component IDs */
++    /* We default to 2x2 subsamples of chrominance */
++    SET_COMP(0, 0x01, 2,2, 0, 0,0);
++    SET_COMP(1, 0x22, 1,1, 1, 1,1);
++    SET_COMP(2, 0x23, 1,1, 1, 1,1);
++    break;
++#endif
+   case JCS_UNKNOWN:
+     cinfo->num_components = cinfo->input_components;
+     if (cinfo->num_components < 1 || cinfo->num_components > MAX_COMPONENTS)
+@@ -737,7 +786,12 @@ jpeg_search_progression (j_compress_ptr 
+     ERREXIT1(cinfo, JERR_BAD_STATE, cinfo->global_state);
+   
+   /* Figure space needed for script.  Calculation must match code below! */
+-  if (ncomps == 3 && cinfo->jpeg_color_space == JCS_YCbCr) {
++  if (ncomps == 3 &&
++      (cinfo->jpeg_color_space == JCS_YCbCr
++#if JPEG_LIB_VERSION >= 90
++    || cinfo->jpeg_color_space == JCS_BG_YCC
++#endif
++        )) {
+     /* Custom script for YCbCr color images. */
+     nscans = 64;
+   } else if (ncomps == 1) {
+@@ -866,7 +920,12 @@ jpeg_simple_progression (j_compress_ptr 
+ 
+   /* Figure space needed for script. Calculation must match code below! */
+   ncomps = cinfo->num_components;
+-  if (ncomps == 3 && cinfo->jpeg_color_space == JCS_YCbCr) {
++  if (ncomps == 3 &&
++      (cinfo->jpeg_color_space == JCS_YCbCr
++#if JPEG_LIB_VERSION >= 90
++    || cinfo->jpeg_color_space == JCS_BG_YCC
++#endif
++        )) {
+     /* Custom script for YCbCr color images. */
+     if (cinfo->master->compress_profile == JCP_MAX_COMPRESSION) {
+       if (cinfo->master->dc_scan_opt_mode == 0) {
+@@ -911,7 +970,12 @@ jpeg_simple_progression (j_compress_ptr 
+   cinfo->scan_info = scanptr;
+   cinfo->num_scans = nscans;
+ 
+-  if (ncomps == 3 && cinfo->jpeg_color_space == JCS_YCbCr) {
++  if (ncomps == 3 &&
++      (cinfo->jpeg_color_space == JCS_YCbCr
++#if JPEG_LIB_VERSION >= 90
++    || cinfo->jpeg_color_space == JCS_BG_YCC
++#endif
++        )) {
+     /* Custom script for YCbCr color images. */
+     if (cinfo->master->compress_profile == JCP_MAX_COMPRESSION) {
+       /* scan defined in jpeg_scan_rgb.txt in jpgcrush */
+diff -urNp jctrans.c jctrans.c
+--- jctrans.c	2017-07-10 03:58:14.000000000 -0700
++++ jctrans.c	2018-05-12 23:34:21.000000000 -0700
+@@ -98,6 +98,14 @@ jpeg_copy_critical_parameters (const j_d
+   /* jpeg_set_defaults may choose wrong colorspace, eg YCbCr if input is RGB.
+    * Fix it to get the right header markers for the image colorspace.
+    */
++#if JPEG_LIB_VERSION >= 90
++  /* Note: Entropy table assignment in jpeg_set_colorspace
++   * depends on color_transform.
++   * Adaption is also required for setting the appropriate
++   * entropy coding mode dependent on image data precision.
++   */
++  dstinfo->color_transform = srcinfo->color_transform;
++#endif
+   jpeg_set_colorspace(dstinfo, srcinfo->jpeg_color_space);
+   dstinfo->data_precision = srcinfo->data_precision;
+   dstinfo->CCIR601_sampling = srcinfo->CCIR601_sampling;
+diff -urNp jdapimin.c jdapimin.c
+--- jdapimin.c	2017-07-10 03:58:14.000000000 -0700
++++ jdapimin.c	2018-05-07 13:49:47.000000000 -0700
+@@ -128,6 +128,8 @@ default_decompress_parms (j_decompress_p
+   /* Guess the input colorspace, and set output colorspace accordingly. */
+   /* (Wish JPEG committee had provided a real way to specify this...) */
+   /* Note application may override our guesses. */
++  int cid0, cid1, cid2;
++
+   switch (cinfo->num_components) {
+   case 1:
+     cinfo->jpeg_color_space = JCS_GRAYSCALE;
+@@ -135,8 +137,25 @@ default_decompress_parms (j_decompress_p
+     break;
+ 
+   case 3:
+-    if (cinfo->saw_JFIF_marker) {
+-      cinfo->jpeg_color_space = JCS_YCbCr; /* JFIF implies YCbCr */
++    /* First try to guess from the component IDs */
++    cid0 = cinfo->comp_info[0].component_id;
++    cid1 = cinfo->comp_info[1].component_id;
++    cid2 = cinfo->comp_info[2].component_id;
++
++    if      (cid0 == 0x01 && cid1 == 0x02 && cid2 == 0x03)
++      cinfo->jpeg_color_space = JCS_YCbCr;  /* assume JFIF w/out marker */
++#if JPEG_LIB_VERSION >= 90
++    else if (cid0 == 0x01 && cid1 == 0x22 && cid2 == 0x23)
++      cinfo->jpeg_color_space = JCS_BG_YCC;
++#endif
++    else if (cid0 == 0x52 && cid1 == 0x47 && cid2 == 0x42)
++      cinfo->jpeg_color_space = JCS_RGB;    /* ASCII 'R', 'G', 'B' */
++#if JPEG_LIB_VERSION >= 90
++    else if (cid0 == 0x72 && cid1 == 0x67 && cid2 == 0x62)
++      cinfo->jpeg_color_space = JCS_BG_RGB; /* ASCII 'r', 'g', 'b' */
++#endif
++    else if (cinfo->saw_JFIF_marker) {
++      cinfo->jpeg_color_space = JCS_YCbCr;  /* JFIF implies YCbCr */
+     } else if (cinfo->saw_Adobe_marker) {
+       switch (cinfo->Adobe_transform) {
+       case 0:
+@@ -151,19 +170,8 @@ default_decompress_parms (j_decompress_p
+         break;
+       }
+     } else {
+-      /* Saw no special markers, try to guess from the component IDs */
+-      int cid0 = cinfo->comp_info[0].component_id;
+-      int cid1 = cinfo->comp_info[1].component_id;
+-      int cid2 = cinfo->comp_info[2].component_id;
+-
+-      if (cid0 == 1 && cid1 == 2 && cid2 == 3)
+-        cinfo->jpeg_color_space = JCS_YCbCr; /* assume JFIF w/out marker */
+-      else if (cid0 == 82 && cid1 == 71 && cid2 == 66)
+-        cinfo->jpeg_color_space = JCS_RGB; /* ASCII 'R', 'G', 'B' */
+-      else {
+-        TRACEMS3(cinfo, 1, JTRC_UNKNOWN_IDS, cid0, cid1, cid2);
+-        cinfo->jpeg_color_space = JCS_YCbCr; /* assume it's YCbCr */
+-      }
++      TRACEMS3(cinfo, 1, JTRC_UNKNOWN_IDS, cid0, cid1, cid2);
++      cinfo->jpeg_color_space = JCS_YCbCr; /* assume it's YCbCr */
+     }
+     /* Always guess RGB is proper output colorspace. */
+     cinfo->out_color_space = JCS_RGB;
+diff -urNp jdcolext.c jdcolext.c
+--- jdcolext.c	2017-07-10 03:58:14.000000000 -0700
++++ jdcolext.c	2018-05-13 00:15:49.000000000 -0700
+@@ -141,3 +141,49 @@ rgb_rgb_convert_internal (j_decompress_p
+     }
+   }
+ }
++
++
++#if JPEG_LIB_VERSION >= 90
++/*
++ * Convert green-subtracted RGB to extended RGB: [R-G,G,B-G] to [R,G,B]
++ * conversion with modulo calculation (inverse color transform).
++ */
++
++INLINE
++LOCAL(void)
++rgb1_rgb_convert_internal (j_decompress_ptr cinfo,
++                           JSAMPIMAGE input_buf, JDIMENSION input_row,
++                           JSAMPARRAY output_buf, int num_rows)
++{
++  register int r, g, b;
++  register JSAMPROW inptr0, inptr1, inptr2;
++  register JSAMPROW outptr;
++  register JDIMENSION col;
++  JDIMENSION num_cols = cinfo->output_width;
++
++  while (--num_rows >= 0) {
++    inptr0 = input_buf[0][input_row];
++    inptr1 = input_buf[1][input_row];
++    inptr2 = input_buf[2][input_row];
++    input_row++;
++    outptr = *output_buf++;
++    for (col = 0; col < num_cols; col++) {
++      r = GETJSAMPLE(inptr0[col]);
++      g = GETJSAMPLE(inptr1[col]);
++      b = GETJSAMPLE(inptr2[col]);
++      /* Assume that MAXJSAMPLE+1 is a power of 2, so that the MOD
++       * (modulo) operator is equivalent to the bitmask operand AND.
++       */
++      outptr[RGB_RED] = (JSAMPLE)((r + g - CENTERJSAMPLE) & MAXJSAMPLE);
++      outptr[RGB_GREEN] = (JSAMPLE)g;
++      outptr[RGB_BLUE] = (JSAMPLE)((b + g - CENTERJSAMPLE) & MAXJSAMPLE);
++      /* Set unused byte to 0xFF so it can be interpreted as an opaque */
++      /* alpha channel value */
++#ifdef RGB_ALPHA
++      outptr[RGB_ALPHA] = 0xFF;
++#endif
++      outptr += RGB_PIXELSIZE;
++    }
++  }
++}
++#endif
+diff -urNp jdcolor.c jdcolor.c
+--- jdcolor.c	2017-07-10 03:58:14.000000000 -0700
++++ jdcolor.c	2018-05-08 01:26:46.000000000 -0700
+@@ -105,6 +105,7 @@ typedef my_color_deconverter *my_cconver
+ #define ycc_rgb_convert_internal ycc_extrgb_convert_internal
+ #define gray_rgb_convert_internal gray_extrgb_convert_internal
+ #define rgb_rgb_convert_internal rgb_extrgb_convert_internal
++#define rgb1_rgb_convert_internal rgb1_extrgb_convert_internal
+ #include "jdcolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -113,6 +114,7 @@ typedef my_color_deconverter *my_cconver
+ #undef ycc_rgb_convert_internal
+ #undef gray_rgb_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb1_rgb_convert_internal
+ 
+ #define RGB_RED EXT_RGBX_RED
+ #define RGB_GREEN EXT_RGBX_GREEN
+@@ -122,6 +124,7 @@ typedef my_color_deconverter *my_cconver
+ #define ycc_rgb_convert_internal ycc_extrgbx_convert_internal
+ #define gray_rgb_convert_internal gray_extrgbx_convert_internal
+ #define rgb_rgb_convert_internal rgb_extrgbx_convert_internal
++#define rgb1_rgb_convert_internal rgb1_extrgbx_convert_internal
+ #include "jdcolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -131,6 +134,7 @@ typedef my_color_deconverter *my_cconver
+ #undef ycc_rgb_convert_internal
+ #undef gray_rgb_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb1_rgb_convert_internal
+ 
+ #define RGB_RED EXT_BGR_RED
+ #define RGB_GREEN EXT_BGR_GREEN
+@@ -139,6 +143,7 @@ typedef my_color_deconverter *my_cconver
+ #define ycc_rgb_convert_internal ycc_extbgr_convert_internal
+ #define gray_rgb_convert_internal gray_extbgr_convert_internal
+ #define rgb_rgb_convert_internal rgb_extbgr_convert_internal
++#define rgb1_rgb_convert_internal rgb1_extbgr_convert_internal
+ #include "jdcolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -147,6 +152,7 @@ typedef my_color_deconverter *my_cconver
+ #undef ycc_rgb_convert_internal
+ #undef gray_rgb_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb1_rgb_convert_internal
+ 
+ #define RGB_RED EXT_BGRX_RED
+ #define RGB_GREEN EXT_BGRX_GREEN
+@@ -156,6 +162,7 @@ typedef my_color_deconverter *my_cconver
+ #define ycc_rgb_convert_internal ycc_extbgrx_convert_internal
+ #define gray_rgb_convert_internal gray_extbgrx_convert_internal
+ #define rgb_rgb_convert_internal rgb_extbgrx_convert_internal
++#define rgb1_rgb_convert_internal rgb1_extbgrx_convert_internal
+ #include "jdcolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -165,6 +172,7 @@ typedef my_color_deconverter *my_cconver
+ #undef ycc_rgb_convert_internal
+ #undef gray_rgb_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb1_rgb_convert_internal
+ 
+ #define RGB_RED EXT_XBGR_RED
+ #define RGB_GREEN EXT_XBGR_GREEN
+@@ -174,6 +182,7 @@ typedef my_color_deconverter *my_cconver
+ #define ycc_rgb_convert_internal ycc_extxbgr_convert_internal
+ #define gray_rgb_convert_internal gray_extxbgr_convert_internal
+ #define rgb_rgb_convert_internal rgb_extxbgr_convert_internal
++#define rgb1_rgb_convert_internal rgb1_extxbgr_convert_internal
+ #include "jdcolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -183,6 +192,7 @@ typedef my_color_deconverter *my_cconver
+ #undef ycc_rgb_convert_internal
+ #undef gray_rgb_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb1_rgb_convert_internal
+ 
+ #define RGB_RED EXT_XRGB_RED
+ #define RGB_GREEN EXT_XRGB_GREEN
+@@ -192,6 +202,7 @@ typedef my_color_deconverter *my_cconver
+ #define ycc_rgb_convert_internal ycc_extxrgb_convert_internal
+ #define gray_rgb_convert_internal gray_extxrgb_convert_internal
+ #define rgb_rgb_convert_internal rgb_extxrgb_convert_internal
++#define rgb1_rgb_convert_internal rgb1_extxrgb_convert_internal
+ #include "jdcolext.c"
+ #undef RGB_RED
+ #undef RGB_GREEN
+@@ -201,6 +212,7 @@ typedef my_color_deconverter *my_cconver
+ #undef ycc_rgb_convert_internal
+ #undef gray_rgb_convert_internal
+ #undef rgb_rgb_convert_internal
++#undef rgb1_rgb_convert_internal
+ 
+ 
+ /*
+@@ -246,6 +258,45 @@ build_ycc_rgb_table (j_decompress_ptr ci
+ }
+ 
+ 
++LOCAL(void)
++build_bg_ycc_rgb_table (j_decompress_ptr cinfo)
++{
++  my_cconvert_ptr cconvert = (my_cconvert_ptr) cinfo->cconvert;
++  int i;
++  JLONG x;
++  SHIFT_TEMPS
++
++  cconvert->Cr_r_tab = (int *)
++    (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
++                                (MAXJSAMPLE+1) * sizeof(int));
++  cconvert->Cb_b_tab = (int *)
++    (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
++                                (MAXJSAMPLE+1) * sizeof(int));
++  cconvert->Cr_g_tab = (JLONG *)
++    (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
++                                (MAXJSAMPLE+1) * sizeof(JLONG));
++  cconvert->Cb_g_tab = (JLONG *)
++    (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
++                                (MAXJSAMPLE+1) * sizeof(JLONG));
++
++  for (i = 0, x = -CENTERJSAMPLE; i <= MAXJSAMPLE; i++, x++) {
++    /* i is the actual input pixel value, in the range 0..MAXJSAMPLE */
++    /* The Cb or Cr value we are thinking of is x = i - CENTERJSAMPLE */
++    /* Cr=>R value is nearest int to 2.80400 * x */
++    cconvert->Cr_r_tab[i] = (int)
++                    RIGHT_SHIFT(FIX(2.80400) * x + ONE_HALF, SCALEBITS);
++    /* Cb=>B value is nearest int to 3.54400 * x */
++    cconvert->Cb_b_tab[i] = (int)
++                    RIGHT_SHIFT(FIX(3.54400) * x + ONE_HALF, SCALEBITS);
++    /* Cr=>G value is scaled-up -1.42828 * x */
++    cconvert->Cr_g_tab[i] = (- FIX(1.42828)) * x;
++    /* Cb=>G value is scaled-up -0.68828 * x */
++    /* We also add in ONE_HALF so that need not do it in inner loop */
++    cconvert->Cb_g_tab[i] = (- FIX(0.68828)) * x + ONE_HALF;
++  }
++}
++
++
+ /*
+  * Convert some rows of samples to the output colorspace.
+  */
+@@ -355,6 +406,50 @@ rgb_gray_convert (j_decompress_ptr cinfo
+ }
+ 
+ 
++#if JPEG_LIB_VERSION >= 90
++/*
++ * [R-G,G,B-G] to grayscale conversion with modulo calculation
++ * (inverse color transform).
++ */
++
++METHODDEF(void)
++rgb1_gray_convert (j_decompress_ptr cinfo,
++                   JSAMPIMAGE input_buf, JDIMENSION input_row,
++                   JSAMPARRAY output_buf, int num_rows)
++{
++  my_cconvert_ptr cconvert = (my_cconvert_ptr) cinfo->cconvert;
++  register int r, g, b;
++  register JLONG *ctab = cconvert->rgb_y_tab;
++  register JSAMPROW outptr;
++  register JSAMPROW inptr0, inptr1, inptr2;
++  register JDIMENSION col;
++  JDIMENSION num_cols = cinfo->output_width;
++
++  while (--num_rows >= 0) {
++    inptr0 = input_buf[0][input_row];
++    inptr1 = input_buf[1][input_row];
++    inptr2 = input_buf[2][input_row];
++    input_row++;
++    outptr = *output_buf++;
++    for (col = 0; col < num_cols; col++) {
++      r = GETJSAMPLE(inptr0[col]);
++      g = GETJSAMPLE(inptr1[col]);
++      b = GETJSAMPLE(inptr2[col]);
++	  /* Assume that MAXJSAMPLE+1 is a power of 2, so that the MOD
++	   * (modulo) operator is equivalent to the bitmask operand AND.
++	   */
++	  r = (r + g - CENTERJSAMPLE) & MAXJSAMPLE;
++	  b = (b + g - CENTERJSAMPLE) & MAXJSAMPLE;
++      /* Y */
++      outptr[col] = (JSAMPLE)
++                ((ctab[r+R_Y_OFF] + ctab[g+G_Y_OFF] + ctab[b+B_Y_OFF])
++                 >> SCALEBITS);
++    }
++  }
++}
++#endif
++
++
+ /*
+  * Color conversion for no colorspace change: just copy the data,
+  * converting from separate-planes to interleaved representation.
+@@ -524,6 +619,58 @@ rgb_rgb_convert (j_decompress_ptr cinfo,
+ }
+ 
+ 
++#if JPEG_LIB_VERSION >= 90
++/*
++ * [R-G,G,B-G] to [R,G,B] conversion with modulo calculation
++ * (inverse color transform).
++ * This can be seen as an adaptation of the general YCbCr->RGB
++ * conversion equation with Kr = Kb = 0, while replacing the
++ * normalization with modulo calculation.
++ */
++
++METHODDEF(void)
++rgb1_rgb_convert (j_decompress_ptr cinfo,
++                  JSAMPIMAGE input_buf, JDIMENSION input_row,
++                  JSAMPARRAY output_buf, int num_rows)
++{
++  switch (cinfo->out_color_space) {
++    case JCS_EXT_RGB:
++      rgb1_extrgb_convert_internal(cinfo, input_buf, input_row, output_buf,
++                                   num_rows);
++      break;
++    case JCS_EXT_RGBX:
++    case JCS_EXT_RGBA:
++      rgb1_extrgbx_convert_internal(cinfo, input_buf, input_row, output_buf,
++                                    num_rows);
++      break;
++    case JCS_EXT_BGR:
++      rgb1_extbgr_convert_internal(cinfo, input_buf, input_row, output_buf,
++                                   num_rows);
++      break;
++    case JCS_EXT_BGRX:
++    case JCS_EXT_BGRA:
++      rgb1_extbgrx_convert_internal(cinfo, input_buf, input_row, output_buf,
++                                    num_rows);
++      break;
++    case JCS_EXT_XBGR:
++    case JCS_EXT_ABGR:
++      rgb1_extxbgr_convert_internal(cinfo, input_buf, input_row, output_buf,
++                                    num_rows);
++      break;
++    case JCS_EXT_XRGB:
++    case JCS_EXT_ARGB:
++      rgb1_extxrgb_convert_internal(cinfo, input_buf, input_row, output_buf,
++                                    num_rows);
++      break;
++    default:
++      rgb1_rgb_convert_internal(cinfo, input_buf, input_row, output_buf,
++                                num_rows);
++      break;
++  }
++}
++#endif
++
++
+ /*
+  * Adobe-style YCCK->CMYK conversion.
+  * We convert YCbCr to R=1-C, G=1-M, and B=1-Y using the same
+@@ -769,6 +916,10 @@ jinit_color_deconverter (j_decompress_pt
+ 
+   case JCS_RGB:
+   case JCS_YCbCr:
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_RGB:
++  case JCS_BG_YCC:
++#endif
+     if (cinfo->num_components != 3)
+       ERREXIT(cinfo, JERR_BAD_J_COLORSPACE);
+     break;
+@@ -785,6 +936,14 @@ jinit_color_deconverter (j_decompress_pt
+     break;
+   }
+ 
++#if JPEG_LIB_VERSION >= 90
++  /* Support color transform only for RGB colorspaces */
++  if (cinfo->color_transform &&
++      cinfo->jpeg_color_space != JCS_RGB &&
++      cinfo->jpeg_color_space != JCS_BG_RGB)
++    ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++#endif
++
+   /* Set out_color_components and conversion method based on requested space.
+    * Also clear the component_needed flags for any unused components,
+    * so that earlier pipeline stages can avoid useless computation.
+@@ -793,17 +952,37 @@ jinit_color_deconverter (j_decompress_pt
+   switch (cinfo->out_color_space) {
+   case JCS_GRAYSCALE:
+     cinfo->out_color_components = 1;
+-    if (cinfo->jpeg_color_space == JCS_GRAYSCALE ||
+-        cinfo->jpeg_color_space == JCS_YCbCr) {
++    switch (cinfo->jpeg_color_space) {
++    case JCS_GRAYSCALE:
++    case JCS_YCbCr:
++#if JPEG_LIB_VERSION >= 90
++    case JCS_BG_YCC:
++#endif
+       cconvert->pub.color_convert = grayscale_convert;
+       /* For color->grayscale conversion, only the Y (0) component is needed */
+       for (ci = 1; ci < cinfo->num_components; ci++)
+         cinfo->comp_info[ci].component_needed = FALSE;
+-    } else if (cinfo->jpeg_color_space == JCS_RGB) {
++      break;
++    case JCS_RGB:
++#if JPEG_LIB_VERSION >= 90
++      switch (cinfo->color_transform) {
++      case JCT_NONE:
++        cconvert->pub.color_convert = rgb_gray_convert;
++        break;
++      case JCT_SUBTRACT_GREEN:
++        cconvert->pub.color_convert = rgb1_gray_convert;
++        break;
++      default:
++        ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++      }
++#else
+       cconvert->pub.color_convert = rgb_gray_convert;
++#endif
+       build_rgb_y_table(cinfo);
+-    } else
++      break;
++    default:
+       ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++    }
+     break;
+ 
+   case JCS_RGB:
+@@ -818,26 +997,72 @@ jinit_color_deconverter (j_decompress_pt
+   case JCS_EXT_ABGR:
+   case JCS_EXT_ARGB:
+     cinfo->out_color_components = rgb_pixelsize[cinfo->out_color_space];
+-    if (cinfo->jpeg_color_space == JCS_YCbCr) {
++    switch (cinfo->jpeg_color_space) {
++    case JCS_YCbCr:
+       if (jsimd_can_ycc_rgb())
+         cconvert->pub.color_convert = jsimd_ycc_rgb_convert;
+       else {
+         cconvert->pub.color_convert = ycc_rgb_convert;
+         build_ycc_rgb_table(cinfo);
+       }
+-    } else if (cinfo->jpeg_color_space == JCS_GRAYSCALE) {
++      break;
++#if JPEG_LIB_VERSION >= 90
++    case JCS_BG_YCC:
++      if (jsimd_can_ycc_rgb())
++        cconvert->pub.color_convert = jsimd_bg_ycc_rgb_convert;
++      else {
++        cconvert->pub.color_convert = ycc_rgb_convert;
++        build_bg_ycc_rgb_table(cinfo);
++      }
++      break;
++#endif
++    case JCS_GRAYSCALE:
+       cconvert->pub.color_convert = gray_rgb_convert;
+-    } else if (cinfo->jpeg_color_space == JCS_RGB) {
+-      if (rgb_red[cinfo->out_color_space] == 0 &&
+-          rgb_green[cinfo->out_color_space] == 1 &&
+-          rgb_blue[cinfo->out_color_space] == 2 &&
+-          rgb_pixelsize[cinfo->out_color_space] == 3)
++      break;
++    case JCS_RGB:
++#if JPEG_LIB_VERSION >= 90
++      switch (cinfo->color_transform) {
++      case JCT_NONE:
++#endif
++        if (rgb_red[cinfo->out_color_space] == 0 &&
++            rgb_green[cinfo->out_color_space] == 1 &&
++            rgb_blue[cinfo->out_color_space] == 2 &&
++            rgb_pixelsize[cinfo->out_color_space] == 3)
++          cconvert->pub.color_convert = null_convert;
++        else
++          cconvert->pub.color_convert = rgb_rgb_convert;
++#if JPEG_LIB_VERSION >= 90
++        break;
++      case JCT_SUBTRACT_GREEN:
++        cconvert->pub.color_convert = rgb1_rgb_convert;
++        break;
++      default:
++        ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++      }
++#endif
++    default:
++      ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++    }
++    break;
++
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_RGB:
++    cinfo->out_color_components = rgb_pixelsize[cinfo->out_color_space];
++    if (cinfo->jpeg_color_space == JCS_BG_RGB) {
++      switch (cinfo->color_transform) {
++      case JCT_NONE:
+         cconvert->pub.color_convert = null_convert;
+-      else
+-        cconvert->pub.color_convert = rgb_rgb_convert;
++        break;
++      case JCT_SUBTRACT_GREEN:
++        cconvert->pub.color_convert = rgb1_rgb_convert;
++        break;
++      default:
++        ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++      }
+     } else
+       ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
+     break;
++#endif
+ 
+   case JCS_RGB565:
+     cinfo->out_color_components = 3;
+@@ -849,6 +1074,15 @@ jinit_color_deconverter (j_decompress_pt
+            cconvert->pub.color_convert = ycc_rgb565_convert;
+            build_ycc_rgb_table(cinfo);
+         }
++#if JPEG_LIB_VERSION >= 90
++      } else if (cinfo->jpeg_color_space == JCS_BG_YCC) {
++         if (jsimd_can_ycc_rgb565())
++           cconvert->pub.color_convert = jsimd_bg_ycc_rgb565_convert;
++         else {
++           cconvert->pub.color_convert = ycc_rgb565_convert;
++           build_bg_ycc_rgb_table(cinfo);
++        }
++#endif
+       } else if (cinfo->jpeg_color_space == JCS_GRAYSCALE) {
+         cconvert->pub.color_convert = gray_rgb565_convert;
+       } else if (cinfo->jpeg_color_space == JCS_RGB) {
+@@ -860,6 +1094,11 @@ jinit_color_deconverter (j_decompress_pt
+       if (cinfo->jpeg_color_space == JCS_YCbCr) {
+         cconvert->pub.color_convert = ycc_rgb565D_convert;
+         build_ycc_rgb_table(cinfo);
++#if JPEG_LIB_VERSION >= 90
++      } else if (cinfo->jpeg_color_space == JCS_BG_YCC) {
++        cconvert->pub.color_convert = ycc_rgb565D_convert;
++        build_bg_ycc_rgb_table(cinfo);
++#endif
+       } else if (cinfo->jpeg_color_space == JCS_GRAYSCALE) {
+         cconvert->pub.color_convert = gray_rgb565D_convert;
+       } else if (cinfo->jpeg_color_space == JCS_RGB) {
+diff -urNp jdmarker.c jdmarker.c
+--- jdmarker.c	2017-07-10 03:58:14.000000000 -0700
++++ jdmarker.c	2018-05-07 14:34:36.000000000 -0700
+@@ -79,6 +79,7 @@ typedef enum {                  /* JPEG 
+   M_APP15 = 0xef,
+ 
+   M_JPG0  = 0xf0,
++  M_JPG8  = 0xf8,
+   M_JPG13 = 0xfd,
+   M_COM   = 0xfe,
+ 
+@@ -219,6 +220,9 @@ get_soi (j_decompress_ptr cinfo)
+   /* Set initial assumptions for colorspace etc */
+ 
+   cinfo->jpeg_color_space = JCS_UNKNOWN;
++#if JPEG_LIB_VERSION >= 90
++  cinfo->color_transform = JCT_NONE;
++#endif
+   cinfo->CCIR601_sampling = FALSE; /* Assume non-CCIR sampling??? */
+ 
+   cinfo->saw_JFIF_marker = FALSE;
+@@ -310,7 +314,11 @@ get_sos (j_decompress_ptr cinfo)
+   INPUT_VARS(cinfo);
+ 
+   if (! cinfo->marker->saw_SOF)
++#if JPEG_LIB_VERSION >= 90
++    ERREXITS(cinfo, JERR_SOF_BEFORE, "SOS");
++#else
+     ERREXIT(cinfo, JERR_SOS_NO_SOF);
++#endif
+ 
+   INPUT_2BYTES(cinfo, length, return FALSE);
+ 
+@@ -585,6 +593,70 @@ get_dri (j_decompress_ptr cinfo)
+ }
+ 
+ 
++#if JPEG_LIB_VERSION >= 90
++LOCAL(boolean)
++get_lse (j_decompress_ptr cinfo)
++/* Process an LSE marker */
++{
++  JLONG length;
++  unsigned int tmp;
++  int cid;
++  INPUT_VARS(cinfo);
++
++  if (! cinfo->marker->saw_SOF)
++    ERREXITS(cinfo, JERR_SOF_BEFORE, "LSE");
++
++  if (cinfo->num_components < 3) goto bad;
++
++  INPUT_2BYTES(cinfo, length, return FALSE);
++
++  if (length != 24)
++    ERREXIT(cinfo, JERR_BAD_LENGTH);
++
++  INPUT_BYTE(cinfo, tmp, return FALSE);
++  if (tmp != 0x0D)      /* ID inverse transform specification */
++    ERREXIT1(cinfo, JERR_UNKNOWN_MARKER, cinfo->unread_marker);
++  INPUT_2BYTES(cinfo, tmp, return FALSE);
++  if (tmp != MAXJSAMPLE) goto bad;              /* MAXTRANS */
++  INPUT_BYTE(cinfo, tmp, return FALSE);
++  if (tmp != 3) goto bad;                       /* Nt=3 */
++  INPUT_BYTE(cinfo, cid, return FALSE);
++  if (cid != cinfo->comp_info[1].component_id) goto bad;
++  INPUT_BYTE(cinfo, cid, return FALSE);
++  if (cid != cinfo->comp_info[0].component_id) goto bad;
++  INPUT_BYTE(cinfo, cid, return FALSE);
++  if (cid != cinfo->comp_info[2].component_id) goto bad;
++  INPUT_BYTE(cinfo, tmp, return FALSE);
++  if (tmp != 0x80) goto bad;            /* F1: CENTER1=1, NORM1=0 */
++  INPUT_2BYTES(cinfo, tmp, return FALSE);
++  if (tmp != 0) goto bad;                       /* A(1,1)=0 */
++  INPUT_2BYTES(cinfo, tmp, return FALSE);
++  if (tmp != 0) goto bad;                       /* A(1,2)=0 */
++  INPUT_BYTE(cinfo, tmp, return FALSE);
++  if (tmp != 0) goto bad;               /* F2: CENTER2=0, NORM2=0 */
++  INPUT_2BYTES(cinfo, tmp, return FALSE);
++  if (tmp != 1) goto bad;                       /* A(2,1)=1 */
++  INPUT_2BYTES(cinfo, tmp, return FALSE);
++  if (tmp != 0) goto bad;                       /* A(2,2)=0 */
++  INPUT_BYTE(cinfo, tmp, return FALSE);
++  if (tmp != 0) goto bad;               /* F3: CENTER3=0, NORM3=0 */
++  INPUT_2BYTES(cinfo, tmp, return FALSE);
++  if (tmp != 1) goto bad;                       /* A(3,1)=1 */
++  INPUT_2BYTES(cinfo, tmp, return FALSE);
++  if (tmp != 0) {                               /* A(3,2)=0 */
++    bad:
++    ERREXIT(cinfo, JERR_CONVERSION_NOTIMPL);
++  }
++
++  /* OK, valid transform that we can handle. */
++  cinfo->color_transform = JCT_SUBTRACT_GREEN;
++
++  INPUT_SYNC(cinfo);
++  return TRUE;
++}
++#endif
++
++
+ /*
+  * Routines for processing APPn and COM markers.
+  * These are either saved in memory or discarded, per application request.
+@@ -1056,6 +1128,13 @@ read_markers (j_decompress_ptr cinfo)
+         return JPEG_SUSPENDED;
+       break;
+ 
++#if JPEG_LIB_VERSION >= 90
++    case M_JPG8:
++      if (! get_lse(cinfo))
++        return JPEG_SUSPENDED;
++      break;
++#endif
++
+     case M_APP0:
+     case M_APP1:
+     case M_APP2:
+diff -urNp jdmaster.c jdmaster.c
+--- jdmaster.c	2017-07-10 03:58:14.000000000 -0700
++++ jdmaster.c	2018-05-12 22:52:23.000000000 -0700
+@@ -38,7 +38,11 @@ use_merged_upsample (j_decompress_ptr ci
+   if (cinfo->do_fancy_upsampling || cinfo->CCIR601_sampling)
+     return FALSE;
+   /* jdmerge.c only supports YCC=>RGB and YCC=>RGB565 color conversion */
+-  if (cinfo->jpeg_color_space != JCS_YCbCr || cinfo->num_components != 3 ||
++  if ((cinfo->jpeg_color_space != JCS_YCbCr
++#if JPEG_LIB_VERSION >= 90
++	   && cinfo->jpeg_color_space != JCS_BG_YCC
++#endif
++	  ) || cinfo->num_components != 3 ||
+       (cinfo->out_color_space != JCS_RGB &&
+       cinfo->out_color_space != JCS_RGB565 &&
+       cinfo->out_color_space != JCS_EXT_RGB &&
+@@ -50,7 +54,11 @@ use_merged_upsample (j_decompress_ptr ci
+       cinfo->out_color_space != JCS_EXT_RGBA &&
+       cinfo->out_color_space != JCS_EXT_BGRA &&
+       cinfo->out_color_space != JCS_EXT_ABGR &&
+-      cinfo->out_color_space != JCS_EXT_ARGB))
++      cinfo->out_color_space != JCS_EXT_ARGB)
++#if JPEG_LIB_VERSION >= 90
++	  || cinfo->color_transform
++#endif
++	  )
+     return FALSE;
+   if ((cinfo->out_color_space == JCS_RGB565 &&
+       cinfo->out_color_components != 3) ||
+@@ -75,7 +83,12 @@ use_merged_upsample (j_decompress_ptr ci
+      isn't, then disabling merged upsampling is likely to be faster when
+      decompressing YCbCr JPEG images. */
+   if (!jsimd_can_h2v2_merged_upsample() && !jsimd_can_h2v1_merged_upsample() &&
+-      jsimd_can_ycc_rgb() && cinfo->jpeg_color_space == JCS_YCbCr &&
++      jsimd_can_ycc_rgb() &&
++	  (cinfo->jpeg_color_space == JCS_YCbCr
++#if JPEG_LIB_VERSION >= 90
++	   || cinfo->jpeg_color_space == JCS_BG_YCC
++#endif
++	   ) &&
+       (cinfo->out_color_space == JCS_RGB ||
+        (cinfo->out_color_space >= JCS_EXT_RGB &&
+         cinfo->out_color_space <= JCS_EXT_ARGB)))
+@@ -351,10 +364,16 @@ jpeg_calc_output_dimensions (j_decompres
+   case JCS_EXT_BGRA:
+   case JCS_EXT_ABGR:
+   case JCS_EXT_ARGB:
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_RGB:
++#endif
+     cinfo->out_color_components = rgb_pixelsize[cinfo->out_color_space];
+     break;
+   case JCS_YCbCr:
+   case JCS_RGB565:
++#if JPEG_LIB_VERSION >= 90
++  case JCS_BG_YCC:
++#endif
+     cinfo->out_color_components = 3;
+     break;
+   case JCS_CMYK:
+diff -urNp jdmerge.c jdmerge.c
+--- jdmerge.c	2017-07-10 03:58:14.000000000 -0700
++++ jdmerge.c	2018-05-07 14:46:22.000000000 -0700
+@@ -225,6 +225,47 @@ build_ycc_rgb_table (j_decompress_ptr ci
+ }
+ 
+ 
++#if JPEG_LIB_VERSION >= 90
++LOCAL(void)
++build_bg_ycc_rgb_table (j_decompress_ptr cinfo)
++{
++  my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
++  int i;
++  JLONG x;
++  SHIFT_TEMPS
++
++  upsample->Cr_r_tab = (int *)
++    (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
++                                (MAXJSAMPLE+1) * sizeof(int));
++  upsample->Cb_b_tab = (int *)
++    (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
++                                (MAXJSAMPLE+1) * sizeof(int));
++  upsample->Cr_g_tab = (JLONG *)
++    (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
++                                (MAXJSAMPLE+1) * sizeof(JLONG));
++  upsample->Cb_g_tab = (JLONG *)
++    (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
++                                (MAXJSAMPLE+1) * sizeof(JLONG));
++
++  for (i = 0, x = -CENTERJSAMPLE; i <= MAXJSAMPLE; i++, x++) {
++    /* i is the actual input pixel value, in the range 0..MAXJSAMPLE */
++    /* The Cb or Cr value we are thinking of is x = i - CENTERJSAMPLE */
++    /* Cr=>R value is nearest int to 2.80400 * x */
++    upsample->Cr_r_tab[i] = (int)
++                    RIGHT_SHIFT(FIX(2.80400) * x + ONE_HALF, SCALEBITS);
++    /* Cb=>B value is nearest int to 3.54400 * x */
++    upsample->Cb_b_tab[i] = (int)
++                    RIGHT_SHIFT(FIX(3.54400) * x + ONE_HALF, SCALEBITS);
++    /* Cr=>G value is scaled-up -1.42828 * x */
++    upsample->Cr_g_tab[i] = (- FIX(1.42828)) * x;
++    /* Cb=>G value is scaled-up -0.68828 * x */
++    /* We also add in ONE_HALF so that need not do it in inner loop */
++    upsample->Cb_g_tab[i] = (- FIX(0.68828)) * x + ONE_HALF;
++  }
++}
++#endif
++
++
+ /*
+  * Initialize for an upsampling pass.
+  */
+@@ -621,7 +662,12 @@ jinit_merged_upsampler (j_decompress_ptr
+     upsample->spare_row = NULL;
+   }
+ 
+-  build_ycc_rgb_table(cinfo);
++#if JPEG_LIB_VERSION >= 90
++  if (cinfo->jpeg_color_space == JCS_BG_YCC)
++    build_bg_ycc_rgb_table(cinfo);
++  else
++#endif
++    build_ycc_rgb_table(cinfo);
+ }
+ 
+ #endif /* UPSAMPLE_MERGING_SUPPORTED */
+diff -urNp jerror.h jerror.h
+--- jerror.h	2017-07-10 03:58:14.000000000 -0700
++++ jerror.h	2018-05-07 00:39:51.000000000 -0700
+@@ -119,11 +119,16 @@ JMESSAGE(JERR_QUANT_COMPONENTS,
+          "Cannot quantize more than %d color components")
+ JMESSAGE(JERR_QUANT_FEW_COLORS, "Cannot quantize to fewer than %d colors")
+ JMESSAGE(JERR_QUANT_MANY_COLORS, "Cannot quantize to more than %d colors")
++#if JPEG_LIB_VERSION >= 90
++JMESSAGE(JERR_SOF_BEFORE, "Invalid JPEG file structure: %s before SOF")
++#endif
+ JMESSAGE(JERR_SOF_DUPLICATE, "Invalid JPEG file structure: two SOF markers")
+ JMESSAGE(JERR_SOF_NO_SOS, "Invalid JPEG file structure: missing SOS marker")
+ JMESSAGE(JERR_SOF_UNSUPPORTED, "Unsupported JPEG process: SOF type 0x%02x")
+ JMESSAGE(JERR_SOI_DUPLICATE, "Invalid JPEG file structure: two SOI markers")
++#if JPEG_LIB_VERSION < 90
+ JMESSAGE(JERR_SOS_NO_SOF, "Invalid JPEG file structure: SOS before SOF")
++#endif
+ JMESSAGE(JERR_TFILE_CREATE, "Failed to create temporary file %s")
+ JMESSAGE(JERR_TFILE_READ, "Read failed on temporary file")
+ JMESSAGE(JERR_TFILE_SEEK, "Seek failed on temporary file")
+@@ -257,6 +262,15 @@ JMESSAGE(JERR_UNSUPPORTED_SUSPEND, "I/O 
+    (cinfo)->err->msg_parm.i[2] = (p3), \
+    (cinfo)->err->msg_parm.i[3] = (p4), \
+    (*(cinfo)->err->error_exit) ((j_common_ptr) (cinfo)))
++#define ERREXIT6(cinfo,code,p1,p2,p3,p4,p5,p6)  \
++  ((cinfo)->err->msg_code = (code), \
++   (cinfo)->err->msg_parm.i[0] = (p1), \
++   (cinfo)->err->msg_parm.i[1] = (p2), \
++   (cinfo)->err->msg_parm.i[2] = (p3), \
++   (cinfo)->err->msg_parm.i[3] = (p4), \
++   (cinfo)->err->msg_parm.i[4] = (p5), \
++   (cinfo)->err->msg_parm.i[5] = (p6), \
++   (*(cinfo)->err->error_exit) ((j_common_ptr) (cinfo)))
+ #define ERREXITS(cinfo,code,str)  \
+   ((cinfo)->err->msg_code = (code), \
+    strncpy((cinfo)->err->msg_parm.s, (str), JMSG_STR_PARM_MAX), \
+diff -urNp jmorecfg.h jmorecfg.h
+--- jmorecfg.h	2017-07-10 03:58:14.000000000 -0700
++++ jmorecfg.h	2018-05-07 21:30:25.000000000 -0700
+@@ -333,7 +333,11 @@ typedef int boolean;
+ #define RGB_BLUE        2       /* Offset of Blue */
+ #define RGB_PIXELSIZE   3       /* JSAMPLEs per RGB scanline element */
+ 
++#if JPEG_LIB_VERSION >= 90
++#define JPEG_NUMCS 19
++#else
+ #define JPEG_NUMCS 17
++#endif
+ 
+ #define EXT_RGB_RED        0
+ #define EXT_RGB_GREEN      1
+@@ -366,28 +370,44 @@ typedef int boolean;
+ #define EXT_XRGB_PIXELSIZE 4
+ 
+ static const int rgb_red[JPEG_NUMCS] = {
+-  -1, -1, RGB_RED, -1, -1, -1, EXT_RGB_RED, EXT_RGBX_RED,
++  -1, -1, RGB_RED, -1, -1, -1,
++#if JPEG_LIB_VERSION >= 90
++  RGB_RED, -1,
++#endif
++  EXT_RGB_RED, EXT_RGBX_RED,
+   EXT_BGR_RED, EXT_BGRX_RED, EXT_XBGR_RED, EXT_XRGB_RED,
+   EXT_RGBX_RED, EXT_BGRX_RED, EXT_XBGR_RED, EXT_XRGB_RED,
+   -1
+ };
+ 
+ static const int rgb_green[JPEG_NUMCS] = {
+-  -1, -1, RGB_GREEN, -1, -1, -1, EXT_RGB_GREEN, EXT_RGBX_GREEN,
++  -1, -1, RGB_GREEN, -1, -1, -1,
++#if JPEG_LIB_VERSION >= 90
++  RGB_GREEN, -1,
++#endif
++  EXT_RGB_GREEN, EXT_RGBX_GREEN,
+   EXT_BGR_GREEN, EXT_BGRX_GREEN, EXT_XBGR_GREEN, EXT_XRGB_GREEN,
+   EXT_RGBX_GREEN, EXT_BGRX_GREEN, EXT_XBGR_GREEN, EXT_XRGB_GREEN,
+   -1
+ };
+ 
+ static const int rgb_blue[JPEG_NUMCS] = {
+-  -1, -1, RGB_BLUE, -1, -1, -1, EXT_RGB_BLUE, EXT_RGBX_BLUE,
++  -1, -1, RGB_BLUE, -1, -1, -1,
++#if JPEG_LIB_VERSION >= 90
++  RGB_BLUE, -1,
++#endif
++  EXT_RGB_BLUE, EXT_RGBX_BLUE,
+   EXT_BGR_BLUE, EXT_BGRX_BLUE, EXT_XBGR_BLUE, EXT_XRGB_BLUE,
+   EXT_RGBX_BLUE, EXT_BGRX_BLUE, EXT_XBGR_BLUE, EXT_XRGB_BLUE,
+   -1
+ };
+ 
+ static const int rgb_pixelsize[JPEG_NUMCS] = {
+-  -1, -1, RGB_PIXELSIZE, -1, -1, -1, EXT_RGB_PIXELSIZE, EXT_RGBX_PIXELSIZE,
++  -1, -1, RGB_PIXELSIZE, -1, -1, -1,
++#if JPEG_LIB_VERSION >= 90
++  RGB_PIXELSIZE, -1,
++#endif
++  EXT_RGB_PIXELSIZE, EXT_RGBX_PIXELSIZE,
+   EXT_BGR_PIXELSIZE, EXT_BGRX_PIXELSIZE, EXT_XBGR_PIXELSIZE, EXT_XRGB_PIXELSIZE,
+   EXT_RGBX_PIXELSIZE, EXT_BGRX_PIXELSIZE, EXT_XBGR_PIXELSIZE, EXT_XRGB_PIXELSIZE,
+   -1
+diff -urNp jpeglib.h jpeglib.h
+--- jpeglib.h	2017-07-10 03:58:14.000000000 -0700
++++ jpeglib.h	2018-05-06 21:53:43.000000000 -0700
+@@ -224,6 +224,10 @@ typedef enum {
+   JCS_YCbCr,              /* Y/Cb/Cr (also known as YUV) */
+   JCS_CMYK,               /* C/M/Y/K */
+   JCS_YCCK,               /* Y/Cb/Cr/K */
++#if JPEG_LIB_VERSION >= 90
++  JCS_BG_RGB,             /* big gamut red/green/blue, bg-sRGB */
++  JCS_BG_YCC,             /* big gamut Y/Cb/Cr, bg-sYCC */
++#endif
+   JCS_EXT_RGB,            /* red/green/blue */
+   JCS_EXT_RGBX,           /* red/green/blue/x */
+   JCS_EXT_BGR,            /* blue/green/red */
+@@ -243,6 +247,15 @@ typedef enum {
+   JCS_RGB565              /* 5-bit red/6-bit green/5-bit blue */
+ } J_COLOR_SPACE;
+ 
++#if JPEG_LIB_VERSION >= 90
++/* Supported color transforms. */
++
++typedef enum {
++  JCT_NONE           = 0,
++  JCT_SUBTRACT_GREEN = 1
++} J_COLOR_TRANSFORM;
++#endif
++
+ /* DCT/IDCT algorithm options. */
+ 
+ typedef enum {
+@@ -444,6 +457,11 @@ struct jpeg_compress_struct {
+   UINT16 Y_density;             /* Vertical pixel density */
+   boolean write_Adobe_marker;   /* should an Adobe marker be written? */
+ 
++#if JPEG_LIB_VERSION >= 90
++  J_COLOR_TRANSFORM color_transform;
++  /* Color transform identifier, writes LSE marker if nonzero */
++#endif
++
+   /* State variable: index of next scanline to be written to
+    * jpeg_write_scanlines().  Application may use this to control its
+    * processing loop, e.g., "while (next_scanline < image_height)".
+@@ -669,6 +687,11 @@ struct jpeg_decompress_struct {
+   boolean saw_Adobe_marker;     /* TRUE iff an Adobe APP14 marker was found */
+   UINT8 Adobe_transform;        /* Color transform code from Adobe marker */
+ 
++#if JPEG_LIB_VERSION >= 90
++  J_COLOR_TRANSFORM color_transform;
++  /* Color transform identifier derived from LSE marker, otherwise zero */
++#endif
++
+   boolean CCIR601_sampling;     /* TRUE=first samples are cosited */
+ 
+   /* Aside from the specific data retained from APPn markers known to the
+diff -urNp jsimd.h jsimd.h
+--- jsimd.h	2017-07-10 03:58:14.000000000 -0700
++++ jsimd.h	2018-05-12 22:47:36.000000000 -0700
+@@ -25,9 +25,15 @@ EXTERN(void) jsimd_rgb_ycc_convert
+ EXTERN(void) jsimd_rgb_gray_convert
+         (j_compress_ptr cinfo, JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+          JDIMENSION output_row, int num_rows);
++EXTERN(void) jsimd_bg_ycc_rgb_convert
++        (j_decompress_ptr cinfo, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
+ EXTERN(void) jsimd_ycc_rgb_convert
+         (j_decompress_ptr cinfo, JSAMPIMAGE input_buf, JDIMENSION input_row,
+          JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_rgb565_convert
++        (j_decompress_ptr cinfo, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
+ EXTERN(void) jsimd_ycc_rgb565_convert
+         (j_decompress_ptr cinfo, JSAMPIMAGE input_buf, JDIMENSION input_row,
+          JSAMPARRAY output_buf, int num_rows);
+diff -urNp jsimd_none.c jsimd_none.c
+--- jsimd_none.c	2017-07-10 03:58:14.000000000 -0700
++++ jsimd_none.c	2018-05-08 01:32:09.000000000 -0700
+@@ -64,6 +64,13 @@ jsimd_rgb_gray_convert (j_compress_ptr c
+ }
+ 
+ GLOBAL(void)
++jsimd_bg_ycc_rgb_convert (j_decompress_ptr cinfo,
++                          JSAMPIMAGE input_buf, JDIMENSION input_row,
++                          JSAMPARRAY output_buf, int num_rows)
++{
++}
++
++GLOBAL(void)
+ jsimd_ycc_rgb_convert (j_decompress_ptr cinfo,
+                        JSAMPIMAGE input_buf, JDIMENSION input_row,
+                        JSAMPARRAY output_buf, int num_rows)
+@@ -71,6 +78,13 @@ jsimd_ycc_rgb_convert (j_decompress_ptr 
+ }
+ 
+ GLOBAL(void)
++jsimd_bg_ycc_rgb565_convert (j_decompress_ptr cinfo,
++                             JSAMPIMAGE input_buf, JDIMENSION input_row,
++                             JSAMPARRAY output_buf, int num_rows)
++{
++}
++
++GLOBAL(void)
+ jsimd_ycc_rgb565_convert (j_decompress_ptr cinfo,
+                           JSAMPIMAGE input_buf, JDIMENSION input_row,
+                           JSAMPARRAY output_buf, int num_rows)
+diff -urNp libjpeg.txt libjpeg.txt
+--- libjpeg.txt	2017-07-10 03:58:14.000000000 -0700
++++ libjpeg.txt	2018-05-12 23:28:30.000000000 -0700
+@@ -996,6 +996,15 @@ int num_components
+         "Special color spaces", below, for more info.  We recommend using
+         jpeg_set_color_space() if you want to change these.
+ 
++J_COLOR_TRANSFORM color_transform
++        Internal color transform identifier; writes LSE marker if nonzero
++        (requires decoder with inverse color transform support, introduced
++        with IJG JPEG 9).
++        Two values are currently possible: JCT_NONE and JCT_SUBTRACT_GREEN.
++        Set this value for lossless RGB application *before* calling
++        jpeg_set_colorspace(), because entropy table assignment in
++        jpeg_set_colorspace() depends on color_transform.
++
+ boolean optimize_coding
+         TRUE causes the compressor to compute optimal Huffman coding tables
+         for the image.  This requires an extra pass over the data and
+diff -urNp simd/jdcolor-altivec.c simd/jdcolor-altivec.c
+--- simd/jdcolor-altivec.c	2017-07-10 03:58:14.000000000 -0700
++++ simd/jdcolor-altivec.c	2018-05-12 17:00:21.000000000 -0700
+@@ -94,3 +94,82 @@
+ #undef RGB_PIXELSIZE
+ #undef RGB_INDEX
+ #undef jsimd_ycc_rgb_convert_altivec
++
++
++#undef F_0_344
++#undef F_0_714
++#undef F_1_402
++#undef F_1_772
++#undef F_0_402
++#undef F_0_285
++#undef F_0_228
++#define F_0_344 45108              /* FIX(0.68828) */
++#define F_0_714 93604              /* FIX(1.42828) */
++#define F_1_402 183762             /* FIX(2.80400) */
++#define F_1_772 232260             /* FIX(3.54400) */
++#define F_0_402 (F_1_402 - 131072) /* FIX(2.80400) - FIX(2) */
++#define F_0_285 (131072 - F_0_714) /* FIX(2) - FIX(1.42828) */
++#define F_0_228 (262144 - F_1_772) /* FIX(4) - FIX(3.54400) */
++
++#undef ONE_HALF
++#define ONE_HALF (1 << (SCALEBITS))
++
++#define RGB_INDEX0 {0,1,8,2,3,10,4,5,12,6,7,14,16,17,24,18}
++#define RGB_INDEX1 {3,10,4,5,12,6,7,14,16,17,24,18,19,26,20,21}
++#define RGB_INDEX2 {12,6,7,14,16,17,24,18,19,26,20,21,28,22,23,30}
++#define jsimd_ycc_rgb_convert_altivec jsimd_bg_ycc_rgb_convert_altivec
++#include "jdcolext-altivec.c"
++#undef RGB_PIXELSIZE
++
++#define RGB_PIXELSIZE EXT_RGB_PIXELSIZE
++#define jsimd_ycc_rgb_convert_altivec jsimd_bg_ycc_extrgb_convert_altivec
++#include "jdcolext-altivec.c"
++#undef RGB_PIXELSIZE
++#undef RGB_INDEX0
++#undef RGB_INDEX1
++#undef RGB_INDEX2
++#undef jsimd_ycc_rgb_convert_altivec
++
++#define RGB_PIXELSIZE EXT_RGBX_PIXELSIZE
++#define RGB_INDEX {0,1,8,9,2,3,10,11,4,5,12,13,6,7,14,15}
++#define jsimd_ycc_rgb_convert_altivec jsimd_bg_ycc_extrgbx_convert_altivec
++#include "jdcolext-altivec.c"
++#undef RGB_PIXELSIZE
++#undef RGB_INDEX
++#undef jsimd_ycc_rgb_convert_altivec
++
++#define RGB_PIXELSIZE EXT_BGR_PIXELSIZE
++#define RGB_INDEX0 {8,1,0,10,3,2,12,5,4,14,7,6,24,17,16,26}
++#define RGB_INDEX1 {3,2,12,5,4,14,7,6,24,17,16,26,19,18,28,21}
++#define RGB_INDEX2 {4,14,7,6,24,17,16,26,19,18,28,21,20,30,23,22}
++#define jsimd_ycc_rgb_convert_altivec jsimd_bg_ycc_extbgr_convert_altivec
++#include "jdcolext-altivec.c"
++#undef RGB_PIXELSIZE
++#undef RGB_INDEX0
++#undef RGB_INDEX1
++#undef RGB_INDEX2
++#undef jsimd_ycc_rgb_convert_altivec
++
++#define RGB_PIXELSIZE EXT_BGRX_PIXELSIZE
++#define RGB_INDEX {8,1,0,9,10,3,2,11,12,5,4,13,14,7,6,15}
++#define jsimd_ycc_rgb_convert_altivec jsimd_bg_ycc_extbgrx_convert_altivec
++#include "jdcolext-altivec.c"
++#undef RGB_PIXELSIZE
++#undef RGB_INDEX
++#undef jsimd_ycc_rgb_convert_altivec
++
++#define RGB_PIXELSIZE EXT_XBGR_PIXELSIZE
++#define RGB_INDEX {9,8,1,0,11,10,3,2,13,12,5,4,15,14,7,6}
++#define jsimd_ycc_rgb_convert_altivec jsimd_bg_ycc_extxbgr_convert_altivec
++#include "jdcolext-altivec.c"
++#undef RGB_PIXELSIZE
++#undef RGB_INDEX
++#undef jsimd_ycc_rgb_convert_altivec
++
++#define RGB_PIXELSIZE EXT_XRGB_PIXELSIZE
++#define RGB_INDEX {9,0,1,8,11,2,3,10,13,4,5,12,15,6,7,14}
++#define jsimd_ycc_rgb_convert_altivec jsimd_bg_ycc_extxrgb_convert_altivec
++#include "jdcolext-altivec.c"
++#undef RGB_PIXELSIZE
++#undef RGB_INDEX
++#undef jsimd_ycc_rgb_convert_altivec
+diff -urNp simd/jdcolor-mmx.asm simd/jdcolor-mmx.asm
+--- simd/jdcolor-mmx.asm	2017-07-10 03:58:14.000000000 -0700
++++ simd/jdcolor-mmx.asm	2018-05-12 17:25:34.000000000 -0700
+@@ -30,6 +30,14 @@ F_0_402 equ     (F_1_402 - 65536)       
+ F_0_285 equ     ( 65536 - F_0_714)      ; FIX(1) - FIX(0.71414)
+ F_0_228 equ     (131072 - F_1_772)      ; FIX(2) - FIX(1.77200)
+ 
++F_0_688 equ      45108                  ; FIX(0.68828)
++F_1_428 equ      83604                  ; FIX(1.42828)
++F_2_804 equ     183762                  ; FIX(2.80400)
++F_3_544 equ     232260                  ; FIX(3.54400)
++F_0_804 equ     (F_2_804 - 131072)      ; FIX(2.80400) - FIX(2)
++F_0_570 equ     (131072 - F_1_428)      ; FIX(2) - FIX(1.42828)
++F_0_456 equ     (262144 - F_3_544)      ; FIX(4) - FIX(3.54400)
++
+ ; --------------------------------------------------------------------------
+         SECTION SEG_CONST
+ 
+@@ -45,6 +53,17 @@ PW_ONE          times 4 dw  1
+ PD_ONEHALF      times 2 dd  1 << (SCALEBITS-1)
+ 
+         alignz  16
++        global  EXTN(jconst_bg_ycc_rgb_convert_mmx)
++
++EXTN(jconst_bg_ycc_rgb_convert_mmx):
++
++PW_F0804        times 4 dw  F_0_804
++PW_MF0456       times 4 dw -F_0_456
++PW_MF0688_F0570 times 2 dw -F_0_688, F_0_570
++PW_TWO          times 4 dw  2
++PD_ONE          times 2 dd  1 << (SCALEBITS)
++
++        alignz  16
+ 
+ ; --------------------------------------------------------------------------
+         SECTION SEG_TEXT
+@@ -117,3 +136,87 @@ PD_ONEHALF      times 2 dd  1 << (SCALEB
+ %define RGB_PIXELSIZE EXT_XRGB_PIXELSIZE
+ %define jsimd_ycc_rgb_convert_mmx jsimd_ycc_extxrgb_convert_mmx
+ %include "jdcolext-mmx.asm"
++
++%define jconst_ycc_rgb_convert_mmx jconst_bg_ycc_rgb_convert_mmx
++%define PW_F0402 PW_F0804
++%define PW_MF0228 PW_MF0456
++%define PW_MF0344_F0285 PW_MF0688_F0570
++%define PW_ONE PW_TWO
++%define PD_ONEHALF PD_ONE
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED 0
++%define RGB_GREEN 1
++%define RGB_BLUE 2
++%define RGB_PIXELSIZE 3
++%define jsimd_ycc_rgb_convert_mmx jsimd_bg_ycc_rgb_convert_mmx
++%include "jdcolext-mmx.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_RGB_RED
++%define RGB_GREEN EXT_RGB_GREEN
++%define RGB_BLUE EXT_RGB_BLUE
++%define RGB_PIXELSIZE EXT_RGB_PIXELSIZE
++%define jsimd_ycc_rgb_convert_mmx jsimd_bg_ycc_extrgb_convert_mmx
++%include "jdcolext-mmx.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_RGBX_RED
++%define RGB_GREEN EXT_RGBX_GREEN
++%define RGB_BLUE EXT_RGBX_BLUE
++%define RGB_PIXELSIZE EXT_RGBX_PIXELSIZE
++%define jsimd_ycc_rgb_convert_mmx jsimd_bg_ycc_extrgbx_convert_mmx
++%include "jdcolext-mmx.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_BGR_RED
++%define RGB_GREEN EXT_BGR_GREEN
++%define RGB_BLUE EXT_BGR_BLUE
++%define RGB_PIXELSIZE EXT_BGR_PIXELSIZE
++%define jsimd_ycc_rgb_convert_mmx jsimd_bg_ycc_extbgr_convert_mmx
++%include "jdcolext-mmx.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_BGRX_RED
++%define RGB_GREEN EXT_BGRX_GREEN
++%define RGB_BLUE EXT_BGRX_BLUE
++%define RGB_PIXELSIZE EXT_BGRX_PIXELSIZE
++%define jsimd_ycc_rgb_convert_mmx jsimd_bg_ycc_extbgrx_convert_mmx
++%include "jdcolext-mmx.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_XBGR_RED
++%define RGB_GREEN EXT_XBGR_GREEN
++%define RGB_BLUE EXT_XBGR_BLUE
++%define RGB_PIXELSIZE EXT_XBGR_PIXELSIZE
++%define jsimd_ycc_rgb_convert_mmx jsimd_bg_ycc_extxbgr_convert_mmx
++%include "jdcolext-mmx.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_XRGB_RED
++%define RGB_GREEN EXT_XRGB_GREEN
++%define RGB_BLUE EXT_XRGB_BLUE
++%define RGB_PIXELSIZE EXT_XRGB_PIXELSIZE
++%define jsimd_ycc_rgb_convert_mmx jsimd_bg_ycc_extxrgb_convert_mmx
++%include "jdcolext-mmx.asm"
+diff -urNp simd/jdcolor-sse2-64.asm simd/jdcolor-sse2-64.asm
+--- simd/jdcolor-sse2-64.asm	2017-07-10 03:58:14.000000000 -0700
++++ simd/jdcolor-sse2-64.asm	2018-05-12 17:56:09.000000000 -0700
+@@ -30,6 +30,14 @@ F_0_402 equ     (F_1_402 - 65536)       
+ F_0_285 equ     ( 65536 - F_0_714)      ; FIX(1) - FIX(0.71414)
+ F_0_228 equ     (131072 - F_1_772)      ; FIX(2) - FIX(1.77200)
+ 
++F_0_688 equ      45108                  ; FIX(0.68828)
++F_1_428 equ      93604                  ; FIX(1.42828)
++F_2_804 equ     183762                  ; FIX(2.80400)
++F_3_544 equ     232260                  ; FIX(3.54400)
++F_0_804 equ     (F_2_804 - 131072)      ; FIX(2.80400) - FIX(2)
++F_0_570 equ     (131072 - F_1_428)      ; FIX(2) - FIX(1.42828)
++F_0_456 equ     (262144 - F_3_544)      ; FIX(4) - FIX(3.54400)
++
+ ; --------------------------------------------------------------------------
+         SECTION SEG_CONST
+ 
+@@ -45,6 +53,17 @@ PW_ONE          times 8 dw  1
+ PD_ONEHALF      times 4 dd  1 << (SCALEBITS-1)
+ 
+         alignz  16
++        global  EXTN(jconst_bg_ycc_rgb_convert_sse2)
++
++EXTN(jconst_bg_ycc_rgb_convert_sse2):
++
++PW_F0804        times 8 dw  F_0_804
++PW_MF0456       times 8 dw -F_0_456
++PW_MF0688_F0570 times 4 dw -F_0_688, F_0_570
++PW_TWO          times 8 dw  2
++PD_ONE          times 4 dd  1 << (SCALEBITS)
++
++        alignz  16
+ 
+ ; --------------------------------------------------------------------------
+         SECTION SEG_TEXT
+@@ -117,3 +136,87 @@ PD_ONEHALF      times 4 dd  1 << (SCALEB
+ %define RGB_PIXELSIZE EXT_XRGB_PIXELSIZE
+ %define jsimd_ycc_rgb_convert_sse2 jsimd_ycc_extxrgb_convert_sse2
+ %include "jdcolext-sse2-64.asm"
++
++%define PW_F0402 PW_F0804
++%define PW_MF0228 PW_MF0456
++%define PW_MF0344_F0285 PW_MF0688_F0570
++%define PW_ONE PW_TWO
++%define PD_ONEHALF PD_ONE
++%define jconst_ycc_rgb_convert_sse2 jconst_bg_ycc_rgb_convert_sse2
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED 0
++%define RGB_GREEN 1
++%define RGB_BLUE 2
++%define RGB_PIXELSIZE 3
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_rgb_convert_sse2
++%include "jdcolext-sse2-64.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_RGB_RED
++%define RGB_GREEN EXT_RGB_GREEN
++%define RGB_BLUE EXT_RGB_BLUE
++%define RGB_PIXELSIZE EXT_RGB_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extrgb_convert_sse2
++%include "jdcolext-sse2-64.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_RGBX_RED
++%define RGB_GREEN EXT_RGBX_GREEN
++%define RGB_BLUE EXT_RGBX_BLUE
++%define RGB_PIXELSIZE EXT_RGBX_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extrgbx_convert_sse2
++%include "jdcolext-sse2-64.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_BGR_RED
++%define RGB_GREEN EXT_BGR_GREEN
++%define RGB_BLUE EXT_BGR_BLUE
++%define RGB_PIXELSIZE EXT_BGR_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extbgr_convert_sse2
++%include "jdcolext-sse2-64.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_BGRX_RED
++%define RGB_GREEN EXT_BGRX_GREEN
++%define RGB_BLUE EXT_BGRX_BLUE
++%define RGB_PIXELSIZE EXT_BGRX_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extbgrx_convert_sse2
++%include "jdcolext-sse2-64.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_XBGR_RED
++%define RGB_GREEN EXT_XBGR_GREEN
++%define RGB_BLUE EXT_XBGR_BLUE
++%define RGB_PIXELSIZE EXT_XBGR_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extxbgr_convert_sse2
++%include "jdcolext-sse2-64.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_XRGB_RED
++%define RGB_GREEN EXT_XRGB_GREEN
++%define RGB_BLUE EXT_XRGB_BLUE
++%define RGB_PIXELSIZE EXT_XRGB_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extxrgb_convert_sse2
++%include "jdcolext-sse2-64.asm"
+diff -urNp simd/jdcolor-sse2.asm simd/jdcolor-sse2.asm
+--- simd/jdcolor-sse2.asm	2017-07-10 03:58:14.000000000 -0700
++++ simd/jdcolor-sse2.asm	2018-05-12 17:46:25.000000000 -0700
+@@ -30,6 +30,14 @@ F_0_402 equ     (F_1_402 - 65536)       
+ F_0_285 equ     ( 65536 - F_0_714)      ; FIX(1) - FIX(0.71414)
+ F_0_228 equ     (131072 - F_1_772)      ; FIX(2) - FIX(1.77200)
+ 
++F_0_688 equ      45108                  ; FIX(0.68828)
++F_1_428 equ      93604                  ; FIX(1.42828)
++F_2_804 equ     183762                  ; FIX(2.80400)
++F_3_544 equ     232260                  ; FIX(3.54400)
++F_0_804 equ     (F_2_804 - 131072)      ; FIX(2.80400) - FIX(2)
++F_0_570 equ     (131072 - F_1_428)      ; FIX(2) - FIX(1.42828)
++F_0_456 equ     (262144 - F_3_544)      ; FIX(4) - FIX(3.54400)
++
+ ; --------------------------------------------------------------------------
+         SECTION SEG_CONST
+ 
+@@ -45,6 +53,17 @@ PW_ONE          times 8 dw  1
+ PD_ONEHALF      times 4 dd  1 << (SCALEBITS-1)
+ 
+         alignz  16
++        global  EXTN(jconst_bg_ycc_rgb_convert_sse2)
++
++EXTN(jconst_bg_ycc_rgb_convert_sse2):
++
++PW_F0804        times 8 dw  F_0_804
++PW_MF0456       times 8 dw -F_0_456
++PW_MF0688_F0570 times 4 dw -F_0_688, F_0_570
++PW_TWO          times 8 dw  2
++PD_ONE          times 4 dd  1 << (SCALEBITS)
++
++        alignz  16
+ 
+ ; --------------------------------------------------------------------------
+         SECTION SEG_TEXT
+@@ -117,3 +136,87 @@ PD_ONEHALF      times 4 dd  1 << (SCALEB
+ %define RGB_PIXELSIZE EXT_XRGB_PIXELSIZE
+ %define jsimd_ycc_rgb_convert_sse2 jsimd_ycc_extxrgb_convert_sse2
+ %include "jdcolext-sse2.asm"
++
++%define PW_F0402 PW_F0804
++%define PW_MF0228 PW_MF0456
++%define PW_MF0344_F0285 PW_MF0688_F0570
++%define PW_ONE PW_TWO
++%define PD_ONEHALF PD_ONE
++%define jconst_ycc_rgb_convert_sse2 jconst_bg_ycc_rgb_convert_sse2
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED 0
++%define RGB_GREEN 1
++%define RGB_BLUE 2
++%define RGB_PIXELSIZE 3
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_rgb_convert_sse2
++%include "jdcolext-sse2.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_RGB_RED
++%define RGB_GREEN EXT_RGB_GREEN
++%define RGB_BLUE EXT_RGB_BLUE
++%define RGB_PIXELSIZE EXT_RGB_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extrgb_convert_sse2
++%include "jdcolext-sse2.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_RGBX_RED
++%define RGB_GREEN EXT_RGBX_GREEN
++%define RGB_BLUE EXT_RGBX_BLUE
++%define RGB_PIXELSIZE EXT_RGBX_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extrgbx_convert_sse2
++%include "jdcolext-sse2.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_BGR_RED
++%define RGB_GREEN EXT_BGR_GREEN
++%define RGB_BLUE EXT_BGR_BLUE
++%define RGB_PIXELSIZE EXT_BGR_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extbgr_convert_sse2
++%include "jdcolext-sse2.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_BGRX_RED
++%define RGB_GREEN EXT_BGRX_GREEN
++%define RGB_BLUE EXT_BGRX_BLUE
++%define RGB_PIXELSIZE EXT_BGRX_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extbgrx_convert_sse2
++%include "jdcolext-sse2.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_XBGR_RED
++%define RGB_GREEN EXT_XBGR_GREEN
++%define RGB_BLUE EXT_XBGR_BLUE
++%define RGB_PIXELSIZE EXT_XBGR_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extxbgr_convert_sse2
++%include "jdcolext-sse2.asm"
++
++%undef RGB_RED
++%undef RGB_GREEN
++%undef RGB_BLUE
++%undef RGB_PIXELSIZE
++%define RGB_RED EXT_XRGB_RED
++%define RGB_GREEN EXT_XRGB_GREEN
++%define RGB_BLUE EXT_XRGB_BLUE
++%define RGB_PIXELSIZE EXT_XRGB_PIXELSIZE
++%define jsimd_ycc_rgb_convert_sse2 jsimd_bg_ycc_extxrgb_convert_sse2
++%include "jdcolext-sse2.asm"
+diff -urNp simd/jsimd.h simd/jsimd.h
+--- simd/jsimd.h	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd.h	2018-05-12 22:47:09.000000000 -0700
+@@ -358,6 +358,128 @@ EXTERN(void) jsimd_ycc_extxrgb_convert_a
+         (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
+          JSAMPARRAY output_buf, int num_rows);
+ 
++/* big-gamut YCC --> RGB & extended RGB Colorspace Conversion */
++EXTERN(void) jsimd_bg_ycc_rgb_convert_mmx
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgb_convert_mmx
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgbx_convert_mmx
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgr_convert_mmx
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgrx_convert_mmx
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxbgr_convert_mmx
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxrgb_convert_mmx
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++
++extern const int jconst_bg_ycc_rgb_convert_sse2[];
++EXTERN(void) jsimd_bg_ycc_rgb_convert_sse2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgb_convert_sse2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgbx_convert_sse2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgr_convert_sse2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgrx_convert_sse2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxbgr_convert_sse2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxrgb_convert_sse2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++
++EXTERN(void) jsimd_bg_ycc_rgb_convert_neon
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgb_convert_neon
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgbx_convert_neon
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgr_convert_neon
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgrx_convert_neon
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxbgr_convert_neon
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxrgb_convert_neon
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_rgb565_convert_neon
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++
++EXTERN(void) jsimd_bg_ycc_extrgb_convert_neon_slowst3
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgr_convert_neon_slowst3
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++
++EXTERN(void) jsimd_bg_ycc_rgb_convert_mips_dspr2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgb_convert_mips_dspr2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgbx_convert_mips_dspr2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgr_convert_mips_dspr2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgrx_convert_mips_dspr2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxbgr_convert_mips_dspr2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxrgb_convert_mips_dspr2
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++
++EXTERN(void) jsimd_bg_ycc_rgb_convert_altivec
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgb_convert_altivec
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extrgbx_convert_altivec
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgr_convert_altivec
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extbgrx_convert_altivec
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxbgr_convert_altivec
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++EXTERN(void) jsimd_bg_ycc_extxrgb_convert_altivec
++        (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
++         JSAMPARRAY output_buf, int num_rows);
++
+ /* NULL Colorspace Conversion */
+ EXTERN(void) jsimd_c_null_convert_mips_dspr2
+         (JDIMENSION img_width, JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+diff -urNp simd/jsimd_arm.c simd/jsimd_arm.c
+--- simd/jsimd_arm.c	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_arm.c	2018-05-12 20:30:16.000000000 -0700
+@@ -290,6 +290,53 @@ jsimd_ycc_rgb565_convert (j_decompress_p
+                                 output_buf, num_rows);
+ }
+ 
++GLOBAL(void)
++jsimd_bg_ycc_rgb_convert (j_decompress_ptr cinfo,
++                          JSAMPIMAGE input_buf, JDIMENSION input_row,
++                          JSAMPARRAY output_buf, int num_rows)
++{
++  void (*neonfct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
++
++  switch(cinfo->out_color_space) {
++    case JCS_EXT_RGB:
++      neonfct=jsimd_bg_ycc_extrgb_convert_neon;
++      break;
++    case JCS_EXT_RGBX:
++    case JCS_EXT_RGBA:
++      neonfct=jsimd_bg_ycc_extrgbx_convert_neon;
++      break;
++    case JCS_EXT_BGR:
++      neonfct=jsimd_bg_ycc_extbgr_convert_neon;
++      break;
++    case JCS_EXT_BGRX:
++    case JCS_EXT_BGRA:
++      neonfct=jsimd_bg_ycc_extbgrx_convert_neon;
++      break;
++    case JCS_EXT_XBGR:
++    case JCS_EXT_ABGR:
++      neonfct=jsimd_bg_ycc_extxbgr_convert_neon;
++      break;
++    case JCS_EXT_XRGB:
++    case JCS_EXT_ARGB:
++      neonfct=jsimd_bg_ycc_extxrgb_convert_neon;
++      break;
++    default:
++      neonfct=jsimd_bg_ycc_extrgb_convert_neon;
++      break;
++  }
++
++  neonfct(cinfo->output_width, input_buf, input_row, output_buf, num_rows);
++}
++
++GLOBAL(void)
++jsimd_bg_ycc_rgb565_convert (j_decompress_ptr cinfo,
++                             JSAMPIMAGE input_buf, JDIMENSION input_row,
++                             JSAMPARRAY output_buf, int num_rows)
++{
++  jsimd_bg_ycc_rgb565_convert_neon(cinfo->output_width, input_buf, input_row,
++                                   output_buf, num_rows);
++}
++
+ GLOBAL(int)
+ jsimd_can_h2v2_downsample (void)
+ {
+diff -urNp simd/jsimd_arm64.c simd/jsimd_arm64.c
+--- simd/jsimd_arm64.c	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_arm64.c	2018-05-12 20:31:20.000000000 -0700
+@@ -335,6 +335,62 @@ jsimd_ycc_rgb565_convert (j_decompress_p
+                                 output_buf, num_rows);
+ }
+ 
++GLOBAL(void)
++jsimd_bg_ycc_rgb_convert (j_decompress_ptr cinfo,
++                          JSAMPIMAGE input_buf, JDIMENSION input_row,
++                          JSAMPARRAY output_buf, int num_rows)
++{
++  void (*neonfct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
++
++  switch(cinfo->out_color_space) {
++    case JCS_EXT_RGB:
++      if (simd_features & JSIMD_FASTST3)
++        neonfct=jsimd_bg_ycc_extrgb_convert_neon;
++      else
++        neonfct=jsimd_bg_ycc_extrgb_convert_neon_slowst3;
++      break;
++    case JCS_EXT_RGBX:
++    case JCS_EXT_RGBA:
++      neonfct=jsimd_bg_ycc_extrgbx_convert_neon;
++      break;
++    case JCS_EXT_BGR:
++      if (simd_features & JSIMD_FASTST3)
++        neonfct=jsimd_bg_ycc_extbgr_convert_neon;
++      else
++        neonfct=jsimd_bg_ycc_extbgr_convert_neon_slowst3;
++      break;
++    case JCS_EXT_BGRX:
++    case JCS_EXT_BGRA:
++      neonfct=jsimd_bg_ycc_extbgrx_convert_neon;
++      break;
++    case JCS_EXT_XBGR:
++    case JCS_EXT_ABGR:
++      neonfct=jsimd_bg_ycc_extxbgr_convert_neon;
++      break;
++    case JCS_EXT_XRGB:
++    case JCS_EXT_ARGB:
++      neonfct=jsimd_bg_ycc_extxrgb_convert_neon;
++      break;
++    default:
++      if (simd_features & JSIMD_FASTST3)
++        neonfct=jsimd_bg_ycc_extrgb_convert_neon;
++      else
++        neonfct=jsimd_bg_ycc_extrgb_convert_neon_slowst3;
++      break;
++  }
++
++  neonfct(cinfo->output_width, input_buf, input_row, output_buf, num_rows);
++}
++
++GLOBAL(void)
++jsimd_bg_ycc_rgb565_convert (j_decompress_ptr cinfo,
++                             JSAMPIMAGE input_buf, JDIMENSION input_row,
++                             JSAMPARRAY output_buf, int num_rows)
++{
++  jsimd_bg_ycc_rgb565_convert_neon(cinfo->output_width, input_buf, input_row,
++                                   output_buf, num_rows);
++}
++
+ GLOBAL(int)
+ jsimd_can_h2v2_downsample (void)
+ {
+diff -urNp simd/jsimd_arm64_neon.S simd/jsimd_arm64_neon.S
+--- simd/jsimd_arm64_neon.S	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_arm64_neon.S	2018-05-12 20:16:35.000000000 -0700
+@@ -1815,6 +1815,274 @@ generate_jsimd_ycc_rgb_convert_neon rgb5
+ generate_jsimd_ycc_rgb_convert_neon extrgb,  24, 0, .4h,  1, .4h,  2, .4h,  .8b,    0
+ generate_jsimd_ycc_rgb_convert_neon extbgr,  24, 2, .4h,  1, .4h,  0, .4h,  .8b,    0
+ 
++
++/*****************************************************************************/
++
++/*
++ * jsimd_bg_ycc_extrgb_convert_neon
++ * jsimd_bg_ycc_extbgr_convert_neon
++ * jsimd_bg_ycc_extrgbx_convert_neon
++ * jsimd_bg_ycc_extbgrx_convert_neon
++ * jsimd_bg_ycc_extxbgr_convert_neon
++ * jsimd_bg_ycc_extxrgb_convert_neon
++ *
++ * Colorspace conversion YCbCr -> RGB
++ */
++
++.macro generate_jsimd_bg_ycc_rgb_convert_neon colorid, bpp, r_offs, rsize, \
++                                              g_offs, gsize, b_offs, bsize, \
++                                              defsize, fast_st3
++
++/*
++ * 2-stage pipelined YCbCr->RGB conversion
++ */
++
++.macro do_yuv_to_rgb_stage1
++    uaddw           v6.8h, v2.8h, v4.8b     /* q3 = u - 128 */
++    uaddw           v8.8h, v2.8h, v5.8b     /* q2 = v - 128 */
++    smull           v20.4s, v6.4h, v1.h[1]  /* multiply by -22554 */
++    smlal           v20.4s, v8.4h, v1.h[2]  /* multiply by -46802 */
++    smull2          v22.4s, v6.8h, v1.h[1]  /* multiply by -22554 */
++    smlal2          v22.4s, v8.8h, v1.h[2]  /* multiply by -46802 */
++    smull           v24.4s, v8.4h, v1.h[0]  /* multiply by 45942 */
++    smull2          v26.4s, v8.8h, v1.h[0]  /* multiply by 45942 */
++    smull           v28.4s, v6.4h, v1.h[3]  /* multiply by 58066 */
++    smull2          v30.4s, v6.8h, v1.h[3]  /* multiply by 58066 */
++.endm
++
++.macro do_yuv_to_rgb_stage2
++    rshrn           v20.4h, v20.4s, #15
++    rshrn2          v20.8h, v22.4s, #15
++    rshrn           v24.4h, v24.4s, #14
++    rshrn2          v24.8h, v26.4s, #14
++    rshrn           v28.4h, v28.4s, #14
++    rshrn2          v28.8h, v30.4s, #14
++    uaddw           v20.8h, v20.8h, v0.8b
++    uaddw           v24.8h, v24.8h, v0.8b
++    uaddw           v28.8h, v28.8h, v0.8b
++  .if \bpp != 16
++    sqxtun          v1\g_offs\defsize, v20.8h
++    sqxtun          v1\r_offs\defsize, v24.8h
++    sqxtun          v1\b_offs\defsize, v28.8h
++  .else
++    sqshlu          v21.8h, v20.8h, #8
++    sqshlu          v25.8h, v24.8h, #8
++    sqshlu          v29.8h, v28.8h, #8
++    sri             v25.8h, v21.8h, #5
++    sri             v25.8h, v29.8h, #11
++  .endif
++.endm
++
++.macro do_yuv_to_rgb_stage2_store_load_stage1 fast_st3
++    rshrn           v20.4h, v20.4s, #15
++    rshrn           v24.4h, v24.4s, #14
++    rshrn           v28.4h, v28.4s, #14
++    ld1             {v4.8b}, [U], 8
++    rshrn2          v20.8h, v22.4s, #15
++    rshrn2          v24.8h, v26.4s, #14
++    rshrn2          v28.8h, v30.4s, #14
++    ld1             {v5.8b}, [V], 8
++    uaddw           v20.8h, v20.8h, v0.8b
++    uaddw           v24.8h, v24.8h, v0.8b
++    uaddw           v28.8h, v28.8h, v0.8b
++  .if \bpp != 16  /**************** rgb24/rgb32 ******************************/
++    sqxtun          v1\g_offs\defsize, v20.8h
++    ld1             {v0.8b}, [Y], 8
++    sqxtun          v1\r_offs\defsize, v24.8h
++    prfm            pldl1keep, [U, #64]
++    prfm            pldl1keep, [V, #64]
++    prfm            pldl1keep, [Y, #64]
++    sqxtun          v1\b_offs\defsize, v28.8h
++    uaddw           v6.8h, v2.8h, v4.8b     /* v6.16b = u - 128 */
++    uaddw           v8.8h, v2.8h, v5.8b     /* q2 = v - 128 */
++    smull           v20.4s, v6.4h, v1.h[1]  /* multiply by -22554 */
++    smlal           v20.4s, v8.4h, v1.h[2]  /* multiply by -46802 */
++    smull2          v22.4s, v6.8h, v1.h[1]  /* multiply by -22554 */
++    smlal2          v22.4s, v8.8h, v1.h[2]  /* multiply by -46802 */
++    smull           v24.4s, v8.4h, v1.h[0]  /* multiply by 45942 */
++    smull2          v26.4s, v8.8h, v1.h[0]  /* multiply by 45942 */
++  .else  /**************************** rgb565 ********************************/
++    sqshlu          v21.8h, v20.8h, #8
++    sqshlu          v25.8h, v24.8h, #8
++    sqshlu          v29.8h, v28.8h, #8
++    uaddw           v6.8h, v2.8h, v4.8b     /* v6.16b = u - 128 */
++    uaddw           v8.8h, v2.8h, v5.8b     /* q2 = v - 128 */
++    ld1             {v0.8b}, [Y], 8
++    smull           v20.4s, v6.4h, v1.h[1]  /* multiply by -22554 */
++    smlal           v20.4s, v8.4h, v1.h[2]  /* multiply by -46802 */
++    smull2          v22.4s, v6.8h, v1.h[1]  /* multiply by -22554 */
++    smlal2          v22.4s, v8.8h, v1.h[2]  /* multiply by -46802 */
++    sri             v25.8h, v21.8h, #5
++    smull           v24.4s, v8.4h, v1.h[0]  /* multiply by 45942 */
++    smull2          v26.4s, v8.8h, v1.h[0]  /* multiply by 45942 */
++    prfm            pldl1keep, [U, #64]
++    prfm            pldl1keep, [V, #64]
++    prfm            pldl1keep, [Y, #64]
++    sri             v25.8h, v29.8h, #11
++  .endif
++    do_store        \bpp, 8, \fast_st3
++    smull           v28.4s, v6.4h, v1.h[3]  /* multiply by 58066 */
++    smull2          v30.4s, v6.8h, v1.h[3]  /* multiply by 58066 */
++.endm
++
++.macro do_yuv_to_rgb
++    do_yuv_to_rgb_stage1
++    do_yuv_to_rgb_stage2
++.endm
++
++/* Apple gas crashes on adrl, work around that by using adr.
++ * But this requires a copy of these constants for each function.
++ */
++
++.balign 16
++.if \fast_st3 == 1
++Ljsimd_bg_ycc_\colorid\()_neon_consts:
++.else
++Ljsimd_bg_ycc_\colorid\()_neon_slowst3_consts:
++.endif
++  .short 0,      0,     0,      0
++  .short 45942, -22554, -46802, 58066
++  .short -128,  -128,   -128,   -128
++  .short -128,  -128,   -128,   -128
++
++.if \fast_st3 == 1
++asm_function jsimd_bg_ycc_\colorid\()_convert_neon
++.else
++asm_function jsimd_bg_ycc_\colorid\()_convert_neon_slowst3
++.endif
++    OUTPUT_WIDTH    .req w0
++    INPUT_BUF       .req x1
++    INPUT_ROW       .req w2
++    OUTPUT_BUF      .req x3
++    NUM_ROWS        .req w4
++
++    INPUT_BUF0      .req x5
++    INPUT_BUF1      .req x6
++    INPUT_BUF2      .req x1
++
++    RGB             .req x7
++    Y               .req x9
++    U               .req x10
++    V               .req x11
++    N               .req w15
++
++    sub             sp, sp, 64
++    mov             x9, sp
++
++    /* Load constants to d1, d2, d3 (v0.4h is just used for padding) */
++    .if \fast_st3 == 1
++      adr           x15, Ljsimd_bg_ycc_\colorid\()_neon_consts
++    .else
++      adr           x15, Ljsimd_bg_ycc_\colorid\()_neon_slowst3_consts
++    .endif
++
++    /* Save NEON registers */
++    st1             {v8.8b, v9.8b, v10.8b, v11.8b}, [x9], 32
++    st1             {v12.8b, v13.8b, v14.8b, v15.8b}, [x9], 32
++    ld1             {v0.4h, v1.4h}, [x15], 16
++    ld1             {v2.8h}, [x15]
++
++    ldr             INPUT_BUF0, [INPUT_BUF]
++    ldr             INPUT_BUF1, [INPUT_BUF, #8]
++    ldr             INPUT_BUF2, [INPUT_BUF, #16]
++    .unreq          INPUT_BUF
++
++    /* Initially set v10, v11.4h, v12.8b, d13 to 0xFF */
++    movi            v10.16b, #255
++    movi            v13.16b, #255
++
++    /* Outer loop over scanlines */
++    cmp             NUM_ROWS, #1
++    b.lt            9f
++0:
++    ldr             Y, [INPUT_BUF0, INPUT_ROW, uxtw #3]
++    ldr             U, [INPUT_BUF1, INPUT_ROW, uxtw #3]
++    mov             N, OUTPUT_WIDTH
++    ldr             V, [INPUT_BUF2, INPUT_ROW, uxtw #3]
++    add             INPUT_ROW, INPUT_ROW, #1
++    ldr             RGB, [OUTPUT_BUF], #8
++
++    /* Inner loop over pixels */
++    subs            N, N, #8
++    b.lt            3f
++    do_load         8
++    do_yuv_to_rgb_stage1
++    subs            N, N, #8
++    b.lt            2f
++1:
++    do_yuv_to_rgb_stage2_store_load_stage1 \fast_st3
++    subs            N, N, #8
++    b.ge            1b
++2:
++    do_yuv_to_rgb_stage2
++    do_store        \bpp, 8, \fast_st3
++    tst             N, #7
++    b.eq            8f
++3:
++    tst             N, #4
++    b.eq            3f
++    do_load         4
++3:
++    tst             N, #2
++    b.eq            4f
++    do_load         2
++4:
++    tst             N, #1
++    b.eq            5f
++    do_load         1
++5:
++    do_yuv_to_rgb
++    tst             N, #4
++    b.eq            6f
++    do_store        \bpp, 4, \fast_st3
++6:
++    tst             N, #2
++    b.eq            7f
++    do_store        \bpp, 2, \fast_st3
++7:
++    tst             N, #1
++    b.eq            8f
++    do_store        \bpp, 1, \fast_st3
++8:
++    subs            NUM_ROWS, NUM_ROWS, #1
++    b.gt            0b
++9:
++    /* Restore all registers and return */
++    ld1             {v8.8b, v9.8b, v10.8b, v11.8b}, [sp], 32
++    ld1             {v12.8b, v13.8b, v14.8b, v15.8b}, [sp], 32
++    br              x30
++    .unreq          OUTPUT_WIDTH
++    .unreq          INPUT_ROW
++    .unreq          OUTPUT_BUF
++    .unreq          NUM_ROWS
++    .unreq          INPUT_BUF0
++    .unreq          INPUT_BUF1
++    .unreq          INPUT_BUF2
++    .unreq          RGB
++    .unreq          Y
++    .unreq          U
++    .unreq          V
++    .unreq          N
++
++.purgem do_yuv_to_rgb
++.purgem do_yuv_to_rgb_stage1
++.purgem do_yuv_to_rgb_stage2
++.purgem do_yuv_to_rgb_stage2_store_load_stage1
++
++.endm
++
++/*------------------------------------ id ----- bpp R  rsize G  gsize B  bsize defsize fast_st3*/
++generate_jsimd_bg_ycc_rgb_convert_neon extrgb,  24, 0, .4h,  1, .4h,  2, .4h,  .8b,    1
++generate_jsimd_bg_ycc_rgb_convert_neon extbgr,  24, 2, .4h,  1, .4h,  0, .4h,  .8b,    1
++generate_jsimd_bg_ycc_rgb_convert_neon extrgbx, 32, 0, .4h,  1, .4h,  2, .4h,  .8b,    1
++generate_jsimd_bg_ycc_rgb_convert_neon extbgrx, 32, 2, .4h,  1, .4h,  0, .4h,  .8b,    1
++generate_jsimd_bg_ycc_rgb_convert_neon extxbgr, 32, 3, .4h,  2, .4h,  1, .4h,  .8b,    1
++generate_jsimd_bg_ycc_rgb_convert_neon extxrgb, 32, 1, .4h,  2, .4h,  3, .4h,  .8b,    1
++generate_jsimd_bg_ycc_rgb_convert_neon rgb565,  16, 0, .4h,  0, .4h,  0, .4h,  .8b,    1
++
++generate_jsimd_bg_ycc_rgb_convert_neon extrgb,  24, 0, .4h,  1, .4h,  2, .4h,  .8b,    0
++generate_jsimd_bg_ycc_rgb_convert_neon extbgr,  24, 2, .4h,  1, .4h,  0, .4h,  .8b,    0
++
+ .purgem do_load
+ .purgem do_store
+ 
+diff -urNp simd/jsimd_arm_neon.S simd/jsimd_arm_neon.S
+--- simd/jsimd_arm_neon.S	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_arm_neon.S	2018-05-12 20:06:25.000000000 -0700
+@@ -1603,6 +1603,255 @@ generate_jsimd_ycc_rgb_convert_neon extx
+ generate_jsimd_ycc_rgb_convert_neon extxrgb, 32, 1, 2, 3
+ generate_jsimd_ycc_rgb_convert_neon rgb565,  16, 0, 0, 0
+ 
++
++/*****************************************************************************/
++
++/*
++ * jsimd_bg_ycc_extrgb_convert_neon
++ * jsimd_bg_ycc_extbgr_convert_neon
++ * jsimd_bg_ycc_extrgbx_convert_neon
++ * jsimd_bg_ycc_extbgrx_convert_neon
++ * jsimd_bg_ycc_extxbgr_convert_neon
++ * jsimd_bg_ycc_extxrgb_convert_neon
++ *
++ * Colorspace conversion big-gamut YCbCr -> RGB
++ */
++
++
++.macro generate_jsimd_bg_ycc_rgb_convert_neon colorid, bpp, r_offs, g_offs, b_offs
++
++/*
++ * 2-stage pipelined YCbCr->RGB conversion
++ */
++
++.macro do_yuv_to_rgb_stage1
++    vaddw.u8        q3, q1, d4      /* q3 = u - 128 */
++    vaddw.u8        q4, q1, d5      /* q2 = v - 128 */
++    vmull.s16       q10, d6, d1[1]  /* multiply by -22554 */
++    vmlal.s16       q10, d8, d1[2]  /* multiply by -46802 */
++    vmull.s16       q11, d7, d1[1]  /* multiply by -22554 */
++    vmlal.s16       q11, d9, d1[2]  /* multiply by -46802 */
++    vmull.s16       q12, d8, d1[0]  /* multiply by 45942 */
++    vmull.s16       q13, d9, d1[0]  /* multiply by 45942 */
++    vmull.s16       q14, d6, d1[3]  /* multiply by 58066 */
++    vmull.s16       q15, d7, d1[3]  /* multiply by 58066 */
++.endm
++
++.macro do_yuv_to_rgb_stage2
++    vrshrn.s32      d20, q10, #15
++    vrshrn.s32      d21, q11, #15
++    vrshrn.s32      d24, q12, #14
++    vrshrn.s32      d25, q13, #14
++    vrshrn.s32      d28, q14, #14
++    vrshrn.s32      d29, q15, #14
++    vaddw.u8        q11, q10, d0
++    vaddw.u8        q12, q12, d0
++    vaddw.u8        q14, q14, d0
++  .if \bpp != 16
++    vqmovun.s16     d1\g_offs, q11
++    vqmovun.s16     d1\r_offs, q12
++    vqmovun.s16     d1\b_offs, q14
++  .else  /* rgb565 */
++    vqshlu.s16      q13, q11, #8
++    vqshlu.s16      q15, q12, #8
++    vqshlu.s16      q14, q14, #8
++    vsri.u16        q15, q13, #5
++    vsri.u16        q15, q14, #11
++  .endif
++.endm
++
++.macro do_yuv_to_rgb_stage2_store_load_stage1
++                                       /* "do_yuv_to_rgb_stage2" and "store" */
++                                       vrshrn.s32      d20, q10, #15
++    /* "load" and "do_yuv_to_rgb_stage1" */
++    pld             [U, #64]
++                                       vrshrn.s32      d21, q11, #15
++    pld             [V, #64]
++                                       vrshrn.s32      d24, q12, #14
++                                       vrshrn.s32      d25, q13, #14
++    vld1.8          {d4}, [U, :64]!
++                                       vrshrn.s32      d28, q14, #14
++    vld1.8          {d5}, [V, :64]!
++                                       vrshrn.s32      d29, q15, #14
++    vaddw.u8        q3, q1, d4      /* q3 = u - 128 */
++    vaddw.u8        q4, q1, d5      /* q2 = v - 128 */
++                                       vaddw.u8        q11, q10, d0
++    vmull.s16       q10, d6, d1[1]  /* multiply by -22554 */
++    vmlal.s16       q10, d8, d1[2]  /* multiply by -46802 */
++                                       vaddw.u8        q12, q12, d0
++                                       vaddw.u8        q14, q14, d0
++  .if \bpp != 16  /**************** rgb24/rgb32 ******************************/
++                                       vqmovun.s16     d1\g_offs, q11
++    pld             [Y, #64]
++                                       vqmovun.s16     d1\r_offs, q12
++    vld1.8          {d0}, [Y, :64]!
++                                       vqmovun.s16     d1\b_offs, q14
++    vmull.s16       q11, d7, d1[1]  /* multiply by -22554 */
++    vmlal.s16       q11, d9, d1[2]  /* multiply by -46802 */
++                                       do_store        \bpp, 8
++    vmull.s16       q12, d8, d1[0]  /* multiply by 45942 */
++    vmull.s16       q13, d9, d1[0]  /* multiply by 45942 */
++    vmull.s16       q14, d6, d1[3]  /* multiply by 58066 */
++    vmull.s16       q15, d7, d1[3]  /* multiply by 58066 */
++  .else  /**************************** rgb565 ********************************/
++                                       vqshlu.s16      q13, q11, #8
++    pld             [Y, #64]
++                                       vqshlu.s16      q15, q12, #8
++                                       vqshlu.s16      q14, q14, #8
++    vld1.8          {d0}, [Y, :64]!
++    vmull.s16       q11, d7, d1[1]
++    vmlal.s16       q11, d9, d1[2]
++                                       vsri.u16        q15, q13, #5
++    vmull.s16       q12, d8, d1[0]
++                                       vsri.u16        q15, q14, #11
++    vmull.s16       q13, d9, d1[0]
++    vmull.s16       q14, d6, d1[3]
++                                       do_store        \bpp, 8
++    vmull.s16       q15, d7, d1[3]
++  .endif
++.endm
++
++.macro do_yuv_to_rgb
++    do_yuv_to_rgb_stage1
++    do_yuv_to_rgb_stage2
++.endm
++
++/* Apple gas crashes on adrl, work around that by using adr.
++ * But this requires a copy of these constants for each function.
++ */
++
++.balign 16
++jsimd_bg_ycc_\colorid\()_neon_consts:
++  .short 0,      0,     0,      0
++  .short 45942, -22554, -46802, 58066
++  .short -128,  -128,   -128,   -128
++  .short -128,  -128,   -128,   -128
++
++asm_function jsimd_bg_ycc_\colorid\()_convert_neon
++    OUTPUT_WIDTH    .req r0
++    INPUT_BUF       .req r1
++    INPUT_ROW       .req r2
++    OUTPUT_BUF      .req r3
++    NUM_ROWS        .req r4
++
++    INPUT_BUF0      .req r5
++    INPUT_BUF1      .req r6
++    INPUT_BUF2      .req INPUT_BUF
++
++    RGB             .req r7
++    Y               .req r8
++    U               .req r9
++    V               .req r10
++    N               .req ip
++
++    /* Load constants to d1, d2, d3 (d0 is just used for padding) */
++    adr             ip, jsimd_bg_ycc_\colorid\()_neon_consts
++    vld1.16         {d0, d1, d2, d3}, [ip, :128]
++
++    /* Save ARM registers and handle input arguments */
++    push            {r4, r5, r6, r7, r8, r9, r10, lr}
++    ldr             NUM_ROWS, [sp, #(4 * 8)]
++    ldr             INPUT_BUF0, [INPUT_BUF]
++    ldr             INPUT_BUF1, [INPUT_BUF, #4]
++    ldr             INPUT_BUF2, [INPUT_BUF, #8]
++    .unreq          INPUT_BUF
++
++    /* Save NEON registers */
++    vpush           {d8-d15}
++
++    /* Initially set d10, d11, d12, d13 to 0xFF */
++    vmov.u8         q5, #255
++    vmov.u8         q6, #255
++
++    /* Outer loop over scanlines */
++    cmp             NUM_ROWS, #1
++    blt             9f
++0:
++    ldr             Y, [INPUT_BUF0, INPUT_ROW, lsl #2]
++    ldr             U, [INPUT_BUF1, INPUT_ROW, lsl #2]
++    mov             N, OUTPUT_WIDTH
++    ldr             V, [INPUT_BUF2, INPUT_ROW, lsl #2]
++    add             INPUT_ROW, INPUT_ROW, #1
++    ldr             RGB, [OUTPUT_BUF], #4
++
++    /* Inner loop over pixels */
++    subs            N, N, #8
++    blt             3f
++    do_load         8
++    do_yuv_to_rgb_stage1
++    subs            N, N, #8
++    blt             2f
++1:
++    do_yuv_to_rgb_stage2_store_load_stage1
++    subs            N, N, #8
++    bge             1b
++2:
++    do_yuv_to_rgb_stage2
++    do_store        \bpp, 8
++    tst             N, #7
++    beq             8f
++3:
++    tst             N, #4
++    beq             3f
++    do_load         4
++3:
++    tst             N, #2
++    beq             4f
++    do_load         2
++4:
++    tst             N, #1
++    beq             5f
++    do_load         1
++5:
++    do_yuv_to_rgb
++    tst             N, #4
++    beq             6f
++    do_store        \bpp, 4
++6:
++    tst             N, #2
++    beq             7f
++    do_store        \bpp, 2
++7:
++    tst             N, #1
++    beq             8f
++    do_store        \bpp, 1
++8:
++    subs            NUM_ROWS, NUM_ROWS, #1
++    bgt             0b
++9:
++    /* Restore all registers and return */
++    vpop            {d8-d15}
++    pop             {r4, r5, r6, r7, r8, r9, r10, pc}
++
++    .unreq          OUTPUT_WIDTH
++    .unreq          INPUT_ROW
++    .unreq          OUTPUT_BUF
++    .unreq          NUM_ROWS
++    .unreq          INPUT_BUF0
++    .unreq          INPUT_BUF1
++    .unreq          INPUT_BUF2
++    .unreq          RGB
++    .unreq          Y
++    .unreq          U
++    .unreq          V
++    .unreq          N
++
++.purgem do_yuv_to_rgb
++.purgem do_yuv_to_rgb_stage1
++.purgem do_yuv_to_rgb_stage2
++.purgem do_yuv_to_rgb_stage2_store_load_stage1
++
++.endm
++
++/*------------------------------------ id ----- bpp R  G  B */
++generate_jsimd_bg_ycc_rgb_convert_neon extrgb,  24, 0, 1, 2
++generate_jsimd_bg_ycc_rgb_convert_neon extbgr,  24, 2, 1, 0
++generate_jsimd_bg_ycc_rgb_convert_neon extrgbx, 32, 0, 1, 2
++generate_jsimd_bg_ycc_rgb_convert_neon extbgrx, 32, 2, 1, 0
++generate_jsimd_bg_ycc_rgb_convert_neon extxbgr, 32, 3, 2, 1
++generate_jsimd_bg_ycc_rgb_convert_neon extxrgb, 32, 1, 2, 3
++generate_jsimd_bg_ycc_rgb_convert_neon rgb565,  16, 0, 0, 0
++
+ .purgem do_load
+ .purgem do_store
+ 
+diff -urNp simd/jsimd_i386.c simd/jsimd_i386.c
+--- simd/jsimd_i386.c	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_i386.c	2018-05-12 18:05:46.000000000 -0700
+@@ -298,6 +298,63 @@ jsimd_ycc_rgb565_convert (j_decompress_p
+ {
+ }
+ 
++GLOBAL(void)
++jsimd_bg_ycc_rgb_convert (j_decompress_ptr cinfo,
++                          JSAMPIMAGE input_buf, JDIMENSION input_row,
++                          JSAMPARRAY output_buf, int num_rows)
++{
++  void (*sse2fct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
++  void (*mmxfct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
++
++  switch(cinfo->out_color_space) {
++    case JCS_EXT_RGB:
++      sse2fct=jsimd_bg_ycc_extrgb_convert_sse2;
++      mmxfct=jsimd_bg_ycc_extrgb_convert_mmx;
++      break;
++    case JCS_EXT_RGBX:
++    case JCS_EXT_RGBA:
++      sse2fct=jsimd_bg_ycc_extrgbx_convert_sse2;
++      mmxfct=jsimd_bg_ycc_extrgbx_convert_mmx;
++      break;
++    case JCS_EXT_BGR:
++      sse2fct=jsimd_bg_ycc_extbgr_convert_sse2;
++      mmxfct=jsimd_bg_ycc_extbgr_convert_mmx;
++      break;
++    case JCS_EXT_BGRX:
++    case JCS_EXT_BGRA:
++      sse2fct=jsimd_bg_ycc_extbgrx_convert_sse2;
++      mmxfct=jsimd_bg_ycc_extbgrx_convert_mmx;
++      break;
++    case JCS_EXT_XBGR:
++    case JCS_EXT_ABGR:
++      sse2fct=jsimd_bg_ycc_extxbgr_convert_sse2;
++      mmxfct=jsimd_bg_ycc_extxbgr_convert_mmx;
++      break;
++    case JCS_EXT_XRGB:
++    case JCS_EXT_ARGB:
++      sse2fct=jsimd_bg_ycc_extxrgb_convert_sse2;
++      mmxfct=jsimd_bg_ycc_extxrgb_convert_mmx;
++      break;
++    default:
++      sse2fct=jsimd_bg_ycc_rgb_convert_sse2;
++      mmxfct=jsimd_bg_ycc_rgb_convert_mmx;
++      break;
++  }
++
++  if ((simd_support & JSIMD_SSE2) &&
++      IS_ALIGNED_SSE(jconst_bg_ycc_rgb_convert_sse2))
++    sse2fct(cinfo->output_width, input_buf, input_row, output_buf, num_rows);
++  else if (simd_support & JSIMD_MMX)
++    mmxfct(cinfo->output_width, input_buf, input_row, output_buf, num_rows);
++}
++
++GLOBAL(void)
++jsimd_bg_ycc_rgb565_convert (j_decompress_ptr cinfo,
++                             JSAMPIMAGE input_buf, JDIMENSION input_row,
++                             JSAMPARRAY output_buf, int num_rows)
++{
++}
++
+ GLOBAL(int)
+ jsimd_can_h2v2_downsample (void)
+ {
+diff -urNp simd/jsimd_mips.c simd/jsimd_mips.c
+--- simd/jsimd_mips.c	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_mips.c	2018-05-12 20:27:57.000000000 -0700
+@@ -324,6 +324,53 @@ jsimd_ycc_rgb565_convert (j_decompress_p
+ }
+ 
+ GLOBAL(void)
++jsimd_bg_ycc_rgb_convert (j_decompress_ptr cinfo,
++                          JSAMPIMAGE input_buf, JDIMENSION input_row,
++                          JSAMPARRAY output_buf, int num_rows)
++{
++  void (*mipsdspr2fct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
++
++  switch(cinfo->out_color_space) {
++    case JCS_EXT_RGB:
++      mipsdspr2fct=jsimd_bg_ycc_extrgb_convert_mips_dspr2;
++      break;
++    case JCS_EXT_RGBX:
++    case JCS_EXT_RGBA:
++      mipsdspr2fct=jsimd_bg_ycc_extrgbx_convert_mips_dspr2;
++      break;
++    case JCS_EXT_BGR:
++      mipsdspr2fct=jsimd_bg_ycc_extbgr_convert_mips_dspr2;
++      break;
++    case JCS_EXT_BGRX:
++    case JCS_EXT_BGRA:
++      mipsdspr2fct=jsimd_bg_ycc_extbgrx_convert_mips_dspr2;
++      break;
++    case JCS_EXT_XBGR:
++    case JCS_EXT_ABGR:
++      mipsdspr2fct=jsimd_bg_ycc_extxbgr_convert_mips_dspr2;
++      break;
++    case JCS_EXT_XRGB:
++    case JCS_EXT_ARGB:
++      mipsdspr2fct=jsimd_bg_ycc_extxrgb_convert_mips_dspr2;
++      break;
++  default:
++      mipsdspr2fct=jsimd_bg_ycc_extrgb_convert_mips_dspr2;
++      break;
++  }
++
++  if (simd_support & JSIMD_MIPS_DSPR2)
++    mipsdspr2fct(cinfo->output_width, input_buf, input_row, output_buf,
++                 num_rows);
++}
++
++GLOBAL(void)
++jsimd_bg_ycc_rgb565_convert (j_decompress_ptr cinfo,
++                             JSAMPIMAGE input_buf, JDIMENSION input_row,
++                             JSAMPARRAY output_buf, int num_rows)
++{
++}
++
++GLOBAL(void)
+ jsimd_c_null_convert (j_compress_ptr cinfo,
+                       JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
+                       JDIMENSION output_row, int num_rows)
+diff -urNp simd/jsimd_mips_dspr2.S simd/jsimd_mips_dspr2.S
+--- simd/jsimd_mips_dspr2.S	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_mips_dspr2.S	2018-05-12 19:50:03.000000000 -0700
+@@ -354,6 +354,123 @@ GENERATE_JSIMD_YCC_RGB_CONVERT_MIPS_DSPR
+ 
+ /*****************************************************************************/
+ /*
++ * jsimd_bg_ycc_extrgb_convert_mips_dspr2
++ * jsimd_bg_ycc_extbgr_convert_mips_dspr2
++ * jsimd_bg_ycc_extrgbx_convert_mips_dspr2
++ * jsimd_bg_ycc_extbgrx_convert_mips_dspr2
++ * jsimd_bg_ycc_extxbgr_convert_mips_dspr2
++ * jsimd_bg_ycc_extxrgb_convert_mips_dspr2
++ *
++ * Colorspace conversion big-gamut YCbCr -> RGB
++ */
++
++.macro GENERATE_JSIMD_BG_YCC_RGB_CONVERT_MIPS_DSPR2 colorid, pixel_size, r_offs, g_offs, b_offs, a_offs
++
++.macro STORE_YCC_TO_RGB  scratch0 \
++                         scratch1 \
++                         scratch2 \
++                         outptr
++    sb       \scratch0, \r_offs(\outptr)
++    sb       \scratch1, \g_offs(\outptr)
++    sb       \scratch2, \b_offs(\outptr)
++.if (\pixel_size == 4)
++    li       t0, 0xFF
++    sb       t0, \a_offs(\outptr)
++.endif
++    addiu    \outptr, \pixel_size
++.endm
++
++LEAF_MIPS_DSPR2(jsimd_bg_ycc_\colorid\()_convert_mips_dspr2)
++/*
++ * a0     - cinfo->image_width
++ * a1     - input_buf
++ * a2     - input_row
++ * a3     - output_buf
++ * 16(sp) - num_rows
++ */
++
++    SAVE_REGS_ON_STACK 32, s0, s1, s2, s3, s4, s5, s6, s7
++
++    lw         s1, 48(sp)
++    li         t3, 0x10000
++    li         t4, 0x2cdd2     // FIX(2.80400)
++    li         t5, 0x38b44     // FIX(3.54400)
++    li         t6, 0xfffe925c  // -FIX(1.42828)
++    li         t7, 0xffff4fcc  // -FIX(0.68828)
++    repl.ph    t8, 128
++
++0:
++    lw         s0, 0(a3)
++    lw         t0, 0(a1)
++    lw         t1, 4(a1)
++    lw         t2, 8(a1)
++    sll        s5, a2, 2
++    addiu      s1, -1
++    lwx        s2, s5(t0)
++    lwx        s3, s5(t1)
++    lwx        s4, s5(t2)
++    addu       t9, s2, a0
++    addiu      a2, 1
++
++1:
++    lbu        s7, 0(s4)       // cr
++    lbu        s6, 0(s3)       // cb
++    lbu        s5, 0(s2)       // y
++    addiu      s2, 1
++    addiu      s4, 1
++    addiu      s7, -128
++    addiu      s6, -128
++    mul        t2, t7, s6
++    mul        t0, t6, s7      // Crgtab[cr]
++    sll        s7, 15
++    mulq_rs.w  t1, t4, s7      // Crrtab[cr]
++    sll        s6, 15
++    addu       t2, t3          // Cbgtab[cb]
++    addu       t2, t0
++
++    mulq_rs.w  t0, t5, s6      // Cbbtab[cb]
++    sra        t2, 16
++    addu       t1, s5
++    addu       t2, s5          // add y
++    ins        t2, t1, 16, 16
++    subu.ph    t2, t2, t8
++    addu       t0, s5
++    shll_s.ph  t2, t2, 8
++    subu       t0, 128
++    shra.ph    t2, t2, 8
++    shll_s.w   t0, t0, 24
++    addu.ph    t2, t2, t8      // clip & store
++    sra        t0, t0, 24
++    sra        t1, t2, 16
++    addiu      t0, 128
++
++    STORE_YCC_TO_RGB t1, t2, t0, s0
++
++    bne        s2, t9, 1b
++     addiu     s3, 1
++    bgtz       s1, 0b
++     addiu     a3, 4
++
++    RESTORE_REGS_FROM_STACK 32, s0, s1, s2, s3, s4, s5, s6, s7
++
++    j ra
++     nop
++END(jsimd_bg_ycc_\colorid\()_convert_mips_dspr2)
++
++.purgem STORE_YCC_TO_RGB
++
++.endm
++
++/*---------------------------------------------id -- pix R  G  B  A */
++GENERATE_JSIMD_BG_YCC_RGB_CONVERT_MIPS_DSPR2 extrgb,  3, 0, 1, 2, 3
++GENERATE_JSIMD_BG_YCC_RGB_CONVERT_MIPS_DSPR2 extbgr,  3, 2, 1, 0, 3
++GENERATE_JSIMD_BG_YCC_RGB_CONVERT_MIPS_DSPR2 extrgbx, 4, 0, 1, 2, 3
++GENERATE_JSIMD_BG_YCC_RGB_CONVERT_MIPS_DSPR2 extbgrx, 4, 2, 1, 0, 3
++GENERATE_JSIMD_BG_YCC_RGB_CONVERT_MIPS_DSPR2 extxbgr, 4, 3, 2, 1, 0
++GENERATE_JSIMD_BG_YCC_RGB_CONVERT_MIPS_DSPR2 extxrgb, 4, 1, 2, 3, 0
++
++/*****************************************************************************/
++/*
+  * jsimd_extrgb_gray_convert_mips_dspr2
+  * jsimd_extbgr_gray_convert_mips_dspr2
+  * jsimd_extrgbx_gray_convert_mips_dspr2
+diff -urNp simd/jsimd_powerpc.c simd/jsimd_powerpc.c
+--- simd/jsimd_powerpc.c	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_powerpc.c	2018-05-12 22:46:24.000000000 -0700
+@@ -335,6 +335,51 @@ jsimd_ycc_rgb565_convert (j_decompress_p
+ {
+ }
+ 
++GLOBAL(void)
++jsimd_bg_ycc_rgb_convert (j_decompress_ptr cinfo,
++                          JSAMPIMAGE input_buf, JDIMENSION input_row,
++                          JSAMPARRAY output_buf, int num_rows)
++{
++  void (*altivecfct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
++
++  switch(cinfo->out_color_space) {
++    case JCS_EXT_RGB:
++      altivecfct=jsimd_bg_ycc_extrgb_convert_altivec;
++      break;
++    case JCS_EXT_RGBX:
++    case JCS_EXT_RGBA:
++      altivecfct=jsimd_bg_ycc_extrgbx_convert_altivec;
++      break;
++    case JCS_EXT_BGR:
++      altivecfct=jsimd_bg_ycc_extbgr_convert_altivec;
++      break;
++    case JCS_EXT_BGRX:
++    case JCS_EXT_BGRA:
++      altivecfct=jsimd_bg_ycc_extbgrx_convert_altivec;
++      break;
++    case JCS_EXT_XBGR:
++    case JCS_EXT_ABGR:
++      altivecfct=jsimd_bg_ycc_extxbgr_convert_altivec;
++      break;
++    case JCS_EXT_XRGB:
++    case JCS_EXT_ARGB:
++      altivecfct=jsimd_bg_ycc_extxrgb_convert_altivec;
++      break;
++    default:
++      altivecfct=jsimd_bg_ycc_rgb_convert_altivec;
++      break;
++  }
++
++  altivecfct(cinfo->output_width, input_buf, input_row, output_buf, num_rows);
++}
++
++GLOBAL(void)
++jsimd_bg_ycc_rgb565_convert (j_decompress_ptr cinfo,
++                             JSAMPIMAGE input_buf, JDIMENSION input_row,
++                             JSAMPARRAY output_buf, int num_rows)
++{
++}
++
+ GLOBAL(int)
+ jsimd_can_h2v2_downsample (void)
+ {
+diff -urNp simd/jsimd_x86_64.c simd/jsimd_x86_64.c
+--- simd/jsimd_x86_64.c	2017-07-10 03:58:14.000000000 -0700
++++ simd/jsimd_x86_64.c	2018-05-12 20:20:34.000000000 -0700
+@@ -244,6 +244,51 @@ jsimd_ycc_rgb565_convert (j_decompress_p
+ {
+ }
+ 
++GLOBAL(void)
++jsimd_bg_ycc_rgb_convert (j_decompress_ptr cinfo,
++                          JSAMPIMAGE input_buf, JDIMENSION input_row,
++                          JSAMPARRAY output_buf, int num_rows)
++{
++  void (*sse2fct)(JDIMENSION, JSAMPIMAGE, JDIMENSION, JSAMPARRAY, int);
++
++  switch(cinfo->out_color_space) {
++    case JCS_EXT_RGB:
++      sse2fct=jsimd_bg_ycc_extrgb_convert_sse2;
++      break;
++    case JCS_EXT_RGBX:
++    case JCS_EXT_RGBA:
++      sse2fct=jsimd_bg_ycc_extrgbx_convert_sse2;
++      break;
++    case JCS_EXT_BGR:
++      sse2fct=jsimd_bg_ycc_extbgr_convert_sse2;
++      break;
++    case JCS_EXT_BGRX:
++    case JCS_EXT_BGRA:
++      sse2fct=jsimd_bg_ycc_extbgrx_convert_sse2;
++      break;
++    case JCS_EXT_XBGR:
++    case JCS_EXT_ABGR:
++      sse2fct=jsimd_bg_ycc_extxbgr_convert_sse2;
++      break;
++    case JCS_EXT_XRGB:
++    case JCS_EXT_ARGB:
++      sse2fct=jsimd_bg_ycc_extxrgb_convert_sse2;
++      break;
++    default:
++      sse2fct=jsimd_bg_ycc_rgb_convert_sse2;
++      break;
++  }
++
++  sse2fct(cinfo->output_width, input_buf, input_row, output_buf, num_rows);
++}
++
++GLOBAL(void)
++jsimd_bg_ycc_rgb565_convert (j_decompress_ptr cinfo,
++                             JSAMPIMAGE input_buf, JDIMENSION input_row,
++                             JSAMPARRAY output_buf, int num_rows)
++{
++}
++
+ GLOBAL(int)
+ jsimd_can_h2v2_downsample (void)
+ {
+diff -urNp transupp.c transupp.c
+--- transupp.c	2017-07-10 03:58:14.000000000 -0700
++++ transupp.c	2018-05-09 17:30:05.000000000 -0700
+@@ -901,7 +901,11 @@ jtransform_request_workspace (j_decompre
+ 
+   /* Determine number of components in output image */
+   if (info->force_grayscale &&
+-      srcinfo->jpeg_color_space == JCS_YCbCr &&
++      (srcinfo->jpeg_color_space == JCS_YCbCr
++#if JPEG_LIB_VERSION >= 90
++       || srcinfo->jpeg_color_space == JCS_BG_YCC
++#endif
++	   ) &&
+       srcinfo->num_components == 3)
+     /* We'll only process the first component */
+     info->num_components = 1;
+@@ -1352,7 +1356,11 @@ jtransform_adjust_parameters (j_decompre
+      * be less than full resolution, so actually coping with that case
+      * isn't worth extra code space.  But we check it to avoid crashing.)
+      */
+-    if (((dstinfo->jpeg_color_space == JCS_YCbCr &&
++    if ((((dstinfo->jpeg_color_space == JCS_YCbCr
++#if JPEG_LIB_VERSION >= 90
++           || dstinfo->jpeg_color_space == JCS_BG_YCC
++#endif
++           ) &&
+           dstinfo->num_components == 3) ||
+          (dstinfo->jpeg_color_space == JCS_GRAYSCALE &&
+           dstinfo->num_components == 1)) &&
+diff -urNp win/jpeg9.def win/jpeg9.def
+--- win/jpeg9.def	1969-12-31 16:00:00.000000000 -0800
++++ win/jpeg9.def	2018-05-12 23:55:38.000000000 -0700
+@@ -0,0 +1,119 @@
++EXPORTS
++	jcopy_block_row @ 1 ; 
++	jcopy_sample_rows @ 2 ; 
++	jdiv_round_up @ 3 ; 
++	jinit_1pass_quantizer @ 4 ; 
++	jinit_2pass_quantizer @ 5 ; 
++	jinit_c_coef_controller @ 6 ; 
++	jinit_c_main_controller @ 7 ; 
++	jinit_c_master_control @ 8 ; 
++	jinit_c_prep_controller @ 9 ; 
++	jinit_color_converter @ 10 ; 
++	jinit_color_deconverter @ 11 ; 
++	jinit_compress_master @ 12 ; 
++	jinit_d_coef_controller @ 13 ; 
++	jinit_d_main_controller @ 14 ; 
++	jinit_d_post_controller @ 15 ; 
++	jinit_downsampler @ 16 ; 
++	jinit_forward_dct @ 17 ; 
++	jinit_huff_decoder @ 18 ; 
++	jinit_huff_encoder @ 19 ; 
++	jinit_input_controller @ 20 ; 
++	jinit_inverse_dct @ 21 ; 
++	jinit_marker_reader @ 22 ; 
++	jinit_marker_writer @ 23 ; 
++	jinit_master_decompress @ 24 ; 
++	jinit_memory_mgr @ 25 ; 
++	jinit_merged_upsampler @ 26 ; 
++	jinit_phuff_decoder @ 27 ; 
++	jinit_phuff_encoder @ 28 ; 
++	jinit_upsampler @ 29 ; 
++	jpeg_CreateCompress @ 30 ; 
++	jpeg_CreateDecompress @ 31 ; 
++	jpeg_abort @ 32 ; 
++	jpeg_abort_compress @ 33 ; 
++	jpeg_abort_decompress @ 34 ; 
++	jpeg_add_quant_table @ 35 ; 
++	jpeg_alloc_huff_table @ 36 ; 
++	jpeg_alloc_quant_table @ 37 ; 
++	jpeg_calc_jpeg_dimensions @ 38 ; 
++	jpeg_calc_output_dimensions @ 39 ; 
++	jpeg_consume_input @ 40 ; 
++	jpeg_copy_critical_parameters @ 41 ; 
++	jpeg_core_output_dimensions @ 42 ; 
++	jpeg_default_colorspace @ 43 ; 
++	jpeg_default_qtables @ 44 ;
++	jpeg_destroy @ 45 ; 
++	jpeg_destroy_compress @ 46 ; 
++	jpeg_destroy_decompress @ 47 ; 
++	jpeg_fdct_float @ 48 ; 
++	jpeg_fdct_ifast @ 49 ; 
++	jpeg_fdct_islow @ 50 ; 
++	jpeg_fill_bit_buffer @ 51 ; 
++	jpeg_finish_compress @ 52 ; 
++	jpeg_finish_decompress @ 53 ; 
++	jpeg_finish_output @ 54 ; 
++	jpeg_free_large @ 55 ; 
++	jpeg_free_small @ 56 ; 
++	jpeg_gen_optimal_table @ 57 ; 
++	jpeg_get_large @ 58 ; 
++	jpeg_get_small @ 59 ; 
++	jpeg_has_multiple_scans @ 60 ; 
++	jpeg_huff_decode @ 61 ; 
++	jpeg_idct_1x1 @ 62 ; 
++	jpeg_idct_2x2 @ 63 ; 
++	jpeg_idct_4x4 @ 64 ; 
++	jpeg_idct_float @ 65 ; 
++	jpeg_idct_ifast @ 66 ; 
++	jpeg_idct_islow @ 67 ; 
++	jpeg_input_complete @ 68 ; 
++	jpeg_make_c_derived_tbl @ 69 ; 
++	jpeg_make_d_derived_tbl @ 70 ; 
++	jpeg_mem_available @ 71 ; 
++	jpeg_mem_dest @ 72 ;
++	jpeg_mem_init @ 73 ; 
++	jpeg_mem_src @ 74 ;
++	jpeg_mem_term @ 75 ; 
++	jpeg_new_colormap @ 76 ; 
++	jpeg_open_backing_store @ 77 ; 
++	jpeg_quality_scaling @ 78 ; 
++	jpeg_read_coefficients @ 79 ; 
++	jpeg_read_header @ 80 ; 
++	jpeg_read_raw_data @ 81 ; 
++	jpeg_read_scanlines @ 82 ; 
++	jpeg_resync_to_restart @ 83 ; 
++	jpeg_save_markers @ 84 ; 
++	jpeg_set_colorspace @ 85 ; 
++	jpeg_set_defaults @ 86 ; 
++	jpeg_set_linear_quality @ 87 ; 
++	jpeg_set_marker_processor @ 88 ; 
++	jpeg_set_quality @ 89 ; 
++	jpeg_simple_progression @ 90 ; 
++	jpeg_start_compress @ 91 ; 
++	jpeg_start_decompress @ 92 ; 
++	jpeg_start_output @ 93 ; 
++	jpeg_std_error @ 94 ; 
++	jpeg_stdio_dest @ 95 ; 
++	jpeg_stdio_src @ 96 ; 
++	jpeg_suppress_tables @ 97 ; 
++	jpeg_write_coefficients @ 98 ; 
++	jpeg_write_m_byte @ 99 ; 
++	jpeg_write_m_header @ 100 ; 
++	jpeg_write_marker @ 101 ; 
++	jpeg_write_raw_data @ 102 ; 
++	jpeg_write_scanlines @ 103 ; 
++	jpeg_write_tables @ 104 ; 
++	jround_up @ 105 ; 
++	jzero_far @ 106 ; 
++	jpeg_skip_scanlines @ 107 ; 
++	jpeg_crop_scanline @ 108 ; 
++	jpeg_c_bool_param_supported @ 200 ; 
++	jpeg_c_set_bool_param @ 201 ; 
++	jpeg_c_get_bool_param @ 202 ; 
++	jpeg_c_float_param_supported @ 203 ; 
++	jpeg_c_set_float_param @ 204 ; 
++	jpeg_c_get_float_param @ 205 ; 
++	jpeg_c_int_param_supported @ 206 ; 
++	jpeg_c_set_int_param @ 207 ; 
++	jpeg_c_get_int_param @ 208 ; 
++	jpeg_float_quality_scaling @ 1000 ; 

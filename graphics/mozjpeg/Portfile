@@ -28,11 +28,13 @@ checksums           rmd160  3b275b5241375452d8e7135345ec008217db34aa \
 depends_build       port:pkgconfig \
                     port:nasm
 
+patchfiles          patch-jpeg9.diff
+
 use_autoreconf          yes
 autoreconf.args-append  --force
 
 configure.args      --disable-silent-rules \
-                    --with-jpeg8 \
+                    --with-jpeg9 \
                     NASM=${prefix}/bin/nasm
 
 array set merger_host {
