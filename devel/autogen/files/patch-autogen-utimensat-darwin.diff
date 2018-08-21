@@ -1,0 +1,24 @@
+--- agen5/autogen.h~	2017-09-10 23:52:36.000000000 -0500
++++ agen5/autogen.h	2018-07-27 14:16:07.000000000 -0500
+@@ -422,12 +422,21 @@
+     || (  (((_f).tv_sec == (_s).tv_sec))        \
+        && (((_f).tv_nsec < (_s).tv_nsec)) )     \
+     )
++#ifdef __APPLE__
++#undef  st_atime
++#define st_atime st_atimespec
++#undef  st_mtime
++#define st_mtime st_mtimespec
++#undef  st_ctime
++#define st_ctime st_ctimespec
++#else
+ #undef  st_atime
+ #define st_atime st_atim
+ #undef  st_mtime
+ #define st_mtime st_mtim
+ #undef  st_ctime
+ #define st_ctime st_ctim
++#endif // __APPLE__
+ #endif // HAVE_UTIMENSAT
+ 
+ /**

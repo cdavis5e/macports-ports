@@ -34,6 +34,7 @@ depends_lib         port:gettext \
 universal_variant   no
 
 patchfiles-append   mktemp.patch
+#patchfiles-append   patch-autogen-utimensat-darwin.diff
 patchfiles-append   Werror.patch
 patchfiles-append   Wno-format-contains-nul.patch
 patchfiles-append   configure.patch
