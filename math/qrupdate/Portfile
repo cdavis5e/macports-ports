@@ -26,6 +26,7 @@ platforms           darwin
 master_sites        sourceforge:project/qrupdate/qrupdate/${branch}
 
 use_configure       no
+use_parallel_build  no
 build.target        lib solib
 
 build.args          PREFIX=${prefix} LAPACK=""
