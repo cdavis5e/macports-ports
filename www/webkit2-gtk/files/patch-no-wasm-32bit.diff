@@ -1,0 +1,20 @@
+--- Source/WTF/wtf/Platform.h~	2018-02-20 03:12:50.000000000 -0600
++++ Source/WTF/wtf/Platform.h	2018-07-17 18:24:46.000000000 -0500
+@@ -860,12 +860,16 @@
+ #endif
+ 
+ #if !defined(ENABLE_WEBASSEMBLY)
+-#if ENABLE(B3_JIT) && PLATFORM(COCOA)
++#if ENABLE(B3_JIT) && PLATFORM(COCOA) && USE(JSVALUE64)
+ #define ENABLE_WEBASSEMBLY 1
+ #else
+ #define ENABLE_WEBASSEMBLY 0
+ #endif
+ #endif
++#if USE(JSVALUE32_64)
++#undef ENABLE_WEBASSEMBLY
++#define ENABLE_WEBASSEMBLY 0
++#endif
+ 
+ /* The SamplingProfiler is the probabilistic and low-overhead profiler used by
+  * JSC to measure where time is spent inside a JavaScript program.
