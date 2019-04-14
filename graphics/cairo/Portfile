@@ -95,6 +95,8 @@ configure.args              --disable-gl \
                             --enable-tee \
                             --enable-xml
 
+configure.ldflags-append    -Wl,-w
+
 # Prevent cairo from using ghostscript.
 configure.args-append       ac_cv_prog_GS=""
 
