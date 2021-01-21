@@ -8,3 +8,4 @@ revision            0
 maintainers         {judaew @judaew} openmaintainer
 
 # configure.args-append --disable-werror
+configure.args-append   --enable-install-libbfd
