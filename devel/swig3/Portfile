@@ -82,14 +82,16 @@ foreach lang [lsort [array names bindings]] {
     set arg      [lindex $bindings($lang) 1]
     set arg_name [lindex [split ${arg} =] 0]
     subport swig3-${lang} "
-        depends_lib-append      [lindex $bindings($lang) 0]
+        if {\"[lindex $bindings($lang) 0]\" ne \"\"} {
+            depends_lib-append      [lindex $bindings($lang) 0]
+        }
         configure.args-append   --with-${arg}
         destroot.args           lib-languages=\"${arg_name}\"
         swig.lang               $arg_name
         platforms               any
         supported_archs         noarch
     "
-    if {${swig.lang} != $arg_name} {
+    if {${swig.lang} ne $arg_name} {
         configure.args-append --without-${arg_name}
     }
 }
