@@ -31,6 +31,10 @@ homepage                https://supertux.org/
 patchfiles              patch-supertux-squirrel-linkagefix.diff \
                         patch-supertux-cmake.diff
 
+# SDL_ttf tries to use Freetype from locally installed Mono for some
+# inexplicable reason.
+patchfiles-append       patch-supertux-SDL_ttf-freetypefix.diff
+
 cmake.build_type        Release
 compiler.cxx_standard   2014
 
