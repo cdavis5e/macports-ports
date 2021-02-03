@@ -1,0 +1,88 @@
+--- etc/uams/uams_krb4/uams_krb4.c~	2009-03-29 02:23:23.000000000 -0500
++++ etc/uams/uams_krb4/uams_krb4.c	2019-11-29 09:54:10.000000000 -0600
+@@ -53,8 +53,8 @@
+ #include <atalk/util.h>
+ #include <atalk/uam.h>
+ 
+-static C_Block			seskey;
+-static Key_schedule		seskeysched;
++static DES_cblock			seskey;
++static DES_key_schedule		seskeysched;
+ 
+ static char		realm[ REALM_SZ ];
+ 
+@@ -179,8 +179,8 @@
+ 	    LOG(log_info, logtype_default, "krb4_login: %s.%s@%s", ad.pname, ad.pinst, 
+ 		ad.prealm );
+ 	    strcpy( realm, ad.prealm );
+-	    memcpy( seskey, ad.session, sizeof( C_Block ) );
+-	    key_sched( (C_Block *)seskey, seskeysched );
++	    memcpy( seskey, ad.session, sizeof( DES_cblock ) );
++	    DES_key_sched( (DES_cblock *)seskey, &seskeysched );
+ 
+ 	    strncpy( username, ad.pname, ulen );
+ 
+@@ -287,7 +287,7 @@
+ 	    memcpy( p, &aint, sizeof( int ) );
+ 	    p += sizeof( int );
+ 	    memcpy( p, ibuf, len );
+-	    pcbc_encrypt( (C_Block *)p, (C_Block *)p, len, seskeysched,
++	    DES_pcbc_encrypt( (DES_cblock *)p, (DES_cblock *)p, len, &seskeysched,
+ 		seskey, DECRYPT );
+ 	    p += len;
+ 	    ibuf += len;
+@@ -303,8 +303,8 @@
+ 	    }
+ 	    memcpy( &ct, ibuf, len );
+ 
+-	    pcbc_encrypt( (C_Block *)&ct, (C_Block *)&ct, len, 
+-		seskeysched, seskey, DECRYPT );
++	    DES_pcbc_encrypt( (DES_cblock *)&ct, (DES_cblock *)&ct, len, 
++		&seskeysched, seskey, DECRYPT );
+ 
+ 	    aint = sizeof( struct ClearToken );
+ 	    memcpy( p, &aint, sizeof( int ) );
+@@ -375,8 +375,8 @@
+ 		    LOG(log_info, logtype_default, "krb4_login: %s.%s@%s", ad.pname, 
+ 			ad.pinst, ad.prealm );
+ 		    memcpy(realm, ad.prealm, sizeof(realm));
+-		    memcpy(seskey, ad.session, sizeof( C_Block ));
+-		    key_sched((C_Block *) seskey, seskeysched );
++		    memcpy(seskey, ad.session, sizeof( DES_cblock ));
++		    DES_key_sched((DES_cblock *) seskey, &seskeysched );
+ 
+ 		    strncpy(username, ad.pname, ulen);
+ 
+@@ -408,8 +408,8 @@
+ 		    p += sizeof( len );
+ 		    memcpy( &cr, p, len );
+ 
+-		    pcbc_encrypt((C_Block *)&cr, (C_Block *)&cr, len, 
+-			seskeysched, seskey, DES_DECRYPT );
++		    DES_pcbc_encrypt((DES_cblock *)&cr, (DES_cblock *)&cr, len, 
++			&seskeysched, seskey, DES_DECRYPT );
+ 
+ 		    p = buf;
+ 		    cr.ticket_st.length = ntohl( cr.ticket_st.length );
+@@ -630,8 +630,8 @@
+ 	    return ( AFPERR_BADUAM );
+ 	}
+ 
+-	memcpy( seskey, cr.session, sizeof( C_Block ));
+-	key_sched((C_Block *) seskey, seskeysched );
++	memcpy( seskey, cr.session, sizeof( DES_cblock ));
++	DES_key_sched((DES_cblock *) seskey, &seskeysched );
+ 	validseskey = 1;
+ 	strncpy(username, name, ulen);
+ 
+@@ -691,8 +691,8 @@
+     clen = ntohs( clen );
+     ibuf += sizeof( short );
+ 
+-    pcbc_encrypt((C_Block *)ibuf, (C_Block *)ibuf,
+-	    clen, seskeysched, seskey, DES_DECRYPT );
++    DES_pcbc_encrypt((DES_cblock *)ibuf, (DES_cblock *)ibuf,
++	    clen, &seskeysched, seskey, DES_DECRYPT );
+     if ( kuam_set_in_tkt( name, instance, realm, TICKET_GRANTING_TICKET,
+ 	    realm, ibuf ) != INTK_OK ) {
+ 	return ( AFPERR_PARAM );

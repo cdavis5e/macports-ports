@@ -1,0 +1,11 @@
+--- etc/uams/uams_krb4/kuam.c~	2001-06-25 15:13:45.000000000 -0500
++++ etc/uams/uams_krb4/kuam.c	2019-11-29 01:02:26.000000000 -0600
+@@ -156,7 +156,7 @@
+     struct timeval	t_local;
+     int			lifetime, kvno, kerror;
+     int32_t		kdc_time;
+-    C_Block		ses;
++    DES_cblock	ses;
+     char		s_name[ SNAME_SZ ], s_instance[ INST_SZ ];
+     char		rlm[ REALM_SZ ];
+ 

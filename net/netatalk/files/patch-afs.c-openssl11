@@ -1,0 +1,24 @@
+--- etc/afpd/afs.c~	2009-03-29 02:23:21.000000000 -0500
++++ etc/afpd/afs.c	2019-11-28 23:36:14.000000000 -0600
+@@ -232,8 +232,8 @@
+ #include <afs/kauth.h>
+ #include <afs/kautils.h>
+ 
+-extern C_Block		seskey;
+-extern Key_schedule	seskeysched;
++extern DES_cblock		seskey;
++extern DES_key_schedule	seskeysched;
+ 
+ int afp_afschangepw(obj, ibuf, ibuflen, rbuf, rbuflen )
+ AFPObj      *obj;
+@@ -275,8 +275,8 @@
+     }
+ 
+     ibuf += sizeof( short );
+-    pcbc_encrypt((C_Block *)ibuf, (C_Block *)ibuf,
+-                 clen, seskeysched, seskey, DES_DECRYPT );
++    DES_pcbc_encrypt((DES_cblock *)ibuf, (DES_cblock *)ibuf,
++                     clen, &seskeysched, seskey, DES_DECRYPT );
+ 
+     len = (unsigned char) *ibuf++;
+     if ( len > 8 ) {

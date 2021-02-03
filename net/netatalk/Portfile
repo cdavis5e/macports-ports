@@ -27,7 +27,10 @@ startupitem.start   "${prefix}/etc/netatalk/initscript start"
 startupitem.stop    "${prefix}/etc/netatalk/initscript stop"
 startupitem.restart "${prefix}/etc/netatalk/initscript restart"
 
-patchfiles          patch-etc-papd-print_cups.c-warnings
+patchfiles          patch-etc-papd-print_cups.c-warnings \
+                    patch-afs.c-openssl11 \
+                    patch-etc-uams-uams_krb4-kuam.c-openssl11 \
+                    patch-etc-uams-uams_krb4-uams_krb4.c-openssl11
 
 depends_build-append \
                     port:pkgconfig
