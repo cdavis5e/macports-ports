@@ -1,0 +1,10 @@
+--- kdelibs-4.14.3/kdewebkit/CMakeLists.txt~	2014-11-06 16:33:50.000000000 -0600
++++ kdelibs-4.14.3/kdewebkit/CMakeLists.txt	2019-04-17 16:28:30.000000000 -0500
+@@ -10,6 +10,7 @@
+  ${KDE4_KDECORE_INCLUDES}
+  ${KDE4_KDEUI_INCLUDES}
+  ${KDE4_KIO_INCLUDES}
++ ${QT_QTWEBKIT_INCLUDE_DIR}
+ )
+ 
+ set(kdewebkit_LIB_SRCS

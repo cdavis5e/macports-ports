@@ -59,6 +59,7 @@ depends_skip_archcheck aspell-dict-en
 #KdePreferences: Handles menus to be closer to standard Mac layout (see https://reviewboard.kde.org/r/120149/)
 #patch-ui-CMakeLists: Fix build for cmake 3.9
 #https://cgit.kde.org/kdelibs.git/commit/?h=KDE/4.14&id=57eaf65accb8d058644dc8eee7332e0ec0c1952f
+#kdewebkit-CMakeLists.txt-webkit-includes: Fixes kdewebkit build
 
 patchfiles           workaround-kdeinit4-crash.patch \
                      default-kde4-xdg-menu-prefix.patch \
@@ -72,7 +73,8 @@ patchfiles           workaround-kdeinit4-crash.patch \
                      patch-locale.diff \
                      kdelibs-openssl-1.1.patch \
                      patch-pointers.diff \
-                     patch-kimgio.diff
+                     patch-kimgio.diff \
+                     patch-kdewebkit-CMakeLists.txt-webkit-includes.diff
 
 #Deactivated as of ticket #45373
 #                     patch-nativeDialogs.diff
