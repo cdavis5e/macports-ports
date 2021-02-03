@@ -136,7 +136,8 @@ patchfiles-append \
     0013-clang-add-back-runtime-libraries-used-on-10.4-and-10.patch \
     0014-Fix-float.h-to-work-on-Snow-Leopard-and-earlier.patch \
     0019-10.6-and-less-use-emulated-TLS-before-10.7.patch \
-    0025-lldb-add-defines-needed-for-older-SDKs.patch
+    0025-lldb-add-defines-needed-for-older-SDKs.patch \
+    0001-llvm-config-Correct-big-dylib-name-for-Darwin.patch
 
 if {${os.platform} eq "darwin" && ${os.major} < 14} {
     patchfiles-append \

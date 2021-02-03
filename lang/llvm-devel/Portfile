@@ -155,7 +155,8 @@ patchfiles-append \
     0012-compiler-rt-add-some-defs-missing-in-older-SDKs.patch \
     0013-clang-add-back-runtime-libraries-used-on-10.4-and-10.patch \
     0019-10.6-and-less-use-emulated-TLS-before-10.7.patch \
-    0025-lldb-add-defines-needed-for-older-SDKs.patch
+    0025-lldb-add-defines-needed-for-older-SDKs.patch \
+    0001-llvm-config-Correct-big-dylib-name-for-Darwin.patch
 
 # patches that longer apply when cloned from llvm-17. To be seen if needed still.
 # 0010-compiler-rt-cmake-config-ix.cmake-was-Leopard-No-ASA.patch

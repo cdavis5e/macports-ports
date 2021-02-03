@@ -136,6 +136,7 @@ patchfiles-append \
     0032-lldb-Add-cstdio-include-to-fix-a595b931f1f91897317a4.patch \
     0033-xray-Use-L-instead-of-.L-for-Mach-O.patch \
     0034-builtins-Move-cfi-start-s-after-the-symbol-name-NFC.patch \
+    0001-llvm-config-Correct-big-dylib-name-for-Darwin.patch \
     MachOWriter.cpp-types.patch \
     SyntheticSections.cpp-types.patch \
     patch-lldb-stdc-macros-134877.diff \

@@ -1,0 +1,33 @@
+From b14c18022924a0edc0c5139f43955af4d4bc0d34 Mon Sep 17 00:00:00 2001
+From: Charles Davis <cdavis5x@gmail.com>
+Date: Sat, 16 Jan 2021 23:18:47 -0600
+Subject: [PATCH] [llvm-config] Correct big dylib name for Darwin.
+
+On Darwin, the big dylib lacks a version suffix.
+
+Signed-off-by: Charles Davis <cdavis5x@gmail.com>
+---
+ tools/llvm-config/llvm-config.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/tools/llvm-config/llvm-config.cpp b/tools/llvm-config/llvm-config.cpp
+index 6c31df3e173..189c3884d4b 100644
+--- a/tools/llvm-config/llvm-config.cpp
++++ b/tools/llvm-config/llvm-config.cpp
+@@ -394,8 +394,13 @@ int main(int argc, char **argv) {
+   const bool BuiltSharedLibs = !!LLVM_ENABLE_SHARED;
+ 
+   bool DyLibExists = false;
++#ifdef __APPLE__
++  const std::string DyLibName =
++      (SharedPrefix + "LLVM." + SharedExt).str();
++#else
+   const std::string DyLibName =
+       (SharedPrefix + "LLVM-" + SharedVersionedExt).str();
++#endif
+ 
+   // If LLVM_LINK_DYLIB is ON, the single shared library will be returned
+   // for "--libs", etc, if they exist. This behaviour can be overridden with
+-- 
+2.30.0
+

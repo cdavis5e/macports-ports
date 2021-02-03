@@ -145,7 +145,8 @@ patchfiles-append \
     0026-llvm-set-memrchr-unavailable.patch \
     0043-builtins-Move-cfi-start-s-after-the-symbol-name-NFC.patch \
     0999-i386-fix.diff \
-    add-missed-i386-host.diff
+    add-missed-i386-host.diff \
+    0001-llvm-config-Correct-big-dylib-name-for-Darwin.patch
 
 if {${os.platform} eq "darwin" && ${os.major} < 14} {
     patchfiles-append \

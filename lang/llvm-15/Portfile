@@ -123,6 +123,7 @@ patch.dir ${workpath}/${distname}
 patch.pre_args-replace  -p0 -p1
 
 patchfiles-append \
+    0001-llvm-config-Correct-big-dylib-name-for-Darwin.patch \
     0001-MacPorts-only-clang-use-MP-omp-locations.patch \
     0002-MacPorts-Only-Don-t-embed-the-deployment-target-in-t.patch \
     0003-MacPorts-Only-Prepare-clang-format-for-replacement-w.patch \

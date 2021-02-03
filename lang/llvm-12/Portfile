@@ -124,7 +124,8 @@ patchfiles-append \
     0030-compiler-rt-Move-.cfi_start-after-the-symbol-label-d.patch \
     patch-lldb-stdc-macros-134877.diff \
     patch-lldb-fix-swig-lvalue-2128646.diff \
-    patch-xcode-15.diff
+    patch-xcode-15.diff \
+    0001-llvm-config-Correct-big-dylib-name-for-Darwin.patch
 
 if {${os.platform} eq "darwin" && ${os.major} < 14} {
     patchfiles-append \
