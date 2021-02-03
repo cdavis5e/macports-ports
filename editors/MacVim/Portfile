@@ -52,6 +52,8 @@ pre-fetch {
 # does not run correctly when build with older clang releases, see #30985
 compiler.blacklist {clang < 400}
 
+use_xcode           yes
+
 post-extract {
     # create cache directory
     file mkdir ${workpath}/caches
