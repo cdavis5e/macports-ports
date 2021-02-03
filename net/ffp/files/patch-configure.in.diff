@@ -1,0 +1,10 @@
+--- configure.in~	2003-10-25 09:39:36.000000000 -0500
++++ configure.in	2019-11-27 20:12:44.000000000 -0600
+@@ -87,6 +87,7 @@
+ 	[
+ #include <string.h>
+ #include <openssl/opensslv.h>
++#include <openssl/crypto.h>
+ int main(void) { return(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1); }
+ 	],
+ 	[

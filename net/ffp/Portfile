@@ -30,6 +30,10 @@ depends_build	path:libexec/coreutils/libstdbuf.so:coreutils
 openssl.branch          1.0
 openssl.configure	build_flags pkgconfig
 
+patchfiles      patch-configure.in.diff
+
+use_autoreconf  yes
+
 post-destroot {
 	xinstall -m 755 -d ${destroot}${prefix}/share/doc/${name}
 	xinstall -m 755 -c ${worksrcpath}/doc/ffp.html ${destroot}${prefix}/share/doc/${name}/
