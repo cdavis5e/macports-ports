@@ -138,35 +138,35 @@ variant bluray description {Enable Blu-Ray support} {
     configure.args-replace --disable-bluray --enable-bluray
 }
 
-variant python35 conflicts python36 python37 description {Use Python 3.5 for testing} {
-    depends_build-append port:py35-gobject3
-    post-patch {
-        reinplace "s|^#!.*|#!${prefix}/bin/python3.5|" \
-            ${worksrcpath}/test/gvfs-test \
-            ${worksrcpath}/test/test_polkitd.py
+set python_versions {35 36 37 38 39 310 311 312}
+
+foreach pyver ${python_versions} {
+    # Conflicting python versions
+    set other_python_versions {}
+    foreach other_pyver ${python_versions} {
+        if {${other_pyver} ne ${pyver}} {
+            if {${other_pyver} ni ${other_python_versions}} {
+                lappend other_python_versions python${other_pyver}
+            }
+        }
     }
+
+    set python_branch "[string index ${pyver} 0].[string range ${pyver} 1 end]"
+
+    variant python${pyver} conflicts {*}${other_python_versions} description "Use Python ${python_branch} for testing" "
+        depends_build-append port:py${pyver}-gobject3
+        post-patch {
+            reinplace \"s|^#!.*|#!${prefix}/bin/python${python_branch}|\" \
+                ${worksrcpath}/test/gvfs-test \
+                ${worksrcpath}/test/test_polkitd.py
+        }
+    "
 }
 
-variant python36 conflicts python35 python37 description {Use Python 3.6 for testing} {
-    depends_build-append port:py36-gobject3
-    post-patch {
-        reinplace "s|^#!.*|#!${prefix}/bin/python3.6|" \
-            ${worksrcpath}/test/gvfs-test \
-            ${worksrcpath}/test/test_polkitd.py
-    }
-}
-
-variant python37 conflicts python35 python36 description {Use Python 3.7 for testing} {
-    depends_build-append port:py37-gobject3
-    post-patch {
-        reinplace "s|^#!.*|#!${prefix}/bin/python3.7|" \
-            ${worksrcpath}/test/gvfs-test \
-            ${worksrcpath}/test/test_polkitd.py
-    }
-}
-
-if {![variant_isset python35] && ![variant_isset python37]} {
-   default_variants +python36
+if {![variant_isset python35] && ![variant_isset python37] && ![variant_isset python38] &&
+    ![variant_isset python39] && ![variant_isset python310] && ![variant_isset python311] &&
+    ![variant_isset python312]} {
+   default_variants +python311
 }
 
 post-activate {
