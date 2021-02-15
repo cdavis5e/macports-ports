@@ -101,11 +101,11 @@ variant gtk description {Build Gtk3 front-end} {
     depends_lib-append      path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                             port:gtkmm3 \
                             port:libnotify \
-                            port:desktop-file-utils
 
     configure.args-replace  -DENABLE_GTK=OFF -DENABLE_GTK=ON
 
-    depends_run             port:adwaita-icon-theme
+    depends_run             port:adwaita-icon-theme \
+                            port:desktop-file-utils
 
     post-activate {
         system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"

@@ -43,7 +43,6 @@ depends_lib         path:lib/pkgconfig/cairo.pc:cairo \
                     port:clutter-gst3 \
                     port:clutter-gtk \
                     port:dbus \
-                    port:desktop-file-utils \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
                     port:gettext-runtime \
@@ -59,10 +58,11 @@ depends_lib         path:lib/pkgconfig/cairo.pc:cairo \
                     port:gstreamer1-gst-libav \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:libpeas \
-                    port:shared-mime-info \
                     port:totem-pl-parser
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils \
+                    port:shared-mime-info
 
 patchfiles          patch-meson-0.61.0.diff
 

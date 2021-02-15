@@ -24,8 +24,7 @@ depends_build-append \
                     port:gettext \
                     path:bin/pkg-config:pkgconfig
 
-depends_lib-append  port:desktop-file-utils \
-                    port:ayatana-ido \
+depends_lib-append  port:ayatana-ido \
                     path:lib/pkgconfig/cairo.pc:cairo \
                     path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
                     port:gettext-runtime \
@@ -39,6 +38,8 @@ depends_lib-append  port:desktop-file-utils \
                     port:xorg-libice \
                     port:xorg-libsm \
                     port:xorg-libX11
+
+depends_run-append  port:desktop-file-utils
 
 compiler.c_standard 1999
 

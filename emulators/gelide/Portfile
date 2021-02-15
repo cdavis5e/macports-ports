@@ -27,10 +27,11 @@ depends_build           port:gnome-doc-utils \
                         port:libtool \
                         path:bin/pkg-config:pkgconfig
 
-depends_lib             port:desktop-file-utils \
-                        port:gtkmm \
+depends_lib             port:gtkmm \
                         port:libxml2 \
                         port:rarian
+
+depends_run             port:desktop-file-utils
 
 patchfiles              01-01-about-box.patch \
                         01-02-update-german-translation.patch.bz2 \

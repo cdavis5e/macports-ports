@@ -32,14 +32,15 @@ configure.args      --enable-dbus \
 depends_build       port:intltool \
                     port:pkgconfig
 
-depends_lib         port:desktop-file-utils \
-                    port:exo \
+depends_lib         port:exo \
                     port:libexif \
                     port:libnotify \
                     port:pcre \
-                    port:shared-mime-info \
                     port:startup-notification \
                     port:xfce4-panel
+
+depends_run         port:desktop-file-utils \
+                    port:shared-mime-info
 
 variant quartz conflicts x11 {
     depends_lib-delete \

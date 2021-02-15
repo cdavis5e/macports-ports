@@ -36,13 +36,13 @@ depends_build       port:pkgconfig \
                     port:automake \
                     port:libtool
 
-depends_lib         port:desktop-file-utils \
-                    port:gtkmm3 \
+depends_lib         port:gtkmm3 \
                     port:libgtop \
                     path:lib/pkgconfig/librsvg-2.0.pc:librsvg \
                     port:libxml2
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 patchfiles          patch-create-gresource-as-bundle.diff
 

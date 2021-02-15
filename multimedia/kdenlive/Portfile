@@ -26,14 +26,14 @@ checksums           sha256  f68fdb39173e69ce422fdd57bbc4ced47711317e538b0101eee6
 
 # This is a Qt4-based version, so use mlt-legacy here.
 # Also it uses SDL, not SDL2: https://trac.macports.org/ticket/60535
-depends_lib-append  port:desktop-file-utils \
-                    port:gettext-runtime \
+depends_lib-append  port:gettext-runtime \
                     port:kde4-runtime \
                     port:kdelibs4 \
                     port:libsdl \
                     port:mlt-legacy
 
-depends_run-append  port:cdrtools \
+depends_run-append  port:desktop-file-utils \
+                    port:cdrtools \
                     port:dvdauthor
 
 # mlt is not universal

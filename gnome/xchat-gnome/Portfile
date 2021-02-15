@@ -42,8 +42,9 @@ depends_lib         port:libgnomeui \
                     port:libcanberra \
                     port:python27 \
                     port:perl${perl5.major} \
-                    port:desktop-file-utils \
                     port:rarian
+
+depends_run         port:desktop-file-utils
 
 openssl.branch      1.0
 openssl.configure   build_flags

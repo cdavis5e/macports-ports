@@ -28,14 +28,15 @@ depends_build   port:pkgconfig \
                 port:automake \
                 port:libtool
 
-depends_lib     port:desktop-file-utils \
-                path:lib/pkgconfig/gtk+-2.0.pc:gtk2 \
+depends_lib     path:lib/pkgconfig/gtk+-2.0.pc:gtk2 \
                 port:gconf  \
                 port:libglade2 \
                 port:gnet2 \
                 port:vte-gtk2-compat \
                 port:pcre \
                 port:gstreamer010-gst-plugins-base
+
+depends_run     port:desktop-file-utils
                 
 patchfiles      patch-src-mud-telnet.h.diff
 

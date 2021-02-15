@@ -24,12 +24,12 @@ checksums               md5     b65ebc752cad068e747ae6ef45fafdcc \
 depends_build           port:pkgconfig \
                         port:intltool
 
-depends_lib             port:desktop-file-utils \
-                        port:gconf \
+depends_lib             port:gconf \
                         port:libgnomeui \
                         port:libglade2
 
-depends_run             path:bin/wget:wget
+depends_run             port:desktop-file-utils \
+                        path:bin/wget:wget
 
 patchfiles              patch-gwget-application.h.diff
 

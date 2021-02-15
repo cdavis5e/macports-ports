@@ -50,7 +50,7 @@ if {${os.platform} eq "darwin" && ${os.major} > 15} {
 } else {
     wxWidgets.use   wxGTK-3.0-cxx11
 
-    depends_lib-append \
+    depends_run-append \
                     port:desktop-file-utils
 
     legacysupport.redirect_bins filezilla

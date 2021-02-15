@@ -34,8 +34,7 @@ use_xz              yes
 
 depends_build       path:bin/pkg-config:pkgconfig
 
-depends_lib         port:desktop-file-utils \
-                    port:djvulibre \
+depends_lib         port:djvulibre \
                     port:exiv2 \
                     port:ffmpegthumbnailer \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
@@ -51,7 +50,8 @@ depends_lib         port:desktop-file-utils \
                     port:tiff \
                     port:webp
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 # dependencies needed by plugins (not checked by configure) -
 depends_run-append  port:ImageMagick \

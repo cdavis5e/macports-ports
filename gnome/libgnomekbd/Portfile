@@ -27,9 +27,10 @@ checksums           rmd160  f9d22e3875786dfe6fe3ba0d31dc0e8a42402029 \
 
 depends_build       port:pkgconfig
 
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
+depends_lib         path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:libxklavier
+
+depends_run         port:desktop-file-utils
 
 gobject_introspection yes
 

@@ -27,14 +27,15 @@ depends_build   port:pkgconfig \
                 port:intltool \
                 port:gnome-doc-utils
 
-depends_lib     port:desktop-file-utils \
-                port:rarian \
+depends_lib     port:rarian \
                 port:gtkmm \
                 port:libglademm \
                 port:gconfmm \
                 port:libgnomeui \
                 port:cppunit \
                 port:boost
+
+depends_run     port:desktop-file-utils
 
 patchfiles      src_core_compat-round.cc.patch
 

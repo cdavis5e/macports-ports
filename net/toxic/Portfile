@@ -24,7 +24,6 @@ github.tarball_from     archive
 depends_build-append    path:bin/pkg-config:pkgconfig
 depends_lib-append      path:lib/pkgconfig/glib-2.0.pc:glib2 \
                         port:curl \
-                        port:desktop-file-utils \
                         port:freealut \
                         port:libconfig-hr \
                         port:libnotify \
@@ -34,6 +33,7 @@ depends_lib-append      path:lib/pkgconfig/glib-2.0.pc:glib2 \
                         port:qrencode \
                         port:toxcore \
                         port:xorg-libX11
+depends_run-append      port:desktop-file-utils
 
 patchfiles              0001-Makefile-add-PPC.patch \
                         0002-Config-make-paths-sane.patch \

@@ -46,15 +46,15 @@ depends_build       port:pkgconfig \
 
 # update-desktop-database is provided by desktop-file-utils
 
-depends_lib         port:desktop-file-utils \
-                    port:gettext-runtime \
+depends_lib         port:gettext-runtime \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:goffice \
                     port:psiconv \
                     port:pxlib \
                     port:perl${perl5.major}
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 gobject_introspection yes
 

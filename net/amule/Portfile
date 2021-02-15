@@ -30,8 +30,7 @@ depends_build-append \
                     port:bison \
                     port:gettext \
                     port:pkgconfig
-depends_lib-append  port:desktop-file-utils \
-                    path:lib/pkgconfig/glib-2.0.pc:glib2 \
+depends_lib-append  path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     port:gettext-runtime \
                     port:libcryptopp \
                     port:libgeoip \
@@ -40,6 +39,7 @@ depends_lib-append  port:desktop-file-utils \
                     port:libupnp \
                     port:readline \
                     port:zlib
+depends_run-append  port:desktop-file-utils
 
 configure.args-append \
                     -DBUILD_ALCC=ON \

@@ -26,8 +26,7 @@ depends_build   port:pkgconfig \
                 port:automake \
                 port:libtool
 
-depends_lib     port:desktop-file-utils \
-                port:rarian \
+depends_lib     port:rarian \
                 port:libgnomeui \
                 port:libgnomeprintui \
                 port:gtksourceview \
@@ -36,7 +35,8 @@ depends_lib     port:desktop-file-utils \
                 port:libxslt \
                 port:enchant
 
-depends_run     port:gnome-settings-daemon
+depends_run     port:desktop-file-utils \
+                port:gnome-settings-daemon
 
 patchfiles      patch-src-cong-language.c.diff
 

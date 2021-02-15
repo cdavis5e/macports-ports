@@ -623,7 +623,7 @@ variant libmpv description {Enable the libmpv library} {
 }
 
 if {![variant_isset bundle]} {
-    depends_lib-append      port:desktop-file-utils
+    depends_run-append      port:desktop-file-utils
     post-activate {
         system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
     }

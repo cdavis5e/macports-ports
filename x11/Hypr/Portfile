@@ -25,7 +25,6 @@ depends_build-append \
                     port:pkgconfig
 
 depends_lib-append  path:lib/pkgconfig/cairo.pc:cairo \
-                    port:desktop-file-utils \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     port:gtkmm3 \
                     path:lib/pkgconfig/harfbuzz.pc:harfbuzz \
@@ -35,6 +34,8 @@ depends_lib-append  path:lib/pkgconfig/cairo.pc:cairo \
                     port:xorg-xcb-util-cursor \
                     port:xorg-xcb-util-keysyms \
                     port:xorg-xcb-util-wm
+
+depends_run-append  port:desktop-file-utils
 
 compiler.cxx_standard   2017
 

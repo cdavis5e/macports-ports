@@ -64,7 +64,7 @@ configure.env-append GUILE_SNARF=${prefix}/bin/guile-snarf-2.2
 destroot.destdir    DESTDIR=${destroot}/
 
 variant enable_xdg description {enable XDG database update} {
-    depends_lib-append      port:desktop-file-utils
+    depends_run-append      port:desktop-file-utils
     configure.args-delete   --disable-update-xdg-database
 
     post-destroot {

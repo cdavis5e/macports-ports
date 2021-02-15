@@ -41,8 +41,7 @@ depends_build-append \
                     port:libtool \
                     path:bin/pkg-config:pkgconfig
 
-depends_lib-append  port:desktop-file-utils \
-                    port:enchant \
+depends_lib-append  port:enchant \
                     port:goffice \
                     port:fribidi \
                     port:atk \
@@ -71,7 +70,8 @@ depends_lib-append  port:desktop-file-utils \
                     port:xorg-libX11 \
                     port:zlib
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 # uses nullptr
 compiler.cxx_standard   2011

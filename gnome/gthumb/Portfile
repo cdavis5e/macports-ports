@@ -28,8 +28,7 @@ depends_build       port:intltool \
                     port:automake \
                     port:libtool
 
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
+depends_lib         path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:exiv2 \
                     port:gstreamer1-gst-plugins-base \
                     port:lcms2 \
@@ -39,6 +38,8 @@ depends_lib         port:desktop-file-utils \
                     path:lib/pkgconfig/librsvg-2.0.pc:librsvg \
                     port:webp \
                     port:json-glib
+
+depends_run         port:desktop-file-utils
 
 patchfiles          patch-configure.ac.diff \
                     patch-extensions-exiv2_tools-exiv2-utils.cpp.diff \

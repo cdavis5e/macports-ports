@@ -34,7 +34,6 @@ use_autoreconf      yes
 autoreconf.cmd      ${filespath}/autogen.sh
 
 depends_build       path:bin/pkg-config:pkgconfig \
-                    port:desktop-file-utils \
                     port:intltool \
                     port:gettext \
                     port:autoconf \
@@ -46,6 +45,8 @@ depends_lib-append  port:goffice \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:libxml2
+
+depends_run-append  port:desktop-file-utils
 
 configure.args      --disable-frenchdoc \
                     --disable-silent-rules \

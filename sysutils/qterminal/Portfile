@@ -18,7 +18,7 @@ if {${os.platform} eq "darwin" && ${os.major} < 11} {
                     patch-0.6.0-config.h.diff \
                     patch-0.6.0-fix-icns-path.diff
 
-    depends_lib-append \
+    depends_run-append \
                     port:desktop-file-utils
 
     configure.args-append \

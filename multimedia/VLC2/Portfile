@@ -525,7 +525,7 @@ if {(${subport} eq ${name}) || (${subport} eq "lib${name}")} {
 
     # This is a generic Unix-like installation:
     if {![variant_isset quartz]} {
-        depends_lib-append      port:desktop-file-utils
+        depends_run-append      port:desktop-file-utils
     }
 
     # Combo variants:

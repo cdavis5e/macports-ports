@@ -23,8 +23,8 @@ use_bzip2       yes
 
 depends_build   port:intltool port:pkgconfig
 depends_lib     port:exo port:dbus path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
-                path:lib/pkgconfig/glib-2.0.pc:glib2 port:hicolor-icon-theme \
-                port:desktop-file-utils port:vte port:libxfce4ui
+                path:lib/pkgconfig/glib-2.0.pc:glib2 port:vte port:libxfce4ui
+depends_run     port:desktop-file-utils port:hicolor-icon-theme
 
 patchfiles      remove-intltool-perl-hack.diff
 

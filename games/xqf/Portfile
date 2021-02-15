@@ -29,13 +29,14 @@ depends_build       path:bin/pkg-config:pkgconfig \
                     port:gettext \
                     port:intltool
 
-depends_lib         port:desktop-file-utils \
-                    port:bzip2 \
+depends_lib         port:bzip2 \
                     path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
                     path:lib/pkgconfig/gtk+-2.0.pc:gtk2 \
                     port:libgeoip \
                     port:readline \
                     port:qstat
+
+depends_run         port:desktop-file-utils
 
 patchfiles          patch-Makefile.am.diff
                     

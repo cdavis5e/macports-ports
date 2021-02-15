@@ -79,7 +79,6 @@ depends_build-append \
                     path:bin/pkg-config:pkgconfig
 
 depends_lib-append  port:curl \
-                    port:desktop-file-utils \
                     port:enca \
                     port:faad2 \
                     path:lib/libavcodec.dylib:ffmpeg \
@@ -101,6 +100,7 @@ depends_lib-append  port:curl \
                     port:wavpack \
                     port:xorg-libX11 \
                     port:xorg-xorgproto
+depends_run-append  port:desktop-file-utils
 
 configure.args-append \
                     -DUSE_AAC=ON \

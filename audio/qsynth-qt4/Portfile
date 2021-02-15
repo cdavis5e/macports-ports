@@ -39,10 +39,11 @@ autoreconf.args
 # is not recognized correctly. Despite this madness, build succeeds and the app works.
 compiler.cxx_standard 2011
 
-depends_lib-append  port:desktop-file-utils \
-                    port:fluidsynth \
+depends_lib-append  port:fluidsynth \
                     port:xorg-libX11 \
                     port:xorg-libXext
+
+depends_run-append  port:desktop-file-utils
 
 configure.args-append \
                     --bindir=${applications_dir} \

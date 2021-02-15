@@ -28,13 +28,13 @@ depends_build       port:pkgconfig \
                     port:libxslt \
                     port:appstream-glib
 
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/glib-2.0.pc:glib2 \
+depends_lib         path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     port:dconf \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:libxml2
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 configure.args      --disable-schemas-compile \
                     --disable-silent-rules

@@ -51,7 +51,6 @@ depends_build-append \
                     port:pkgconfig
 
 depends_lib-append \
-                    port:desktop-file-utils \
                     port:gettext-runtime \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     path:lib/pkgconfig/gobject-introspection-1.0.pc:gobject-introspection \
@@ -72,7 +71,8 @@ depends_lib-append \
                     path:bin/vala:vala
 
 depends_run-append \
-                    port:adwaita-icon-theme
+                    port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 # requires C11
 compiler.c_standard 2011

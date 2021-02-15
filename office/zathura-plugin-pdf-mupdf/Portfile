@@ -30,13 +30,14 @@ configure.args-append \
 depends_build-append \
                     port:pkgconfig
 
-depends_lib         port:desktop-file-utils \
-                    port:mupdf \
+depends_lib         port:mupdf \
                     port:openjpeg \
                     port:freetype \
                     path:lib/pkgconfig/harfbuzz.pc:harfbuzz \
                     path:lib/libgirara-gtk3.dylib:girara \
                     path:bin/zathura:zathura
+
+depends_run         port:desktop-file-utils
 
 patchfiles          patch-shared_libmupdf.diff
 

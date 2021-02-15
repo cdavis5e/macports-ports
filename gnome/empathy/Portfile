@@ -35,8 +35,7 @@ depends_build       port:pkgconfig \
                     port:libxslt \
                     port:python27
 
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
+depends_lib         path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:dbus-glib \
                     port:folks \
                     port:libsecret \
@@ -56,7 +55,6 @@ depends_lib         port:desktop-file-utils \
                     port:clutter-gst3 \
                     port:gstreamer1 \
                     port:enchant \
-                    port:iso-codes \
                     port:xorg-libX11
 
 depends_run         port:telepathy-mission-control \
@@ -65,7 +63,9 @@ depends_run         port:telepathy-mission-control \
                     port:telepathy-haze \
                     port:telepathy-salut \
                     port:gnome-keyring \
-                    port:adwaita-icon-theme
+                    port:adwaita-icon-theme \
+                    port:desktop-file-utils \
+                    port:iso-codes
 
 license_noconflict  dbus-glib gnutls
 

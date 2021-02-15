@@ -49,7 +49,6 @@ depends_build-append \
                     port:perl${perl5.major}
 
 depends_lib-append \
-                    port:desktop-file-utils \
                     port:libarchive \
                     port:gtkmm3 \
                     port:libxml2 \
@@ -62,11 +61,12 @@ depends_lib-append \
                     port:py${python_version}-gobject3 \
                     port:libepc \
                     port:evince \
-                    port:shared-mime-info
 
 depends_run-append \
                     port:adwaita-icon-theme \
-                    port:gnome-keyring
+                    port:desktop-file-utils \
+                    port:gnome-keyring \
+                    port:shared-mime-info
 
 patchfiles-append   patch-configure.ac.diff
 patchfiles-append   patch-export-regex.diff

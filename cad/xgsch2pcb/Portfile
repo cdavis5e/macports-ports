@@ -25,12 +25,12 @@ checksums           md5     caf84bc0f17b75a2984fea2a64fc2c81 \
                     sha1    5bddd5973c2ecf8c43e03ee3f9484de44f649572
 distname            geda-${name}-${version}
 depends_build       port:intltool
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/gtk+-2.0.pc:gtk2 \
+depends_lib         path:lib/pkgconfig/gtk+-2.0.pc:gtk2 \
                     port:pcb \
                     port:py27-pygtk \
                     port:dbus-python27
-depends_run         port:geda-gaf
+depends_run         port:desktop-file-utils \
+                    port:geda-gaf
 
 patchfiles          patch-configure.ac.diff \
                     patch-Makefile.am.diff

@@ -38,7 +38,6 @@ depends_lib-append \
                     path:lib/pkgconfig/cairo.pc:cairo \
                     port:clutter-gtk \
                     port:cogl \
-                    port:desktop-file-utils \
                     port:fontconfig \
                     port:freetype \
                     path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
@@ -60,7 +59,8 @@ depends_lib-append \
                     path:lib/pkgconfig/pango.pc:pango
 
 depends_run-append \
-                    port:adwaita-icon-theme
+                    port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 configure.args-append \
                     --disable-silent-rules

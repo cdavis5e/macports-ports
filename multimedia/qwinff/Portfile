@@ -17,8 +17,8 @@ checksums           rmd160  d841c96038868359f1dc5690d0866a416bfe910d \
                     size    639145
 github.tarball_from archive
 
-depends_lib-append  port:desktop-file-utils
-depends_run-append  path:lib/libavcodec.dylib:ffmpeg \
+depends_run-append  port:desktop-file-utils \
+                    path:lib/libavcodec.dylib:ffmpeg \
                     port:sox
 
 # https://github.com/qwinff/qwinff/commit/840bfa14c6c1689094b8aa1d3b286e8ed8c2b046

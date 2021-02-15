@@ -38,13 +38,14 @@ depends_build       path:libexec/coreutils/libstdbuf.so:coreutils \
                     port:automake \
                     port:libtool
 
-depends_lib         port:desktop-file-utils \
-                    port:gconf \
+depends_lib         port:gconf \
                     port:libbonobo \
                     port:libffi \
                     port:libgnome \
                     port:libgnomecanvas \
                     path:lib/pkgconfig/pango.pc:pango
+
+depends_run         port:desktop-file-utils
 
 # see #48986
 depends_lib-append path:lib/pkgconfig/gtk+-2.0.pc:gtk2

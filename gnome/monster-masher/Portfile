@@ -25,13 +25,14 @@ checksums               rmd160  9e90b75c1dfbc248961f095e03536989a793ac60 \
 depends_build           port:intltool \
                         port:pkgconfig
 
-depends_lib             port:desktop-file-utils \
-                        port:esound \
+depends_lib             port:esound \
                         port:libgnome \
                         port:gconfmm \
                         port:gtkmm \
                         port:libgnomecanvasmm \
                         port:libglademm
+
+depends_run             port:desktop-file-utils
 
 compiler.cxx_standard   2011
 configure.ldflags-append -lesd

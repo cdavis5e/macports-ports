@@ -28,10 +28,11 @@ checksums           rmd160  cb8dd61f182c5b3a7993ec0f18c4bb8508e1a870 \
 depends_build-append \
                     port:pkgconfig
 
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/poppler.pc:poppler \
+depends_lib         path:lib/pkgconfig/poppler.pc:poppler \
                     path:lib/libgirara-gtk3.dylib:girara \
                     path:bin/zathura:zathura
+
+depends_run         port:desktop-file-utils
 
 # blacklist compilers that don't support -std=c11
 compiler.blacklist  *gcc* {clang < 300}

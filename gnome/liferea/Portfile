@@ -31,8 +31,7 @@ depends_build       port:pkgconfig \
                     port:automake \
                     port:libtool
 
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
+depends_lib         path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:libxml2 \
                     port:libxslt \
                     port:sqlite3 \
@@ -42,7 +41,8 @@ depends_lib         port:desktop-file-utils \
                     port:libpeas \
                     path:lib/pkgconfig/webkit2-gtk-4.0.pc:webkit2-gtk
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 patchfiles          patch-autogen.sh.diff
 

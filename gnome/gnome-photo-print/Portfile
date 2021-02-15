@@ -26,8 +26,9 @@ depends_build   port:autoconf \
                 path:bin/pkg-config:pkgconfig
 
 depends_lib     port:libgnomeprintui \
-                port:libgnomeui \
-                port:desktop-file-utils
+                port:libgnomeui
+
+depends_run     port:desktop-file-utils
 
 patchfiles      patch-autogen.sh.diff
 

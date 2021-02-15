@@ -31,8 +31,7 @@ depends_build-append \
                     port:itstool \
                     port:python310
 
-depends_lib         port:desktop-file-utils \
-                    port:exempi \
+depends_lib         port:exempi \
                     port:gettext-runtime \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     port:gnome-desktop \
@@ -45,9 +44,10 @@ depends_lib         port:desktop-file-utils \
                     port:libpeas \
                     path:lib/pkgconfig/librsvg-2.0.pc:librsvg \
                     port:libxml2 \
-                    port:shared-mime-info
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils \
+                    port:shared-mime-info
 
 patchfiles          meson.build.patch
 

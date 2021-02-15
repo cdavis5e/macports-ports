@@ -26,10 +26,11 @@ checksums           rmd160  678ade07202dd92b16c1f58da384ae96182014e5 \
 depends_build-append \
                     port:pkgconfig
 
-depends_lib         port:desktop-file-utils \
-                    port:libspectre \
+depends_lib         port:libspectre \
                     path:lib/libgirara-gtk3.dylib:girara \
                     path:bin/zathura:zathura
+
+depends_run         port:desktop-file-utils
 
 # blacklist compilers that don't support -std=c11
 compiler.blacklist  *gcc* {clang < 300}

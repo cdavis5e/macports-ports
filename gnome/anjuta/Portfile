@@ -42,7 +42,6 @@ depends_build-append \
 
 depends_lib-append \
                     port:autogen \
-                    port:desktop-file-utils \
                     port:gdl3 \
                     path:lib/pkgconfig/gjs-1.0.pc:gjs \
                     path:lib/pkgconfig/gnutls.pc:gnutls \
@@ -50,12 +49,13 @@ depends_lib-append \
                     port:gtksourceview3 \
                     port:libgda5 \
                     port:libxml2 \
-                    port:shared-mime-info \
                     port:vte
 
 depends_run-append \
                     port:adwaita-icon-theme \
+                    port:desktop-file-utils \
                     port:epiphany \
+                    port:shared-mime-info \
                     port:xdg-utils
 
 patchfiles-append   patch-configure.ac.diff

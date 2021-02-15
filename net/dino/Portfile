@@ -27,8 +27,7 @@ depends_build-append \
                     port:ninja \
                     path:bin/pkg-config:pkgconfig \
                     path:bin/vala:vala
-depends_lib-append  port:desktop-file-utils \
-                    path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
+depends_lib-append  path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
                     port:gettext-runtime \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     path:lib/pkgconfig/gnutls.pc:gnutls \
@@ -47,6 +46,7 @@ depends_lib-append  port:desktop-file-utils \
                     port:libsrtp \
                     port:qrencode \
                     port:sqlite3
+depends_run-append  port:desktop-file-utils
 
 # https://github.com/dino/dino/issues/1602
 patchfiles-append   patch-fix-openpgp.diff

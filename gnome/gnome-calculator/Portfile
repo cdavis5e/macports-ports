@@ -29,8 +29,7 @@ depends_build       port:pkgconfig \
                     port:itstool \
                     path:bin/vala:vala
 
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
+depends_lib         path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
                     port:libadwaita \
                     port:libgee \
                     port:gtksourceview5 \
@@ -39,7 +38,8 @@ depends_lib         port:desktop-file-utils \
                     port:libxml2 \
                     port:mpfr
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 # blacklist compilers that do not support C11 (redefinition of typedef ‘GtkSourceTag’ at gtksourceview/gtksourcetag.h:35)
 compiler.blacklist  *gcc-3.* *gcc-4.* {clang < 300}

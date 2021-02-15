@@ -30,7 +30,6 @@ depends_build-append \
 # FIXME: on older macOS there are dbus-related errors on start-up:
 # https://github.com/FontManager/font-manager/issues/338
 depends_lib-append  port:dbus \
-                    port:desktop-file-utils \
                     port:fontconfig \
                     port:freetype \
                     port:gettext-runtime \
@@ -43,6 +42,7 @@ depends_lib-append  port:dbus \
                     port:libxml2 \
                     path:lib/pkgconfig/pango.pc:pango \
                     port:sqlite3
+depends_run-append  port:desktop-file-utils
 
 meson.native.binaries \
                     python=${prefix}/bin/python${py_ver}

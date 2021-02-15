@@ -31,11 +31,11 @@ depends_build       port:autoconf \
                     port:libtool \
                     path:bin/pkg-config:pkgconfig
 
-depends_lib         port:desktop-file-utils \
-                    port:gtkmm3 \
+depends_lib         port:gtkmm3 \
                     port:gtksourceviewmm3
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 patchfiles          patch-configure.ac.diff \
                     patch-Makefile.am.diff

@@ -38,11 +38,12 @@ depends_lib-append  port:fontconfig \
                     path:lib/pkgconfig/gobject-introspection-1.0.pc:gobject-introspection \
                     port:gsettings-desktop-schemas \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
-                    port:iso-codes \
                     port:xorg-libX11 \
                     port:xorg-libXext \
                     port:xorg-libXrandr \
                     port:xkeyboard-config
+
+depends_run-append  port:iso-codes
 
 patchfiles          patch-disable-broken-tests.diff
 

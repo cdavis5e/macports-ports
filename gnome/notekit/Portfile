@@ -20,8 +20,7 @@ github.tarball_from archive
 depends_build-append \
                     port:pkgconfig
 
-depends_lib-append  port:desktop-file-utils \
-                    port:fontconfig \
+depends_lib-append  port:fontconfig \
                     path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:gtkmm3 \
@@ -30,6 +29,7 @@ depends_lib-append  port:desktop-file-utils \
                     port:jsoncpp \
                     port:MicroTeX \
                     port:zlib
+depends_run-append  port:desktop-file-utils
 
 # Used to provide wrappers.
 legacysupport.newest_darwin_requires_legacy 0

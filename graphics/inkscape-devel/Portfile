@@ -97,7 +97,6 @@ depends_build-append \
 depends_lib-append \
                     port:boehmgc \
                     path:lib/pkgconfig/cairo.pc:cairo \
-                    port:desktop-file-utils \
                     port:double-conversion \
                     port:fontconfig \
                     path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
@@ -130,6 +129,7 @@ depends_lib-append \
 
 depends_run-append \
                     port:adwaita-icon-theme \
+                    port:desktop-file-utils \
                     port:py${python_version}-cssselect \
                     port:py${python_version}-lxml \
                     port:py${python_version}-numpy \

@@ -35,7 +35,6 @@ depends_lib-append \
                     path:lib/pkgconfig/cairo.pc:cairo \
                     port:clutter-gtk \
                     port:cogl \
-                    port:desktop-file-utils \
                     port:geoclue2 \
                     port:geocode-glib \
                     port:gettext-runtime \
@@ -54,7 +53,8 @@ depends_lib-append \
                     path:lib/pkgconfig/pango.pc:pango
 
 depends_run-append \
-                    port:adwaita-icon-theme
+                    port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 app.name            GarageJam
 app.icon            ${worksrcpath}/data/icons/garagejam.svg

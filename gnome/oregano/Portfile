@@ -28,15 +28,15 @@ depends_build-append \
                     port:pkgconfig \
                     bin:groff:groff
 
-depends_lib         port:desktop-file-utils \
-                    port:rarian \
-                    port:shared-mime-info \
+depends_lib         port:rarian \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:gtksourceview3 \
                     port:goocanvas2
 
 depends_run         port:adwaita-icon-theme \
-                    port:ngspice
+                    port:desktop-file-utils \
+                    port:ngspice \
+                    port:shared-mime-info
 
 # shipped waf does not recognize --nocache
 configure.post_args-delete \

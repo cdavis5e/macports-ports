@@ -21,10 +21,10 @@ checksums           rmd160  024629548782afcfd200b4bd8055d8d500da355a \
                     sha256  cb219ca6ce1b4a31ec98701a43da51142c8bc7f15a22cb81dda93f881e6f6877 \
                     size    1573170
 
-depends_lib-append  port:desktop-file-utils \
-                    port:gettext-runtime \
+depends_lib-append  port:gettext-runtime \
                     port:libmagic \
                     port:readline
+depends_run-append  port:desktop-file-utils
 
 depends_build-append \
                     path:bin/pkg-config:pkgconfig

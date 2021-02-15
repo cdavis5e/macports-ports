@@ -60,14 +60,14 @@ depends_build-append \
                     port:python311 \
                     path:bin/vala:vala
 
-depends_lib         port:desktop-file-utils \
-                    port:freetype \
+depends_lib         port:freetype \
                     port:gettext-runtime \
                     path:lib/pkgconfig/gobject-introspection-1.0.pc:gobject-introspection \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:pcre2
 
-depends_run         port:adwaita-icon-theme
+depends_run         port:adwaita-icon-theme \
+                    port:desktop-file-utils
 
 patchfiles          patch-no-Bsymbolic-functions.diff
 

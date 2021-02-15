@@ -28,13 +28,14 @@ depends_build-append \
                     port:pkgconfig
 
 depends_lib-append  port:c-ares \
-                    port:desktop-file-utils \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     port:goocanvas2 \
                     port:libglade2 \
                     port:libgnomeui \
                     port:libpcap \
                     port:rarian
+
+depends_run         port:desktop-file-utils
 
 patchfiles          patch-src-names-eth_resolv.c.diff
 

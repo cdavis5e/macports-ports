@@ -92,7 +92,6 @@ depends_lib-append      \
                         port:atk \
                         path:lib/pkgconfig/cairo.pc:cairo \
                         port:curl \
-                        port:desktop-file-utils \
                         port:exiv2 \
                         port:flickcurl \
                         port:GraphicsMagick \
@@ -134,6 +133,7 @@ depends_lib-append      \
 
 depends_run-append      \
                         port:adwaita-icon-theme \
+                        port:desktop-file-utils \
                         port:tango-icon-theme \
                         port:exiftool
 

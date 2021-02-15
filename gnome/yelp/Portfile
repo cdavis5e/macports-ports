@@ -30,13 +30,11 @@ depends_build       port:pkgconfig \
                     port:appstream-glib \
                     port:gtk-doc
 
-depends_lib         port:desktop-file-utils \
-                    path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
+depends_lib         path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     port:sqlite3 \
                     port:xz \
                     port:bzip2 \
-                    port:yelp-xsl \
                     port:libhandy \
                     path:lib/pkgconfig/webkit2gtk-4.0.pc:webkit2-gtk
 
@@ -50,7 +48,9 @@ require_active_variants path:lib/pkgconfig/glib-2.0.pc:glib2 x11
 
 depends_run         port:gnome-user-docs \
                     port:gnome-getting-started-docs \
-                    port:adwaita-icon-theme
+                    port:desktop-file-utils \
+                    port:adwaita-icon-theme \
+                    port:yelp-xsl
 
 patchfiles          patch-m4-ax_compiler_flags_ldflags.m4.diff
 
