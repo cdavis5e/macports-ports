@@ -88,12 +88,12 @@ platform darwin 10 {
 }
 
 variant pinentry conflicts pinentry_mac description {Handle user input via pinentry.} {
-    depends_lib-append      port:pinentry
+    depends_run-append      port:pinentry
     configure.args-append   --with-pinentry-pgm=${prefix}/bin/pinentry
 }
 
 variant pinentry_mac conflicts pinentry description {Handle user input via pinentry-mac. Only compatible with OS X 10.8+.} {
-    depends_lib-append      port:pinentry-mac
+    depends_run-append      port:pinentry-mac
     configure.args-append   --with-pinentry-pgm=${applications_dir}/pinentry-mac.app/Contents/MacOS/pinentry-mac
 }
 
