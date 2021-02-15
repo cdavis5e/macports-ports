@@ -4,6 +4,7 @@ PortSystem          1.0
 PortGroup           active_variants 1.1
 PortGroup           github 1.0
 PortGroup           gobject_introspection 1.0
+PortGroup           muniversal 1.0
 
 github.setup        avahi avahi 0.8 v
 revision            7
@@ -111,7 +112,13 @@ startupitems        name        avahi-daemon \
 
 # Temporary fix for 0.8 which is missing this file causing build to fail
 pre-build {
-    copy ${filespath}/build-db ${worksrcpath}/service-type-database/
+    if {[variant_isset universal]} {
+        foreach arch ${universal_archs_to_use} {
+            copy ${filespath}/build-db ${worksrcpath}-${arch}/service-type-database/
+        }
+    } else {
+        copy ${filespath}/build-db ${worksrcpath}/service-type-database/
+    }
 }
 
 post-destroot {
@@ -138,9 +145,17 @@ variant mono description {Enable Mono support} {
 
     post-build {
         # TODO This shouldn't be needed, we need to fix Mono dllmap library path.
-        reinplace -E "s|(target=\")|\\1${prefix}/lib/|" \
-            ${worksrcpath}/avahi-sharp/avahi-sharp.dll.config \
-            ${worksrcpath}/avahi-ui-sharp/avahi-ui-sharp.dll.config
+        if {[variant_isset universal]} {
+            foreach arch ${universal_archs_to_use} {
+                reinplace -E "s|(target=\")|\\1${prefix}/lib/|" \
+                    ${worksrcpath}-${arch}/avahi-sharp/avahi-sharp.dll.config \
+                    ${worksrcpath}-${arch}/avahi-ui-sharp/avahi-ui-sharp.dll.config
+            }
+        } else {
+            reinplace -E "s|(target=\")|\\1${prefix}/lib/|" \
+                ${worksrcpath}/avahi-sharp/avahi-sharp.dll.config \
+                ${worksrcpath}/avahi-ui-sharp/avahi-ui-sharp.dll.config
+        }
     }
 }
 
@@ -161,7 +176,7 @@ variant gtk3 description {Build with GTK3} {
     depends_lib-append      path:lib/pkgconfig/gtk+-3.0.pc:gtk3
     configure.args-delete   --disable-gtk3
     # Enable manpages that are built with gtk variant but not with gtk3
-    pre-configure {
+    post-patch {
         reinplace "s|HAVE_GTK_TRUE|HAVE_GTK2OR3_TRUE|g" ${worksrcpath}/man/Makefile.in
     }
 }
