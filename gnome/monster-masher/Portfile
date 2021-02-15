@@ -33,7 +33,9 @@ depends_lib             port:desktop-file-utils \
                         port:libgnomecanvasmm \
                         port:libglademm
 
+compiler.cxx_standard   2011
 configure.ldflags-append -lesd
+configure.cxxflags-append -std=gnu++11
 
 post-activate {
     system "${prefix}/bin/update-desktop-database ${prefix}/share/applications"
