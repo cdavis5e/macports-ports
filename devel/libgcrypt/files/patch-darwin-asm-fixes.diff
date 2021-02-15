@@ -1,0 +1,4322 @@
+--- configure~	2024-06-19 03:29:31.000000000 -0600
++++ configure	2024-07-22 19:49:45.000000000 -0600
+@@ -18031,7 +18031,7 @@
+   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+   test $ac_status = 0; } && test -s "$nlist"; then
+       # See whether the symbols have a leading underscore.
+-      if $GREP ' _nm_test_func$' "$nlist" >/dev/null; then
++      if $GREP ' _nm_test_func' "$nlist" >/dev/null; then
+         ac_cv_sys_symbol_underscore=yes
+       else
+         if $GREP ' nm_test_func$' "$nlist" >/dev/null; then
+--- cipher/arcfour-amd64.S~	2022-01-25 14:55:44.000000000 -0700
++++ cipher/arcfour-amd64.S	2024-07-09 19:15:40.000000000 -0600
+@@ -21,7 +21,7 @@
+ #include "asm-common-amd64.h"
+ 
+ .text
+-.align 16
++.balign 16
+ .globl _gcry_arcfour_amd64
+ ELF(.type _gcry_arcfour_amd64,@function)
+ _gcry_arcfour_amd64:
+--- cipher/aria-aesni-avx-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/aria-aesni-avx-amd64.S	2024-07-09 19:16:12.000000000 -0600
+@@ -803,7 +803,7 @@
+ 
+ 
+ SECTION_RODATA
+-.align 16
++.balign 16
+ 
+ #define SHUFB_BYTES(idx) \
+ 	0 + (idx), 4 + (idx), 8 + (idx), 12 + (idx)
+@@ -891,7 +891,7 @@
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15
+ 
+ #ifdef CONFIG_AS_GFNI
+-.align 8
++.balign 8
+ /* AES affine: */
+ #define tf_aff_const BV8(1, 1, 0, 0, 0, 1, 1, 0)
+ .Ltf_aff_bitmatrix:
+@@ -953,13 +953,13 @@
+ #endif /* CONFIG_AS_GFNI */
+ 
+ /* 4-bit mask */
+-.align 4
++.balign 4
+ .L0f0f0f0f:
+ 	.long 0x0f0f0f0f
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type __aria_aesni_avx_crypt_16way,@function;)
+ __aria_aesni_avx_crypt_16way:
+ 	/* input:
+@@ -984,7 +984,7 @@
+ 		%rax, %r9, 0);
+ 	leaq 1*16(%r9), %r9;
+ 
+-.align 16
++.balign 16
+ .Loop_aesni:
+ 	aria_fe(%xmm1, %xmm0, %xmm3, %xmm2, %xmm4, %xmm5, %xmm6, %xmm7,
+ 		%xmm8, %xmm9, %xmm10, %xmm11, %xmm12, %xmm13, %xmm14,
+@@ -1010,7 +1010,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __aria_aesni_avx_crypt_16way,.-__aria_aesni_avx_crypt_16way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_aesni_avx_ecb_crypt_blk1_16
+ ELF(.type _gcry_aria_aesni_avx_ecb_crypt_blk1_16,@function;)
+ _gcry_aria_aesni_avx_ecb_crypt_blk1_16:
+@@ -1073,7 +1073,7 @@
+ ELF(.size _gcry_aria_aesni_avx_ecb_crypt_blk1_16,
+ 	  .-_gcry_aria_aesni_avx_ecb_crypt_blk1_16;)
+ 
+-.align 16
++.balign 16
+ ELF(.type __aria_aesni_avx_ctr_gen_keystream_16way,@function;)
+ __aria_aesni_avx_ctr_gen_keystream_16way:
+ 	/* input:
+@@ -1152,7 +1152,7 @@
+ 
+ 	ret_spec_stop;
+ 
+-.align 8
++.balign 8
+ .Lctr_byteadd_full_ctr_carry:
+ 	addb $16, 15(%r8);
+ 	pushq %rcx;
+@@ -1164,7 +1164,7 @@
+ 	2:
+ 	popq %rcx;
+ 	jmp .Lctr_byteadd_xmm;
+-.align 8
++.balign 8
+ .Lctr_byteadd:
+ 	je .Lctr_byteadd_full_ctr_carry;
+ 	addb $16, 15(%r8);
+@@ -1190,7 +1190,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __aria_aesni_avx_ctr_gen_keystream_16way,.-__aria_aesni_avx_ctr_gen_keystream_16way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_aesni_avx_ctr_crypt_blk16
+ ELF(.type _gcry_aria_aesni_avx_ctr_crypt_blk16,@function;)
+ _gcry_aria_aesni_avx_ctr_crypt_blk16:
+@@ -1252,7 +1252,7 @@
+ ELF(.size _gcry_aria_aesni_avx_ctr_crypt_blk16,.-_gcry_aria_aesni_avx_ctr_crypt_blk16;)
+ 
+ #ifdef CONFIG_AS_GFNI
+-.align 16
++.balign 16
+ ELF(.type __aria_gfni_avx_crypt_16way,@function;)
+ __aria_gfni_avx_crypt_16way:
+ 	/* input:
+@@ -1281,7 +1281,7 @@
+ 		     %rax, %r9, 0);
+ 	leaq 1*16(%r9), %r9;
+ 
+-.align 16
++.balign 16
+ .Loop_gfni:
+ 	aria_fe_gfni(%xmm1, %xmm0, %xmm3, %xmm2,
+ 		     %xmm4, %xmm5, %xmm6, %xmm7,
+@@ -1311,7 +1311,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __aria_gfni_avx_crypt_16way,.-__aria_gfni_avx_crypt_16way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_gfni_avx_ecb_crypt_blk1_16
+ ELF(.type _gcry_aria_gfni_avx_ecb_crypt_blk1_16,@function;)
+ _gcry_aria_gfni_avx_ecb_crypt_blk1_16:
+@@ -1374,7 +1374,7 @@
+ ELF(.size _gcry_aria_gfni_avx_ecb_crypt_blk1_16,
+ 	  .-_gcry_aria_gfni_avx_ecb_crypt_blk1_16;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_gfni_avx_ctr_crypt_blk16
+ ELF(.type _gcry_aria_gfni_avx_ctr_crypt_blk16,@function;)
+ _gcry_aria_gfni_avx_ctr_crypt_blk16:
+--- cipher/aria-aesni-avx2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/aria-aesni-avx2-amd64.S	2024-07-09 19:18:12.000000000 -0600
+@@ -988,14 +988,14 @@
+ #endif /* CONFIG_AS_VAES */
+ 
+ SECTION_RODATA
+-.align 32
++.balign 32
+ #define SHUFB_BYTES(idx) \
+ 	0 + (idx), 4 + (idx), 8 + (idx), 12 + (idx)
+ .Lshufb_16x16b:
+ 	.byte SHUFB_BYTES(0), SHUFB_BYTES(1), SHUFB_BYTES(2), SHUFB_BYTES(3)
+ 	.byte SHUFB_BYTES(0), SHUFB_BYTES(1), SHUFB_BYTES(2), SHUFB_BYTES(3)
+ 
+-.align 32
++.balign 32
+ .Lbige_addb_0_1:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+@@ -1024,7 +1024,7 @@
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16
+ 
+-.align 16
++.balign 16
+ /* For isolating SubBytes from AESENCLAST, inverse shift row */
+ .Linv_shift_row:
+ 	.byte 0x00, 0x0d, 0x0a, 0x07, 0x04, 0x01, 0x0e, 0x0b
+@@ -1068,7 +1068,7 @@
+ 	.octa 0x3F893781E95FE1576CDA64D2BA0CB204
+ 
+ #ifdef CONFIG_AS_GFNI
+-.align 8
++.balign 8
+ /* AES affine: */
+ #define tf_aff_const BV8(1, 1, 0, 0, 0, 1, 1, 0)
+ .Ltf_aff_bitmatrix:
+@@ -1131,13 +1131,13 @@
+ #endif /* CONFIG_AS_GFNI */
+ 
+ /* 4-bit mask */
+-.align 4
++.balign 4
+ .L0f0f0f0f:
+ 	.long 0x0f0f0f0f
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type __aria_aesni_avx2_crypt_32way,@function;)
+ __aria_aesni_avx2_crypt_32way:
+ 	/* input:
+@@ -1162,7 +1162,7 @@
+ 		%rax, %r9, 0);
+ 	leaq 1*16(%r9), %r9;
+ 
+-.align 16
++.balign 16
+ .Loop_aesni:
+ 	aria_fe(%ymm1, %ymm0, %ymm3, %ymm2, %ymm4, %ymm5, %ymm6, %ymm7,
+ 		%ymm8, %ymm9, %ymm10, %ymm11, %ymm12, %ymm13, %ymm14,
+@@ -1188,7 +1188,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __aria_aesni_avx2_crypt_32way,.-__aria_aesni_avx2_crypt_32way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_aesni_avx2_ecb_crypt_blk32
+ ELF(.type _gcry_aria_aesni_avx2_ecb_crypt_blk32,@function;)
+ _gcry_aria_aesni_avx2_ecb_crypt_blk32:
+@@ -1231,7 +1231,7 @@
+ ELF(.size _gcry_aria_aesni_avx2_ecb_crypt_blk32,
+ 	  .-_gcry_aria_aesni_avx2_ecb_crypt_blk32;)
+ 
+-.align 16
++.balign 16
+ ELF(.type __aria_aesni_avx2_ctr_gen_keystream_32way,@function;)
+ __aria_aesni_avx2_ctr_gen_keystream_32way:
+ 	/* input:
+@@ -1391,7 +1391,7 @@
+ .Lctr_carry_done:
+ 	ret_spec_stop;
+ 
+-.align 8
++.balign 8
+ .Lctr_byteadd_full_ctr_carry:
+ 	addb $32, 15(%r8);
+ 	pushq %rcx;
+@@ -1403,7 +1403,7 @@
+ 	2:
+ 	popq %rcx;
+ 	jmp .Lctr_byteadd_ymm;
+-.align 8
++.balign 8
+ .Lctr_byteadd:
+ 	vbroadcasti128 (%r8), %ymm8;
+ 	je .Lctr_byteadd_full_ctr_carry;
+@@ -1432,7 +1432,7 @@
+ ELF(.size __aria_aesni_avx2_ctr_gen_keystream_32way,
+ 	  .-__aria_aesni_avx2_ctr_gen_keystream_32way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_aesni_avx2_ctr_crypt_blk32
+ ELF(.type _gcry_aria_aesni_avx2_ctr_crypt_blk32,@function;)
+ _gcry_aria_aesni_avx2_ctr_crypt_blk32:
+@@ -1495,7 +1495,7 @@
+ 	  .-_gcry_aria_aesni_avx2_ctr_crypt_blk32;)
+ 
+ #ifdef CONFIG_AS_VAES
+-.align 16
++.balign 16
+ ELF(.type __aria_vaes_avx2_crypt_32way,@function;)
+ __aria_vaes_avx2_crypt_32way:
+ 	/* input:
+@@ -1522,7 +1522,7 @@
+ 		     %rax, %r9, 0);
+ 	leaq 1*16(%r9), %r9;
+ 
+-.align 16
++.balign 16
+ .Loop_vaes:
+ 	aria_fe_vaes(%ymm1, %ymm0, %ymm3, %ymm2,
+ 		     %ymm4, %ymm5, %ymm6, %ymm7,
+@@ -1554,7 +1554,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __aria_vaes_avx2_crypt_32way,.-__aria_vaes_avx2_crypt_32way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_vaes_avx2_ecb_crypt_blk32
+ ELF(.type _gcry_aria_vaes_avx2_ecb_crypt_blk32,@function;)
+ _gcry_aria_vaes_avx2_ecb_crypt_blk32:
+@@ -1597,7 +1597,7 @@
+ ELF(.size _gcry_aria_vaes_avx2_ecb_crypt_blk32,
+ 	  .-_gcry_aria_vaes_avx2_ecb_crypt_blk32;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_vaes_avx2_ctr_crypt_blk32
+ ELF(.type _gcry_aria_vaes_avx2_ctr_crypt_blk32,@function;)
+ _gcry_aria_vaes_avx2_ctr_crypt_blk32:
+@@ -1661,7 +1661,7 @@
+ #endif /* CONFIG_AS_VAES */
+ 
+ #ifdef CONFIG_AS_GFNI
+-.align 16
++.balign 16
+ ELF(.type __aria_gfni_avx2_crypt_32way,@function;)
+ __aria_gfni_avx2_crypt_32way:
+ 	/* input:
+@@ -1690,7 +1690,7 @@
+ 		     %rax, %r9, 0);
+ 	leaq 1*16(%r9), %r9;
+ 
+-.align 16
++.balign 16
+ .Loop_gfni:
+ 	aria_fe_gfni(%ymm1, %ymm0, %ymm3, %ymm2,
+ 		     %ymm4, %ymm5, %ymm6, %ymm7,
+@@ -1720,7 +1720,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __aria_gfni_avx2_crypt_32way,.-__aria_gfni_avx2_crypt_32way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_gfni_avx2_ecb_crypt_blk32
+ ELF(.type _gcry_aria_gfni_avx2_ecb_crypt_blk32,@function;)
+ _gcry_aria_gfni_avx2_ecb_crypt_blk32:
+@@ -1763,7 +1763,7 @@
+ ELF(.size _gcry_aria_gfni_avx2_ecb_crypt_blk32,
+ 	  .-_gcry_aria_gfni_avx2_ecb_crypt_blk32;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_gfni_avx2_ctr_crypt_blk32
+ ELF(.type _gcry_aria_gfni_avx2_ctr_crypt_blk32,@function;)
+ _gcry_aria_gfni_avx2_ctr_crypt_blk32:
+--- cipher/aria-gfni-avx512-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/aria-gfni-avx512-amd64.S	2024-07-09 19:18:41.000000000 -0600
+@@ -562,21 +562,21 @@
+ 		       z0, rk, last_round);
+ 
+ SECTION_RODATA
+-.align 64
++.balign 64
+ .Lcounter0123_lo:
+ 	.quad 0, 0
+ 	.quad 1, 0
+ 	.quad 2, 0
+ 	.quad 3, 0
+ 
+-.align 32
++.balign 32
+ #define SHUFB_BYTES(idx) \
+ 	0 + (idx), 4 + (idx), 8 + (idx), 12 + (idx)
+ .Lshufb_16x16b:
+ 	.byte SHUFB_BYTES(0), SHUFB_BYTES(1), SHUFB_BYTES(2), SHUFB_BYTES(3)
+ 	.byte SHUFB_BYTES(0), SHUFB_BYTES(1), SHUFB_BYTES(2), SHUFB_BYTES(3)
+ 
+-.align 16
++.balign 16
+ .Lcounter4444_lo:
+ 	.quad 4, 0
+ .Lcounter8888_lo:
+@@ -591,7 +591,7 @@
+ 	.byte 0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08
+ 	.byte 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00
+ 
+-.align 8
++.balign 8
+ /* AES affine: */
+ #define tf_aff_const BV8(1, 1, 0, 0, 0, 1, 1, 0)
+ .Ltf_aff_bitmatrix:
+@@ -652,7 +652,7 @@
+ 		    BV8(0, 0, 0, 0, 0, 0, 0, 1))
+ 
+ /* CTR byte addition constants */
+-.align 64
++.balign 64
+ .Lbige_addb_0_1:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+@@ -682,7 +682,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type __aria_gfni_avx512_crypt_64way,@function;)
+ __aria_gfni_avx512_crypt_64way:
+ 	/* input:
+@@ -713,7 +713,7 @@
+ 		     %rax, %r9, 0);
+ 	leaq 1*16(%r9), %r9;
+ 
+-.align 16
++.balign 16
+ .Loop_gfni:
+ 	aria_fe_gfni(%zmm3, %zmm2, %zmm1, %zmm0,
+ 		     %zmm6, %zmm7, %zmm4, %zmm5,
+@@ -751,7 +751,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __aria_gfni_avx512_crypt_64way,.-__aria_gfni_avx512_crypt_64way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_gfni_avx512_ecb_crypt_blk64
+ ELF(.type _gcry_aria_gfni_avx512_ecb_crypt_blk64,@function;)
+ _gcry_aria_gfni_avx512_ecb_crypt_blk64:
+@@ -795,7 +795,7 @@
+ ELF(.size _gcry_aria_gfni_avx512_ecb_crypt_blk64,
+ 	  .-_gcry_aria_gfni_avx512_ecb_crypt_blk64;)
+ 
+-.align 16
++.balign 16
+ ELF(.type __aria_gfni_avx512_ctr_gen_keystream_64way,@function;)
+ __aria_gfni_avx512_ctr_gen_keystream_64way:
+ 	/* input:
+@@ -894,7 +894,7 @@
+ 
+ 	ret_spec_stop;
+ 
+-.align 16
++.balign 16
+ .Lctr_byteadd_full_ctr_carry:
+ 	movq 8(%r8), %r11;
+ 	movq (%r8), %r10;
+@@ -907,7 +907,7 @@
+ 	movq %r11, 8(%r8);
+ 	movq %r10, (%r8);
+ 	jmp .Lctr_byteadd_zmm;
+-.align 16
++.balign 16
+ .Lctr_byteadd:
+ 	vbroadcasti64x2 (%r8), %zmm3;
+ 	je .Lctr_byteadd_full_ctr_carry;
+@@ -943,7 +943,7 @@
+ ELF(.size __aria_gfni_avx512_ctr_gen_keystream_64way,
+ 	  .-__aria_gfni_avx512_ctr_gen_keystream_64way;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aria_gfni_avx512_ctr_crypt_blk64
+ ELF(.type _gcry_aria_gfni_avx512_ctr_crypt_blk64,@function;)
+ _gcry_aria_gfni_avx512_ctr_crypt_blk64:
+--- cipher/asm-common-aarch64.h~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/asm-common-aarch64.h	2024-07-09 16:33:51.000000000 -0600
+@@ -31,6 +31,8 @@
+ 
+ #ifdef _WIN32
+ # define SECTION_RODATA .section .rdata
++#elif defined(__APPLE__)
++# define SECTION_RODATA .const
+ #else
+ # define SECTION_RODATA .section .rodata
+ #endif
+--- cipher/asm-common-amd64.h~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/asm-common-amd64.h	2024-07-09 16:34:22.000000000 -0600
+@@ -31,6 +31,8 @@
+ 
+ #ifdef HAVE_COMPATIBLE_GCC_WIN64_PLATFORM_AS
+ # define SECTION_RODATA .section .rdata
++#elif defined(__APPLE__)
++# define SECTION_RODATA .const
+ #else
+ # define SECTION_RODATA .section .rodata
+ #endif
+--- cipher/asm-common-i386.h~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/asm-common-i386.h	2024-07-09 18:13:57.000000000 -0600
+@@ -29,7 +29,9 @@
+ # define ELF(...) /*_*/
+ #endif
+ 
+-#ifdef HAVE_COMPATIBLE_GCC_WIN32_PLATFORM_AS
++#ifdef __APPLE__
++# define SECTION_RODATA .const
++#elif defined(HAVE_COMPATIBLE_GCC_WIN32_PLATFORM_AS)
+ # define SECTION_RODATA .section .rdata
+ #else
+ # define SECTION_RODATA .section .rodata
+@@ -41,8 +43,28 @@
+ # define SYM_NAME(name) name
+ #endif
+ 
+-#ifdef HAVE_COMPATIBLE_GCC_WIN32_PLATFORM_AS
++#ifdef __APPLE__
++# define __JOIN3(a,b,c) a##b##c
++# define DECL_GET_PC_THUNK(reg) \
++      .align 4; \
++      __gcry_get_pc_thunk_##reg:; \
++	CFI_STARTPROC(); \
++	movl (%esp), %reg; \
++	ret_spec_stop; \
++	CFI_ENDPROC()
++# define DECL_DATA_POINTER(name) \
++	.section __IMPORT,__pointers,non_lazy_symbol_pointers; \
++__JOIN3(L,name,$non_lazy_ptr): \
++	.indirect_symbol name; \
++	.long 0;
++# define __GET_DATA_POINTER(name, n, reg) \
++	call __gcry_get_pc_thunk_##reg; \
++__JOIN3(L,n,$pb): \
++	movl __JOIN3(L,name,$non_lazy_ptr)-__JOIN3(L,n,$pb)(%reg), %reg;
++# define GET_DATA_POINTER(name, reg) __GET_DATA_POINTER(name, __COUNTER__, reg)
++#elif defined(HAVE_COMPATIBLE_GCC_WIN32_PLATFORM_AS)
+ # define DECL_GET_PC_THUNK(reg)
++# define DECL_DATA_POINTER(name)
+ # define GET_DATA_POINTER(name, reg) leal name, %reg
+ #else
+ # define DECL_GET_PC_THUNK(reg) \
+@@ -52,6 +74,7 @@
+ 	movl (%esp), %reg; \
+ 	ret_spec_stop; \
+ 	CFI_ENDPROC()
++# define DECL_DATA_POINTER(name)
+ # define GET_DATA_POINTER(name, reg) \
+ 	call __gcry_get_pc_thunk_##reg; \
+ 	addl $_GLOBAL_OFFSET_TABLE_, %reg; \
+--- cipher/asm-poly1305-amd64.h~	2019-06-23 09:35:08.000000000 -0600
++++ cipher/asm-poly1305-amd64.h	2024-07-09 19:31:55.000000000 -0600
+@@ -117,7 +117,7 @@
+ 
+ #ifdef TESTING_POLY1305_ASM
+ /* for testing only, mixed C/asm poly1305.c is marginally faster (~2%). */
+-.align 8
++.balign 8
+ .globl _gcry_poly1305_amd64_ssse3_blocks1
+ ELF(.type _gcry_poly1305_amd64_ssse3_blocks1,@function;)
+ 
+--- cipher/blake2b-amd64-avx2.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/blake2b-amd64-avx2.S	2024-07-09 19:32:20.000000000 -0600
+@@ -184,7 +184,7 @@
+         UNDIAGONALIZE(ROW1, ROW2, ROW3, ROW4);
+ 
+ SECTION_RODATA
+-.align 32
++.balign 32
+ ELF(.type _blake2b_avx2_data,@object;)
+ _blake2b_avx2_data:
+ .Liv:
+@@ -198,7 +198,7 @@
+         .byte 3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10
+ 
+ .text
+-.align 64
++.balign 64
+ .globl _gcry_blake2b_transform_amd64_avx2
+ ELF(.type _gcry_blake2b_transform_amd64_avx2,@function;)
+ 
+--- cipher/blake2b-amd64-avx512.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/blake2b-amd64-avx512.S	2024-07-09 19:32:31.000000000 -0600
+@@ -291,7 +291,7 @@
+ 
+ SECTION_RODATA
+ 
+-.align 32
++.balign 32
+ ELF(.type _blake2b_avx512_data,@object;)
+ _blake2b_avx512_data:
+ .Liv:
+@@ -314,7 +314,7 @@
+ 
+ .text
+ 
+-.align 64
++.balign 64
+ .globl _gcry_blake2b_transform_amd64_avx512
+ ELF(.type _gcry_blake2b_transform_amd64_avx512,@function;)
+ 
+@@ -352,7 +352,7 @@
+         LOAD_MSG(0, MA1, MA2, MA3, MA4);
+         LOAD_MSG(1, MB1, MB2, MB3, MB4);
+ 
+-.align 16
++.balign 16
+ .Loop:
+         ROUND(0, MA1, MA2, MA3, MA4);
+                                       LOAD_MSG(2, MA1, MA2, MA3, MA4);
+@@ -399,7 +399,7 @@
+ 
+         jmp .Loop;
+ 
+-.align 16
++.balign 16
+ .Loop_end:
+         ROUND(10, MA1, MA2, MA3, MA4);
+         ROUND(11, MB1, MB2, MB3, MB4);
+--- cipher/blake2s-amd64-avx.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/blake2s-amd64-avx.S	2024-07-09 19:32:56.000000000 -0600
+@@ -171,7 +171,7 @@
+ 
+ SECTION_RODATA
+ 
+-.align 16
++.balign 16
+ ELF(.type _blake2s_avx_data,@object;)
+ _blake2s_avx_data:
+ .Liv:
+@@ -184,7 +184,7 @@
+ 
+ .text
+ 
+-.align 64
++.balign 64
+ .globl _gcry_blake2s_transform_amd64_avx
+ ELF(.type _gcry_blake2s_transform_amd64_avx,@function;)
+ 
+--- cipher/blake2s-amd64-avx512.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/blake2s-amd64-avx512.S	2024-07-09 19:32:49.000000000 -0600
+@@ -279,7 +279,7 @@
+ SECTION_RODATA
+ 
+ ELF(.type _blake2s_avx512_data,@object;)
+-.align 16
++.balign 16
+ _blake2s_avx512_data:
+ .Liv:
+         .long 0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A
+@@ -295,7 +295,7 @@
+ 
+ .text
+ 
+-.align 64
++.balign 64
+ .globl _gcry_blake2s_transform_amd64_avx512
+ ELF(.type _gcry_blake2s_transform_amd64_avx512,@function;)
+ 
+@@ -328,7 +328,7 @@
+         LOAD_MSG(1, MB1, MB2, MB3, MB4);
+         jmp .Loop;
+ 
+-.align 64, 0xcc
++.balign 64, 0xcc
+ .Loop:
+         ROUND(0, MA1, MA2, MA3, MA4);
+                                       LOAD_MSG(2, MA1, MA2, MA3, MA4);
+@@ -370,7 +370,7 @@
+ 
+         jmp .Loop;
+ 
+-.align 64, 0xcc
++.balign 64, 0xcc
+ .Loop_end:
+         ROUND(8, MA1, MA2, MA3, MA4);
+         ROUND(9, MB1, MB2, MB3, MB4);
+--- cipher/blowfish-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/blowfish-amd64.S	2024-07-09 19:33:16.000000000 -0600
+@@ -123,7 +123,7 @@
+ 	bswapq 			RX0; \
+ 	movq RX0, 		(RIO);
+ 
+-.align 16
++.balign 16
+ ELF(.type   __blowfish_enc_blk1,@function;)
+ 
+ __blowfish_enc_blk1:
+@@ -155,7 +155,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __blowfish_enc_blk1,.-__blowfish_enc_blk1;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_blowfish_amd64_do_encrypt
+ ELF(.type   _gcry_blowfish_amd64_do_encrypt,@function;)
+ 
+@@ -186,7 +186,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_blowfish_amd64_do_encrypt,.-_gcry_blowfish_amd64_do_encrypt;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_blowfish_amd64_encrypt_block
+ ELF(.type   _gcry_blowfish_amd64_encrypt_block,@function;)
+ 
+@@ -214,7 +214,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_blowfish_amd64_encrypt_block,.-_gcry_blowfish_amd64_encrypt_block;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_blowfish_amd64_decrypt_block
+ ELF(.type   _gcry_blowfish_amd64_decrypt_block,@function;)
+ 
+@@ -342,7 +342,7 @@
+ 	bswapq 			RX2; \
+ 	bswapq 			RX3;
+ 
+-.align 16
++.balign 16
+ ELF(.type   __blowfish_enc_blk4,@function;)
+ 
+ __blowfish_enc_blk4:
+@@ -371,7 +371,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __blowfish_enc_blk4,.-__blowfish_enc_blk4;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   __blowfish_dec_blk4,@function;)
+ 
+ __blowfish_dec_blk4:
+@@ -402,7 +402,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __blowfish_dec_blk4,.-__blowfish_dec_blk4;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_blowfish_amd64_ctr_enc
+ ELF(.type   _gcry_blowfish_amd64_ctr_enc,@function;)
+ _gcry_blowfish_amd64_ctr_enc:
+@@ -472,7 +472,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_blowfish_amd64_ctr_enc,.-_gcry_blowfish_amd64_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_blowfish_amd64_cbc_dec
+ ELF(.type   _gcry_blowfish_amd64_cbc_dec,@function;)
+ _gcry_blowfish_amd64_cbc_dec:
+@@ -533,7 +533,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_blowfish_amd64_cbc_dec,.-_gcry_blowfish_amd64_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_blowfish_amd64_cfb_dec
+ ELF(.type   _gcry_blowfish_amd64_cfb_dec,@function;)
+ _gcry_blowfish_amd64_cfb_dec:
+--- cipher/camellia-aesni-avx-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/camellia-aesni-avx-amd64.S	2024-07-09 19:34:00.000000000 -0600
+@@ -606,7 +606,7 @@
+ 
+ ELF(.type _camellia_aesni_avx_data,@object;)
+ _camellia_aesni_avx_data:
+-.align 16
++.balign 16
+ 
+ #define SHUFB_BYTES(idx) \
+ 	0 + (idx), 4 + (idx), 8 + (idx), 12 + (idx)
+@@ -798,14 +798,14 @@
+ .Lbige_addb_15:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15
+ 
+-.align 4
++.balign 4
+ /* 4-bit mask */
+ .L0f0f0f0f:
+ 	.long 0x0f0f0f0f
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type   __camellia_enc_blk16,@function;)
+ 
+ __camellia_enc_blk16:
+@@ -828,7 +828,7 @@
+ 		      %xmm8, %xmm9, %xmm10, %xmm11, %xmm12, %xmm13, %xmm14,
+ 		      %xmm15, %rax, %rcx);
+ 
+-.align 8
++.balign 8
+ .Lenc_loop:
+ 	enc_rounds16(%xmm0, %xmm1, %xmm2, %xmm3, %xmm4, %xmm5, %xmm6, %xmm7,
+ 		     %xmm8, %xmm9, %xmm10, %xmm11, %xmm12, %xmm13, %xmm14,
+@@ -847,7 +847,7 @@
+ 	      ((key_table) + 12)(CTX));
+ 	jmp .Lenc_loop;
+ 
+-.align 8
++.balign 8
+ .Lenc_done:
+ 	/* load CD for output */
+ 	vmovdqu 0 * 16(%rcx), %xmm8;
+@@ -867,7 +867,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __camellia_enc_blk16,.-__camellia_enc_blk16;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   __camellia_dec_blk16,@function;)
+ 
+ __camellia_dec_blk16:
+@@ -892,7 +892,7 @@
+ 		      %xmm8, %xmm9, %xmm10, %xmm11, %xmm12, %xmm13, %xmm14,
+ 		      %xmm15, %rax, %rcx);
+ 
+-.align 8
++.balign 8
+ .Ldec_loop:
+ 	dec_rounds16(%xmm0, %xmm1, %xmm2, %xmm3, %xmm4, %xmm5, %xmm6, %xmm7,
+ 		     %xmm8, %xmm9, %xmm10, %xmm11, %xmm12, %xmm13, %xmm14,
+@@ -912,7 +912,7 @@
+ 	leaq (-8 * 8)(CTX), CTX;
+ 	jmp .Ldec_loop;
+ 
+-.align 8
++.balign 8
+ .Ldec_done:
+ 	/* load CD for output */
+ 	vmovdqu 0 * 16(%rcx), %xmm8;
+@@ -938,7 +938,7 @@
+ 	vpslldq $8, tmp, tmp; \
+ 	vpsubq tmp, x, x;
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_ctr_enc
+ ELF(.type   _gcry_camellia_aesni_avx_ctr_enc,@function;)
+ 
+@@ -1018,7 +1018,7 @@
+ 	vpshufb .Lbswap128_mask rRIP, %xmm13, %xmm13; /* le => be */
+ 	vmovdqu %xmm13, (%rcx);
+ 
+-.align 8
++.balign 8
+ .Lload_ctr_done:
+ 	/* inpack16_pre: */
+ 	vmovq (key_table)(CTX), %xmm15;
+@@ -1069,7 +1069,7 @@
+ 	CFI_LEAVE();
+ 	ret_spec_stop;
+ 
+-.align 8
++.balign 8
+ .Lctr_byteadd_full_ctr_carry:
+ 	movq 8(%rcx), %r11;
+ 	movq (%rcx), %r10;
+@@ -1082,7 +1082,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 	jmp .Lctr_byteadd_xmm;
+-.align 8
++.balign 8
+ .Lctr_byteadd:
+ 	vmovdqu (%rcx), %xmm15;
+ 	je .Lctr_byteadd_full_ctr_carry;
+@@ -1112,7 +1112,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_aesni_avx_ctr_enc,.-_gcry_camellia_aesni_avx_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_ecb_enc
+ ELF(.type   _gcry_camellia_aesni_avx_ecb_enc,@function;)
+ 
+@@ -1158,7 +1158,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_aesni_avx_ecb_enc,.-_gcry_camellia_aesni_avx_ecb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_ecb_dec
+ ELF(.type   _gcry_camellia_aesni_avx_ecb_dec,@function;)
+ 
+@@ -1204,7 +1204,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_aesni_avx_ecb_dec,.-_gcry_camellia_aesni_avx_ecb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_cbc_dec
+ ELF(.type   _gcry_camellia_aesni_avx_cbc_dec,@function;)
+ 
+@@ -1277,7 +1277,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_aesni_avx_cbc_dec,.-_gcry_camellia_aesni_avx_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_cfb_dec
+ ELF(.type   _gcry_camellia_aesni_avx_cfb_dec,@function;)
+ 
+@@ -1359,7 +1359,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_aesni_avx_cfb_dec,.-_gcry_camellia_aesni_avx_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_ocb_enc
+ ELF(.type   _gcry_camellia_aesni_avx_ocb_enc,@function;)
+ 
+@@ -1511,7 +1511,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_aesni_avx_ocb_enc,.-_gcry_camellia_aesni_avx_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_ocb_dec
+ ELF(.type   _gcry_camellia_aesni_avx_ocb_dec,@function;)
+ 
+@@ -1682,7 +1682,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_aesni_avx_ocb_dec,.-_gcry_camellia_aesni_avx_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_ocb_auth
+ ELF(.type   _gcry_camellia_aesni_avx_ocb_auth,@function;)
+ 
+@@ -1904,7 +1904,7 @@
+ ELF(.type _camellia_aesni_avx_keysetup_data,@object;)
+ _camellia_aesni_avx_keysetup_data:
+ 
+-.align 16
++.balign 16
+ .Linv_shift_row_and_unpcklbw:
+ 	.byte 0x00, 0xff, 0x0d, 0xff, 0x0a, 0xff, 0x07, 0xff
+ 	.byte 0x04, 0xff, 0x01, 0xff, 0x0e, 0xff, 0x0b, 0xff
+@@ -1937,7 +1937,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type  __camellia_avx_setup128,@function;)
+ __camellia_avx_setup128:
+ 	/* input:
+@@ -2284,7 +2284,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __camellia_avx_setup128,.-__camellia_avx_setup128;)
+ 
+-.align 16
++.balign 16
+ ELF(.type  __camellia_avx_setup256,@function;)
+ 
+ __camellia_avx_setup256:
+@@ -2764,7 +2764,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __camellia_avx_setup256,.-__camellia_avx_setup256;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_aesni_avx_keygen
+ ELF(.type  _gcry_camellia_aesni_avx_keygen,@function;)
+ 
+--- cipher/camellia-aesni-avx2-amd64.h~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/camellia-aesni-avx2-amd64.h	2024-07-09 19:34:34.000000000 -0600
+@@ -781,7 +781,7 @@
+ 
+ SECTION_RODATA
+ 
+-.align 32
++.balign 32
+ 
+ #define SHUFB_BYTES(idx) \
+ 	0 + (idx), 4 + (idx), 8 + (idx), 12 + (idx)
+@@ -801,7 +801,7 @@
+ 	.byte 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+ 
+ /* CTR byte addition constants */
+-.align 32
++.balign 32
+ .Lbige_addb_0_1:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+@@ -832,7 +832,7 @@
+ 
+ #ifdef CAMELLIA_GFNI_BUILD
+ 
+-.align 64
++.balign 64
+ /* Pre-filters and post-filters bit-matrixes for Camellia sboxes s1, s2, s3
+  * and s4.
+  *   See http://urn.fi/URN:NBN:fi:oulu-201305311409, pages 43-48.
+@@ -1026,7 +1026,7 @@
+ 	.byte 0x00, 0x0d, 0x0a, 0x07, 0x04, 0x01, 0x0e, 0x0b
+ 	.byte 0x08, 0x05, 0x02, 0x0f, 0x0c, 0x09, 0x06, 0x03
+ 
+-.align 4
++.balign 4
+ /* 4-bit mask */
+ .L0f0f0f0f:
+ 	.long 0x0f0f0f0f
+@@ -1037,7 +1037,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type   FUNC_NAME(enc_blk32),@function;)
+ 
+ FUNC_NAME(enc_blk32):
+@@ -1060,7 +1060,7 @@
+ 		      %ymm8, %ymm9, %ymm10, %ymm11, %ymm12, %ymm13, %ymm14,
+ 		      %ymm15, %rax, %rcx);
+ 
+-.align 8
++.balign 8
+ .Lenc_loop:
+ 	enc_rounds32(%ymm0, %ymm1, %ymm2, %ymm3, %ymm4, %ymm5, %ymm6, %ymm7,
+ 		     %ymm8, %ymm9, %ymm10, %ymm11, %ymm12, %ymm13, %ymm14,
+@@ -1079,7 +1079,7 @@
+ 	      ((key_table) + 12)(CTX));
+ 	jmp .Lenc_loop;
+ 
+-.align 8
++.balign 8
+ .Lenc_done:
+ 	/* load CD for output */
+ 	vmovdqu 0 * 32(%rcx), %ymm8;
+@@ -1099,7 +1099,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size FUNC_NAME(enc_blk32),.-FUNC_NAME(enc_blk32);)
+ 
+-.align 16
++.balign 16
+ ELF(.type   FUNC_NAME(dec_blk32),@function;)
+ 
+ FUNC_NAME(dec_blk32):
+@@ -1124,7 +1124,7 @@
+ 		      %ymm8, %ymm9, %ymm10, %ymm11, %ymm12, %ymm13, %ymm14,
+ 		      %ymm15, %rax, %rcx);
+ 
+-.align 8
++.balign 8
+ .Ldec_loop:
+ 	dec_rounds32(%ymm0, %ymm1, %ymm2, %ymm3, %ymm4, %ymm5, %ymm6, %ymm7,
+ 		     %ymm8, %ymm9, %ymm10, %ymm11, %ymm12, %ymm13, %ymm14,
+@@ -1144,7 +1144,7 @@
+ 	leaq (-8 * 8)(CTX), CTX;
+ 	jmp .Ldec_loop;
+ 
+-.align 8
++.balign 8
+ .Ldec_done:
+ 	/* load CD for output */
+ 	vmovdqu 0 * 32(%rcx), %ymm8;
+@@ -1170,7 +1170,7 @@
+ 	vpslldq $8, tmp, tmp; \
+ 	vpsubq tmp, x, x;
+ 
+-.align 16
++.balign 16
+ .globl FUNC_NAME(ctr_enc)
+ ELF(.type   FUNC_NAME(ctr_enc),@function;)
+ 
+@@ -1260,7 +1260,7 @@
+ 
+ 	jmp .Lload_ctr_done;
+ 
+-.align 4
++.balign 4
+ .Lload_ctr_carry:
+ 	/* construct IVs */
+ 	inc_le128(%ymm0, %ymm15, %ymm13); /* ab: le1 ; cd: le2 */
+@@ -1315,7 +1315,7 @@
+ 	vpshufb .Lbswap128_mask rRIP, %xmm13, %xmm13;
+ 	vmovdqu %xmm13, (%rcx);
+ 
+-.align 8
++.balign 8
+ .Lload_ctr_done:
+ 	/* inpack32_pre: */
+ 	vpbroadcastq (key_table)(CTX), %ymm15;
+@@ -1366,7 +1366,7 @@
+ 	CFI_LEAVE();
+ 	ret_spec_stop;
+ 
+-.align 8
++.balign 8
+ .Lctr_byteadd_full_ctr_carry:
+ 	movq 8(%rcx), %r11;
+ 	movq (%rcx), %r10;
+@@ -1379,7 +1379,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 	jmp .Lctr_byteadd_ymm;
+-.align 8
++.balign 8
+ .Lctr_byteadd:
+ 	vbroadcasti128 (%rcx), %ymm8;
+ 	je .Lctr_byteadd_full_ctr_carry;
+@@ -1410,7 +1410,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size FUNC_NAME(ctr_enc),.-FUNC_NAME(ctr_enc);)
+ 
+-.align 16
++.balign 16
+ .globl FUNC_NAME(cbc_dec)
+ ELF(.type   FUNC_NAME(cbc_dec),@function;)
+ 
+@@ -1485,7 +1485,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size FUNC_NAME(cbc_dec),.-FUNC_NAME(cbc_dec);)
+ 
+-.align 16
++.balign 16
+ .globl FUNC_NAME(cfb_dec)
+ ELF(.type   FUNC_NAME(cfb_dec),@function;)
+ 
+@@ -1567,7 +1567,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size FUNC_NAME(cfb_dec),.-FUNC_NAME(cfb_dec);)
+ 
+-.align 16
++.balign 16
+ .globl FUNC_NAME(ocb_enc)
+ ELF(.type   FUNC_NAME(ocb_enc),@function;)
+ 
+@@ -1739,7 +1739,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size FUNC_NAME(ocb_enc),.-FUNC_NAME(ocb_enc);)
+ 
+-.align 16
++.balign 16
+ .globl FUNC_NAME(ocb_dec)
+ ELF(.type   FUNC_NAME(ocb_dec),@function;)
+ 
+@@ -1934,7 +1934,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size FUNC_NAME(ocb_dec),.-FUNC_NAME(ocb_dec);)
+ 
+-.align 16
++.balign 16
+ .globl FUNC_NAME(ocb_auth)
+ ELF(.type   FUNC_NAME(ocb_auth),@function;)
+ 
+@@ -2103,7 +2103,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size FUNC_NAME(ocb_auth),.-FUNC_NAME(ocb_auth);)
+ 
+-.align 16
++.balign 16
+ .globl FUNC_NAME(enc_blk1_32)
+ ELF(.type   FUNC_NAME(enc_blk1_32),@function;)
+ 
+@@ -2200,7 +2200,7 @@
+ 	STORE_OUTPUT(ymm8, 15);
+ 	jmp .Lenc_blk32_done;
+ 
+-.align 8
++.balign 8
+ .Lenc_blk32:
+ 	inpack32_pre(%ymm0, %ymm1, %ymm2, %ymm3, %ymm4, %ymm5, %ymm6, %ymm7,
+ 		     %ymm8, %ymm9, %ymm10, %ymm11, %ymm12, %ymm13, %ymm14,
+@@ -2212,7 +2212,7 @@
+ 		     %ymm15, %ymm14, %ymm13, %ymm12, %ymm11, %ymm10, %ymm9,
+ 		     %ymm8, %rsi);
+ 
+-.align 8
++.balign 8
+ 2:
+ .Lenc_blk32_done:
+ 	vzeroall;
+@@ -2223,7 +2223,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size FUNC_NAME(enc_blk1_32),.-FUNC_NAME(enc_blk1_32);)
+ 
+-.align 16
++.balign 16
+ .globl FUNC_NAME(dec_blk1_32)
+ ELF(.type   FUNC_NAME(dec_blk1_32),@function;)
+ 
+@@ -2300,7 +2300,7 @@
+ 	STORE_OUTPUT(ymm9, 14);
+ 	STORE_OUTPUT(ymm8, 15);
+ 
+-.align 8
++.balign 8
+ 2:
+ .Ldec_blk32_done:
+ 	vzeroall;
+@@ -2309,7 +2309,7 @@
+ 	CFI_LEAVE();
+ 	ret_spec_stop;
+ 
+-.align 8
++.balign 8
+ .Ldec_blk32:
+ 	inpack32_pre(%ymm0, %ymm1, %ymm2, %ymm3, %ymm4, %ymm5, %ymm6, %ymm7,
+ 		     %ymm8, %ymm9, %ymm10, %ymm11, %ymm12, %ymm13, %ymm14,
+--- cipher/camellia-gfni-avx512-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/camellia-gfni-avx512-amd64.S	2024-07-09 19:35:29.000000000 -0600
+@@ -558,7 +558,7 @@
+ _gcry_camellia_gfni_avx512__constants:
+ ELF(.type   _gcry_camellia_gfni_avx512__constants,@object;)
+ 
+-.align 64
++.balign 64
+ .Lpack_bswap:
+ 	.long 0x00010203, 0x04050607, 0x80808080, 0x80808080
+ 	.long 0x00010203, 0x04050607, 0x80808080, 0x80808080
+@@ -571,7 +571,7 @@
+ 	.quad 2, 0
+ 	.quad 3, 0
+ 
+-.align 16
++.balign 16
+ .Lcounter4444_lo:
+ 	.quad 4, 0
+ .Lcounter8888_lo:
+@@ -664,7 +664,7 @@
+ 		    BV8(0, 0, 0, 0, 0, 0, 0, 0))
+ 
+ /* CTR byte addition constants */
+-.align 64
++.balign 64
+ .Lbige_addb_0_1:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+@@ -696,7 +696,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type   __camellia_gfni_avx512_enc_blk64,@function;)
+ 
+ __camellia_gfni_avx512_enc_blk64:
+@@ -716,7 +716,7 @@
+ 		      %zmm8, %zmm9, %zmm10, %zmm11, %zmm12, %zmm13, %zmm14,
+ 		      %zmm15, mem_ab, mem_cd, %zmm30, %zmm31);
+ 
+-.align 8
++.balign 8
+ .Lenc_loop:
+ 	enc_rounds64(%zmm0, %zmm1, %zmm2, %zmm3, %zmm4, %zmm5, %zmm6, %zmm7,
+ 		     %zmm8, %zmm9, %zmm10, %zmm11, %zmm12, %zmm13, %zmm14,
+@@ -736,7 +736,7 @@
+ 	      %zmm31);
+ 	jmp .Lenc_loop;
+ 
+-.align 8
++.balign 8
+ .Lenc_done:
+ 	/* load CD for output */
+ 	vmovdqu64 mem_cd_0, %zmm8;
+@@ -756,7 +756,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __camellia_gfni_avx512_enc_blk64,.-__camellia_gfni_avx512_enc_blk64;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   __camellia_gfni_avx512_dec_blk64,@function;)
+ 
+ __camellia_gfni_avx512_dec_blk64:
+@@ -778,7 +778,7 @@
+ 		      %zmm8, %zmm9, %zmm10, %zmm11, %zmm12, %zmm13, %zmm14,
+ 		      %zmm15, mem_ab, mem_cd, %zmm30, %zmm31);
+ 
+-.align 8
++.balign 8
+ .Ldec_loop:
+ 	dec_rounds64(%zmm0, %zmm1, %zmm2, %zmm3, %zmm4, %zmm5, %zmm6, %zmm7,
+ 		     %zmm8, %zmm9, %zmm10, %zmm11, %zmm12, %zmm13, %zmm14,
+@@ -799,7 +799,7 @@
+ 	leaq (-8 * 8)(CTX), CTX;
+ 	jmp .Ldec_loop;
+ 
+-.align 8
++.balign 8
+ .Ldec_done:
+ 	/* load CD for output */
+ 	vmovdqu64 mem_cd_0, %zmm8;
+@@ -825,7 +825,7 @@
+ 	kaddb %k1, %k1, %k1; \
+ 	vpaddq hi_counter1, out, out{%k1};
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_gfni_avx512_ctr_enc
+ ELF(.type   _gcry_camellia_gfni_avx512_ctr_enc,@function;)
+ 
+@@ -885,7 +885,7 @@
+ 	vpaddq %zmm24, %zmm4, %zmm0; /* +60... */
+ 	jmp .Lload_ctr_done;
+ 
+-.align 4
++.balign 4
+ .Lload_ctr_carry:
+ 	/* construct IVs */
+ 	add_le128(%zmm15, %zmm0, %zmm21, %zmm25);  /* +0:+1:+2:+3 */
+@@ -906,7 +906,7 @@
+ 	add_le128(%zmm0, %zmm4, %zmm24, %zmm25); /* +60... */
+ 	kxorq %k1, %k1, %k1;
+ 
+-.align 4
++.balign 4
+ .Lload_ctr_done:
+ 	vbroadcasti64x2 .Lpack_bswap rRIP, %zmm17;
+ 	vpbroadcastq (key_table)(CTX), %zmm16;
+@@ -936,7 +936,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 
+-.align 16
++.balign 16
+ .Lctr_inpack64_pre:
+ 	/* inpack64_pre: */
+ 	vpxorq %zmm0, %zmm16, %zmm0;
+@@ -983,7 +983,7 @@
+ 
+ 	ret_spec_stop;
+ 
+-.align 16
++.balign 16
+ .Lctr_byteadd_full_ctr_carry:
+ 	movq 8(%rcx), %r11;
+ 	movq (%rcx), %r10;
+@@ -996,7 +996,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 	jmp .Lctr_byteadd_zmm;
+-.align 16
++.balign 16
+ .Lctr_byteadd:
+ 	vbroadcasti64x2 (%rcx), %zmm12;
+ 	je .Lctr_byteadd_full_ctr_carry;
+@@ -1035,7 +1035,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_gfni_avx512_ctr_enc,.-_gcry_camellia_gfni_avx512_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_gfni_avx512_cbc_dec
+ ELF(.type   _gcry_camellia_gfni_avx512_cbc_dec,@function;)
+ 
+@@ -1097,7 +1097,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_gfni_avx512_cbc_dec,.-_gcry_camellia_gfni_avx512_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_gfni_avx512_cfb_dec
+ ELF(.type   _gcry_camellia_gfni_avx512_cfb_dec,@function;)
+ 
+@@ -1170,7 +1170,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_gfni_avx512_cfb_dec,.-_gcry_camellia_gfni_avx512_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_gfni_avx512_ocb_enc
+ ELF(.type   _gcry_camellia_gfni_avx512_ocb_enc,@function;)
+ 
+@@ -1333,7 +1333,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_gfni_avx512_ocb_enc,.-_gcry_camellia_gfni_avx512_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_gfni_avx512_ocb_dec
+ ELF(.type   _gcry_camellia_gfni_avx512_ocb_dec,@function;)
+ 
+@@ -1502,7 +1502,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_gfni_avx512_ocb_dec,.-_gcry_camellia_gfni_avx512_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_gfni_avx512_enc_blk64
+ ELF(.type   _gcry_camellia_gfni_avx512_enc_blk64,@function;)
+ 
+@@ -1566,7 +1566,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_camellia_gfni_avx512_enc_blk64,.-_gcry_camellia_gfni_avx512_enc_blk64;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_camellia_gfni_avx512_dec_blk64
+ ELF(.type   _gcry_camellia_gfni_avx512_dec_blk64,@function;)
+ 
+--- cipher/cast5-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/cast5-amd64.S	2024-07-09 19:36:01.000000000 -0600
+@@ -173,7 +173,7 @@
+ 	rorq $32,		RLR0; \
+ 	movq RLR0, 		(RIO);
+ 
+-.align 16
++.balign 16
+ .globl _gcry_cast5_amd64_encrypt_block
+ ELF(.type   _gcry_cast5_amd64_encrypt_block,@function;)
+ 
+@@ -223,7 +223,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_cast5_amd64_encrypt_block,.-_gcry_cast5_amd64_encrypt_block;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_cast5_amd64_decrypt_block
+ ELF(.type   _gcry_cast5_amd64_decrypt_block,@function;)
+ 
+@@ -373,7 +373,7 @@
+ 	rorq $32,		c; \
+ 	rorq $32,		d;
+ 
+-.align 16
++.balign 16
+ ELF(.type   __cast5_enc_blk4,@function;)
+ 
+ __cast5_enc_blk4:
+@@ -403,7 +403,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __cast5_enc_blk4,.-__cast5_enc_blk4;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   __cast5_dec_blk4,@function;)
+ 
+ __cast5_dec_blk4:
+@@ -435,7 +435,7 @@
+ 	ret_spec_stop;
+ ELF(.size __cast5_dec_blk4,.-__cast5_dec_blk4;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_cast5_amd64_ctr_enc
+ ELF(.type   _gcry_cast5_amd64_ctr_enc,@function;)
+ _gcry_cast5_amd64_ctr_enc:
+@@ -512,7 +512,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_cast5_amd64_ctr_enc,.-_gcry_cast5_amd64_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_cast5_amd64_cbc_dec
+ ELF(.type   _gcry_cast5_amd64_cbc_dec,@function;)
+ _gcry_cast5_amd64_cbc_dec:
+@@ -586,7 +586,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_cast5_amd64_cbc_dec,.-_gcry_cast5_amd64_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_cast5_amd64_cfb_dec
+ ELF(.type   _gcry_cast5_amd64_cfb_dec,@function;)
+ _gcry_cast5_amd64_cfb_dec:
+--- cipher/chacha20-amd64-avx2.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/chacha20-amd64-avx2.S	2024-07-09 19:36:31.000000000 -0600
+@@ -158,7 +158,7 @@
+ SECTION_RODATA
+ 
+ ELF(.type _chacha20_avx2_data,@object;)
+-.align 32
++.balign 32
+ _chacha20_avx2_data:
+ .Lshuf_rol16:
+ 	.byte 2,3,0,1,6,7,4,5,10,11,8,9,14,15,12,13
+@@ -171,7 +171,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ .globl _gcry_chacha20_amd64_avx2_blocks8
+ ELF(.type _gcry_chacha20_amd64_avx2_blocks8,@function;)
+ 
+@@ -336,7 +336,7 @@
+ 
+ #define _ /*_*/
+ 
+-.align 16
++.balign 16
+ .globl _gcry_chacha20_poly1305_amd64_avx2_blocks8
+ ELF(.type _gcry_chacha20_poly1305_amd64_avx2_blocks8,@function;)
+ 
+--- cipher/chacha20-amd64-avx512.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/chacha20-amd64-avx512.S	2024-07-09 19:36:46.000000000 -0600
+@@ -269,7 +269,7 @@
+ 
+ SECTION_RODATA
+ 
+-.align 64
++.balign 64
+ ELF(.type _gcry_chacha20_amd64_avx512_data,@object;)
+ _gcry_chacha20_amd64_avx512_data:
+ .Lcounter_0_1_2_3:
+@@ -288,7 +288,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ .globl _gcry_chacha20_amd64_avx512_blocks
+ ELF(.type _gcry_chacha20_amd64_avx512_blocks,@function;)
+ _gcry_chacha20_amd64_avx512_blocks:
+@@ -326,7 +326,7 @@
+ 	vpbroadcastd (15 * 4)(INPUT), S15y;
+ 	jmp .Lskip16v;
+ 
+-.align 16
++.balign 16
+ .Lprocess_16v:
+ 	/* Process 16 ChaCha20 blocks */
+ 
+@@ -376,7 +376,7 @@
+ 	addq $16, (12 * 4)(INPUT);
+ 	jmp .Lround2_entry_16v;
+ 
+-.align 16
++.balign 16
+ .Loop16v:
+ 	movl $20, ROUND;
+ 	subq $16, NBLKS;
+@@ -416,11 +416,11 @@
+ 	addq $16, (12 * 4)(INPUT);
+ 	jmp .Lround2_entry_16v;
+ 
+-.align 16
++.balign 16
+ .Lround2_16v:
+ 	QUARTERROUND2V(X2, X7,  X8, X13,   X3, X4,  X9, X14)
+ 	QUARTERROUND2V(X0, X4,  X8, X12,   X1, X5,  X9, X13)
+-.align 16
++.balign 16
+ .Lround2_entry_16v:
+ 	QUARTERROUND2V(X2, X6, X10, X14,   X3, X7, X11, X15)
+ 	QUARTERROUND2V(X0, X5, X10, X15,   X1, X6, X11, X12)
+@@ -465,7 +465,7 @@
+ 	leaq (16 * 64)(SRC), SRC;
+ 	leaq (16 * 64)(DST), DST;
+ 
+-.align 16
++.balign 16
+ .Lskip16v:
+ 	cmpq $8, NBLKS;
+ 	jb .Lskip8v;
+@@ -502,7 +502,7 @@
+ 
+ 	movl $20, ROUND;
+ 	subq $8, NBLKS;
+-.align 16
++.balign 16
+ .Lround2_8v:
+ 	QUARTERROUND2V(X0y, X4y,  X8y, X12y,   X1y, X5y,  X9y, X13y)
+ 	QUARTERROUND2V(X2y, X6y, X10y, X14y,   X3y, X7y, X11y, X15y)
+@@ -547,7 +547,7 @@
+ 	leaq (8 * 64)(SRC), SRC;
+ 	leaq (8 * 64)(DST), DST;
+ 
+-.align 16
++.balign 16
+ .Lskip8v:
+ 	cmpq $4, NBLKS;
+ 	jb .Lskip4v;
+@@ -584,7 +584,7 @@
+ 
+ 	movl $20, ROUND;
+ 	subq $4, NBLKS;
+-.align 16
++.balign 16
+ .Lround2_4v:
+ 	QUARTERROUND2V(X0x, X4x,  X8x, X12x,   X1x, X5x,  X9x, X13x)
+ 	QUARTERROUND2V(X2x, X6x, X10x, X14x,   X3x, X7x, X11x, X15x)
+@@ -621,14 +621,14 @@
+ 	leaq (4 * 64)(SRC), SRC;
+ 	leaq (4 * 64)(DST), DST;
+ 
+-.align 16
++.balign 16
+ .Lskip4v:
+ 	/* clear AVX512 registers */
+ 	kxorq %k2, %k2, %k2;
+ 	vzeroupper;
+ 	clear_zmm16_zmm31();
+ 
+-.align 16
++.balign 16
+ .Lskip_vertical_handling:
+ 	cmpq $0, NBLKS;
+ 	je .Ldone;
+@@ -660,7 +660,7 @@
+ 	vpaddq X4x, X13x, X15x;
+ 	vmovdqa X15x, X7x;
+ 
+-.align 16
++.balign 16
+ .Lround2_2:
+ 	QUARTERROUND2H(X0x, X1x, X2x,  X3x,  X8x, X9x, X14x, X15x,
+ 		       0x39, 0x4e, 0x93);
+@@ -690,7 +690,7 @@
+ 	cmpq $0, NBLKS;
+ 	je .Lskip1;
+ 
+-.align 16
++.balign 16
+ .Lhandle1:
+ 	/* Process one ChaCha20 block (XMM) */
+ 	movl $20, ROUND;
+@@ -701,7 +701,7 @@
+ 	vmovdqa X12x, X2x;
+ 	vmovdqa X13x, X3x;
+ 
+-.align 16
++.balign 16
+ .Lround2_1:
+ 	QUARTERROUND1H(X0x, X1x, X2x, X3x, 0x39, 0x4e, 0x93);
+ 	QUARTERROUND1H(X0x, X1x, X2x, X3x, 0x93, 0x4e, 0x39);
+@@ -717,12 +717,12 @@
+ 
+ 	xor_src_dst_4x4(DST, SRC, 0 * 4, 4 * 4, X0x, X1x, X2x, X3x);
+ 
+-.align 16
++.balign 16
+ .Lskip1:
+ 	/* Store counter */
+ 	vmovdqu X13x, (12 * 4)(INPUT);
+ 
+-.align 16
++.balign 16
+ .Ldone:
+ 	vzeroall; /* clears ZMM0-ZMM15 */
+ 
+--- cipher/chacha20-amd64-ssse3.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/chacha20-amd64-ssse3.S	2024-07-09 19:36:20.000000000 -0600
+@@ -153,7 +153,7 @@
+ 
+ ELF(.type _chacha20_ssse3_data,@object;)
+ _chacha20_ssse3_data:
+-.align 16
++.balign 16
+ .Lshuf_rol16:
+ 	.byte 2,3,0,1,6,7,4,5,10,11,8,9,14,15,12,13
+ .Lshuf_rol8:
+@@ -167,7 +167,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ .globl _gcry_chacha20_amd64_ssse3_blocks4
+ ELF(.type _gcry_chacha20_amd64_ssse3_blocks4,@function;)
+ 
+@@ -369,7 +369,7 @@
+ 				   ROTATE(x1, 7, tmp1); \
+ 	  WORD_SHUF(x1, shuf_x1);
+ 
+-.align 16
++.balign 16
+ .globl _gcry_chacha20_amd64_ssse3_blocks1
+ ELF(.type _gcry_chacha20_amd64_ssse3_blocks1,@function;)
+ 
+@@ -516,7 +516,7 @@
+ 
+ #define _ /*_*/
+ 
+-.align 16
++.balign 16
+ .globl _gcry_chacha20_poly1305_amd64_ssse3_blocks4
+ ELF(.type _gcry_chacha20_poly1305_amd64_ssse3_blocks4,@function;)
+ 
+@@ -784,7 +784,7 @@
+   2-way && 1-way stitched chacha20-poly1305
+  **********************************************************************/
+ 
+-.align 16
++.balign 16
+ .globl _gcry_chacha20_poly1305_amd64_ssse3_blocks1
+ ELF(.type _gcry_chacha20_poly1305_amd64_ssse3_blocks1,@function;)
+ 
+--- cipher/des-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/des-amd64.S	2024-07-09 19:37:00.000000000 -0600
+@@ -180,7 +180,7 @@
+ 	movl   left##d,   (io); \
+ 	movl   right##d, 4(io);
+ 
+-.align 16
++.balign 16
+ .globl _gcry_3des_amd64_crypt_block
+ ELF(.type  _gcry_3des_amd64_crypt_block,@function;)
+ 
+@@ -473,7 +473,7 @@
+ 	movl   left##d,   (io); \
+ 	movl   right##d, 4(io);
+ 
+-.align 16
++.balign 16
+ ELF(.type  _gcry_3des_amd64_crypt_blk3,@function;)
+ _gcry_3des_amd64_crypt_blk3:
+ 	/* input:
+@@ -548,7 +548,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_3des_amd64_crypt_blk3,.-_gcry_3des_amd64_crypt_blk3;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_3des_amd64_cbc_dec
+ ELF(.type   _gcry_3des_amd64_cbc_dec,@function;)
+ _gcry_3des_amd64_cbc_dec:
+@@ -646,7 +646,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_3des_amd64_cbc_dec,.-_gcry_3des_amd64_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_3des_amd64_ctr_enc
+ ELF(.type   _gcry_3des_amd64_ctr_enc,@function;)
+ _gcry_3des_amd64_ctr_enc:
+@@ -744,7 +744,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_3des_amd64_cbc_dec,.-_gcry_3des_amd64_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl  _gcry_3des_amd64_cfb_dec
+ ELF(.type   _gcry_3des_amd64_cfb_dec,@function;)
+ _gcry_3des_amd64_cfb_dec:
+@@ -845,7 +845,7 @@
+ SECTION_RODATA
+ ELF(.type _des_amd64_data,@object;)
+ 
+-.align 16
++.balign 16
+ _des_amd64_data:
+ .L_s1:
+ 	.quad 0x0010100001010400, 0x0000000000000000
+--- cipher/keccak-amd64-avx512.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/keccak-amd64-avx512.S	2024-07-09 19:37:21.000000000 -0600
+@@ -170,7 +170,7 @@
+ 	clear_avx512_4regs(%ymm28, %ymm29, %ymm30, %ymm31);
+ 
+ ELF(.type	KeccakF1600_ce,@function)
+-.align	64, 0xcc
++.balign	64, 0xcc
+ KeccakF1600_ce:
+ .Loop_ce:
+ 	CFI_STARTPROC()
+@@ -266,7 +266,7 @@
+ 	addq	$8, %r10
+ 	jmp	.Loop_ce
+ 
+-.align	64, 0xcc
++.balign	64, 0xcc
+ .Lend_ce:
+ 	ret_spec_stop
+ 	CFI_ENDPROC()
+@@ -274,7 +274,7 @@
+ 
+ .globl		_gcry_keccak_f1600_state_permute64_avx512
+ ELF(.type	_gcry_keccak_f1600_state_permute64_avx512,@function)
+-.align	64, 0xcc
++.balign	64, 0xcc
+ _gcry_keccak_f1600_state_permute64_avx512:
+ 	/* input:
+ 	 *	%rdi: state
+@@ -352,7 +352,7 @@
+ 
+ .globl		_gcry_keccak_absorb_blocks_avx512
+ ELF(.type	_gcry_keccak_absorb_blocks_avx512,@function)
+-.align	64, 0xcc
++.balign	64, 0xcc
+ _gcry_keccak_absorb_blocks_avx512:
+ 	/* input:
+ 	 *	%rdi: state
+@@ -403,7 +403,7 @@
+ 	je		.Loop_absorb_144_ce
+ 	jmp		.Loop_absorb_168_ce
+ 
+-.align	64, 0xcc
++.balign	64, 0xcc
+ .Loop_absorb_168_ce:
+ 	subq		%r8, %rcx	// len - bsz
+ 	jb		.Labsorbed_ce
+@@ -437,7 +437,7 @@
+ 
+ 	jmp		.Loop_absorb_168_ce
+ 
+-.align	64, 0xcc
++.balign	64, 0xcc
+ .Loop_absorb_144_ce:
+ 	subq		%r8, %rcx	// len - bsz
+ 	jb		.Labsorbed_ce
+@@ -468,7 +468,7 @@
+ 
+ 	jmp		.Loop_absorb_144_ce
+ 
+-.align	64, 0xcc
++.balign	64, 0xcc
+ .Loop_absorb_136_ce:
+ 	subq		%r8, %rcx	// len - bsz
+ 	jb		.Labsorbed_ce
+@@ -498,7 +498,7 @@
+ 
+ 	jmp		.Loop_absorb_136_ce
+ 
+-.align	64, 0xcc
++.balign	64, 0xcc
+ .Loop_absorb_104_ce:
+ 	subq		%r8, %rcx	// len - bsz
+ 	jb		.Labsorbed_ce
+@@ -524,7 +524,7 @@
+ 
+ 	jmp		.Loop_absorb_104_ce
+ 
+-.align	64, 0xcc
++.balign	64, 0xcc
+ .Loop_absorb_72_ce:
+ 	subq		%r8, %rcx	// len - bsz
+ 	jb		.Labsorbed_ce
+@@ -546,7 +546,7 @@
+ 
+ 	jmp		.Loop_absorb_72_ce
+ 
+-.align	64, 0xcc
++.balign	64, 0xcc
+ .Labsorbed_ce:
+ 	vpunpcklqdq	A_0_1, A_0_0, A_0_0
+ 	vpunpcklqdq	A_0_3, A_0_2, A_0_2
+--- cipher/poly1305-amd64-avx512.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/poly1305-amd64-avx512.S	2024-07-09 19:37:38.000000000 -0600
+@@ -49,17 +49,17 @@
+ ELF(.type _gcry_poly1305_avx512_consts,@object)
+ _gcry_poly1305_avx512_consts:
+ 
+-.align 64
++.balign 64
+ .Lmask_44:
+   .quad 0xfffffffffff, 0xfffffffffff, 0xfffffffffff, 0xfffffffffff
+   .quad 0xfffffffffff, 0xfffffffffff, 0xfffffffffff, 0xfffffffffff
+ 
+-.align 64
++.balign 64
+ .Lmask_42:
+   .quad 0x3ffffffffff, 0x3ffffffffff, 0x3ffffffffff, 0x3ffffffffff
+   .quad 0x3ffffffffff, 0x3ffffffffff, 0x3ffffffffff, 0x3ffffffffff
+ 
+-.align 64
++.balign 64
+ .Lhigh_bit:
+   .quad 0x10000000000, 0x10000000000, 0x10000000000, 0x10000000000
+   .quad 0x10000000000, 0x10000000000, 0x10000000000, 0x10000000000
+@@ -71,7 +71,7 @@
+   .short 0x0fff, 0x1fff, 0x3fff, 0x7fff
+   .short 0xffff
+ 
+-.align 64
++.balign 64
+ .Lbyte64_len_to_mask_table:
+   .quad 0x0000000000000000, 0x0000000000000001
+   .quad 0x0000000000000003, 0x0000000000000007
+@@ -1577,7 +1577,7 @@
+ ;; arg3 - Input/output hash
+ ;; arg4 - Poly1305 key
+ */
+-.align 32
++.balign 32
+ .globl _gcry_poly1305_amd64_avx512_blocks
+ ELF(.type _gcry_poly1305_amd64_avx512_blocks,@function;)
+ _gcry_poly1305_amd64_avx512_blocks:
+--- cipher/rijndael-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/rijndael-amd64.S	2024-07-09 19:37:55.000000000 -0600
+@@ -200,7 +200,7 @@
+ #define lastencround(round) \
+ 	do_lastencround((round) + 1);
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aes_amd64_encrypt_block
+ ELF(.type   _gcry_aes_amd64_encrypt_block,@function;)
+ 
+@@ -247,7 +247,7 @@
+ 	jnb .Lenc_not_128;
+ 	lastencround(9);
+ 
+-.align 4
++.balign 4
+ .Lenc_done:
+ 	/* write output block */
+ 	movq (0 * 8)(%rsp), %rsi;
+@@ -273,7 +273,7 @@
+ 	ret_spec_stop;
+ 
+ 	CFI_RESTORE_STATE();
+-.align 4
++.balign 4
+ .Lenc_not_128:
+ 	je .Lenc_192
+ 
+@@ -285,7 +285,7 @@
+ 
+ 	jmp .Lenc_done;
+ 
+-.align 4
++.balign 4
+ .Lenc_192:
+ 	encround(9);
+ 	encround(10);
+@@ -377,7 +377,7 @@
+ #define lastdecround(round) \
+ 	do_lastdecround(round);
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aes_amd64_decrypt_block
+ ELF(.type   _gcry_aes_amd64_decrypt_block,@function;)
+ 
+@@ -415,7 +415,7 @@
+ 	jnb .Ldec_256;
+ 
+ 	firstdecround(9);
+-.align 4
++.balign 4
+ .Ldec_tail:
+ 	decround(8);
+ 	decround(7);
+@@ -451,7 +451,7 @@
+ 	ret_spec_stop;
+ 
+ 	CFI_RESTORE_STATE();
+-.align 4
++.balign 4
+ .Ldec_256:
+ 	je .Ldec_192;
+ 
+@@ -463,7 +463,7 @@
+ 
+ 	jmp .Ldec_tail;
+ 
+-.align 4
++.balign 4
+ .Ldec_192:
+ 	firstdecround(11);
+ 	decround(10);
+--- cipher/rijndael-ssse3-amd64-asm.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/rijndael-ssse3-amd64-asm.S	2024-07-09 19:38:26.000000000 -0600
+@@ -47,7 +47,7 @@
+ ##
+ ##  _gcry_aes_ssse3_enc_preload
+ ##
+-.align 16
++.balign 16
+ ELF(.type _gcry_aes_ssse3_enc_preload,@function)
+ .globl _gcry_aes_ssse3_enc_preload
+ _gcry_aes_ssse3_enc_preload:
+@@ -69,7 +69,7 @@
+ ##
+ ##  _gcry_aes_ssse3_dec_preload
+ ##
+-.align 16
++.balign 16
+ ELF(.type _gcry_aes_ssse3_dec_preload,@function)
+ .globl _gcry_aes_ssse3_dec_preload
+ _gcry_aes_ssse3_dec_preload:
+@@ -112,7 +112,7 @@
+ ##  Preserves %xmm6 - %xmm7 so you get some local vectors
+ ##
+ ##
+-.align 16
++.balign 16
+ ELF(.type _gcry_aes_ssse3_encrypt_core,@function)
+ .globl _gcry_aes_ssse3_encrypt_core
+ _gcry_aes_ssse3_encrypt_core:
+@@ -137,7 +137,7 @@
+ 	add	$16,	%rdx
+ 	jmp	.Laes_entry
+ 
+-.align 8
++.balign 8
+ .Laes_loop:
+ 	# middle of middle round
+ 	movdqa  %xmm13,	%xmm4	# 4 : sb1u
+@@ -205,7 +205,7 @@
+ ##
+ ##  Same API as encryption core.
+ ##
+-.align 16
++.balign 16
+ .globl _gcry_aes_ssse3_decrypt_core
+ ELF(.type _gcry_aes_ssse3_decrypt_core,@function)
+ _gcry_aes_ssse3_decrypt_core:
+@@ -234,7 +234,7 @@
+ 	neg	%rax
+ 	jmp	.Laes_dec_entry
+ 
+-.align 16
++.balign 16
+ .Laes_dec_loop:
+ ##
+ ##  Inverse mix columns
+@@ -315,7 +315,7 @@
+ ##                                                    ##
+ ########################################################
+ 
+-.align 16
++.balign 16
+ .globl _gcry_aes_ssse3_schedule_core
+ ELF(.type _gcry_aes_ssse3_schedule_core,@function)
+ _gcry_aes_ssse3_schedule_core:
+@@ -693,7 +693,7 @@
+ 
+ SECTION_RODATA
+ 
+-.align 16
++.balign 16
+ ELF(.type _aes_ssse3_consts,@object)
+ _aes_ssse3_consts:
+ .Laes_consts:
+--- cipher/rijndael-vaes-avx2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/rijndael-vaes-avx2-amd64.S	2024-07-09 19:39:42.000000000 -0600
+@@ -86,7 +86,7 @@
+  **********************************************************************/
+ ELF(.type _gcry_vaes_avx2_cbc_dec_amd64,@function)
+ .globl _gcry_vaes_avx2_cbc_dec_amd64
+-.align 16
++.balign 16
+ _gcry_vaes_avx2_cbc_dec_amd64:
+ 	/* input:
+ 	 *	%rdi: round keys
+@@ -102,7 +102,7 @@
+ 	vmovdqu (%rsi), %xmm15;
+ 
+ 	/* Process 16 blocks per loop. */
+-.align 8
++.balign 8
+ .Lcbc_dec_blk16:
+ 	cmpq $16, %r8;
+ 	jb .Lcbc_dec_blk8;
+@@ -199,7 +199,7 @@
+ 	jmp .Lcbc_dec_blk16;
+ 
+ 	/* Handle trailing eight blocks. */
+-.align 8
++.balign 8
+ .Lcbc_dec_blk8:
+ 	cmpq $8, %r8;
+ 	jb .Lcbc_dec_blk4;
+@@ -272,7 +272,7 @@
+ 	leaq (8 * 16)(%rdx), %rdx;
+ 
+ 	/* Handle trailing four blocks. */
+-.align 8
++.balign 8
+ .Lcbc_dec_blk4:
+ 	cmpq $4, %r8;
+ 	jb .Lcbc_dec_blk1;
+@@ -333,7 +333,7 @@
+ 	leaq (4 * 16)(%rdx), %rdx;
+ 
+ 	/* Process trailing one to three blocks, one per loop. */
+-.align 8
++.balign 8
+ .Lcbc_dec_blk1:
+ 	cmpq $1, %r8;
+ 	jb .Ldone_cbc_dec;
+@@ -378,7 +378,7 @@
+ 
+ 	jmp .Lcbc_dec_blk1;
+ 
+-.align 8
++.balign 8
+ .Ldone_cbc_dec:
+ 	/* Store IV. */
+ 	vmovdqu %xmm15, (%rsi);
+@@ -393,7 +393,7 @@
+  **********************************************************************/
+ ELF(.type _gcry_vaes_avx2_cfb_dec_amd64,@function)
+ .globl _gcry_vaes_avx2_cfb_dec_amd64
+-.align 16
++.balign 16
+ _gcry_vaes_avx2_cfb_dec_amd64:
+ 	/* input:
+ 	 *	%rdi: round keys
+@@ -409,7 +409,7 @@
+ 	vmovdqu (%rsi), %xmm15;
+ 
+ 	/* Process 16 blocks per loop. */
+-.align 8
++.balign 8
+ .Lcfb_dec_blk16:
+ 	cmpq $16, %r8;
+ 	jb .Lcfb_dec_blk8;
+@@ -507,7 +507,7 @@
+ 	jmp .Lcfb_dec_blk16;
+ 
+ 	/* Handle trailing eight blocks. */
+-.align 8
++.balign 8
+ .Lcfb_dec_blk8:
+ 	cmpq $8, %r8;
+ 	jb .Lcfb_dec_blk4;
+@@ -581,7 +581,7 @@
+ 	leaq (8 * 16)(%rdx), %rdx;
+ 
+ 	/* Handle trailing four blocks. */
+-.align 8
++.balign 8
+ .Lcfb_dec_blk4:
+ 	cmpq $4, %r8;
+ 	jb .Lcfb_dec_blk1;
+@@ -643,7 +643,7 @@
+ 	leaq (4 * 16)(%rdx), %rdx;
+ 
+ 	/* Process trailing one to three blocks, one per loop. */
+-.align 8
++.balign 8
+ .Lcfb_dec_blk1:
+ 	cmpq $1, %r8;
+ 	jb .Ldone_cfb_dec;
+@@ -687,7 +687,7 @@
+ 
+ 	jmp .Lcfb_dec_blk1;
+ 
+-.align 8
++.balign 8
+ .Ldone_cfb_dec:
+ 	/* Store IV. */
+ 	vmovdqu %xmm15, (%rsi);
+@@ -702,7 +702,7 @@
+  **********************************************************************/
+ ELF(.type _gcry_vaes_avx2_ctr_enc_amd64,@function)
+ .globl _gcry_vaes_avx2_ctr_enc_amd64
+-.align 16
++.balign 16
+ _gcry_vaes_avx2_ctr_enc_amd64:
+ 	/* input:
+ 	 *	%rdi: round keys
+@@ -749,7 +749,7 @@
+ 	bswapq %r11;
+ 
+ 	/* Process 16 blocks per loop. */
+-.align 8
++.balign 8
+ .Lctr_enc_blk16:
+ 	cmpq $16, %r8;
+ 	jb .Lctr_enc_blk8;
+@@ -841,12 +841,12 @@
+ 
+ 	jmp .Lctr_enc_blk16;
+ 
+-  .align 8
++  .balign 8
+   .Lctr_enc_blk16_handle_only_ctr_carry:
+ 	handle_ctr_128bit_add(16);
+ 	jmp .Lctr_enc_blk16_byte_bige_add;
+ 
+-  .align 8
++  .balign 8
+   .Lctr_enc_blk16_handle_carry:
+ 	jz .Lctr_enc_blk16_handle_only_ctr_carry;
+ 	/* Increment counters (handle carry). */
+@@ -874,7 +874,7 @@
+ 	jmp .Lctr_enc_blk16_rounds;
+ 
+ 	/* Handle trailing eight blocks. */
+-.align 8
++.balign 8
+ .Lctr_enc_blk8:
+ 	cmpq $8, %r8;
+ 	jb .Lctr_enc_blk4;
+@@ -950,12 +950,12 @@
+ 
+ 	jmp .Lctr_enc_blk4;
+ 
+-  .align 8
++  .balign 8
+   .Lctr_enc_blk8_handle_only_ctr_carry:
+ 	handle_ctr_128bit_add(8);
+ 	jmp .Lctr_enc_blk8_byte_bige_add;
+ 
+-  .align 8
++  .balign 8
+   .Lctr_enc_blk8_handle_carry:
+ 	jz .Lctr_enc_blk8_handle_only_ctr_carry;
+ 	/* Increment counters (handle carry). */
+@@ -975,7 +975,7 @@
+ 	jmp .Lctr_enc_blk8_rounds;
+ 
+ 	/* Handle trailing four blocks. */
+-.align 8
++.balign 8
+ .Lctr_enc_blk4:
+ 	cmpq $4, %r8;
+ 	jb .Lctr_enc_blk1;
+@@ -1043,12 +1043,12 @@
+ 
+ 	jmp .Lctr_enc_blk1;
+ 
+-  .align 8
++  .balign 8
+   .Lctr_enc_blk4_handle_only_ctr_carry:
+ 	handle_ctr_128bit_add(4);
+ 	jmp .Lctr_enc_blk4_byte_bige_add;
+ 
+-  .align 8
++  .balign 8
+   .Lctr_enc_blk4_handle_carry:
+ 	jz .Lctr_enc_blk4_handle_only_ctr_carry;
+ 	/* Increment counters (handle carry). */
+@@ -1064,7 +1064,7 @@
+ 	jmp .Lctr_enc_blk4_rounds;
+ 
+ 	/* Process trailing one to three blocks, one per loop. */
+-.align 8
++.balign 8
+ .Lctr_enc_blk1:
+ 	cmpq $1, %r8;
+ 	jb .Ldone_ctr_enc;
+@@ -1107,7 +1107,7 @@
+ 
+ 	jmp .Lctr_enc_blk1;
+ 
+-.align 8
++.balign 8
+ .Ldone_ctr_enc:
+ 	vzeroall;
+ 	xorl %r10d, %r10d;
+@@ -1121,7 +1121,7 @@
+  **********************************************************************/
+ ELF(.type _gcry_vaes_avx2_ctr32le_enc_amd64,@function)
+ .globl _gcry_vaes_avx2_ctr32le_enc_amd64
+-.align 16
++.balign 16
+ _gcry_vaes_avx2_ctr32le_enc_amd64:
+ 	/* input:
+ 	 *	%rdi: round keys
+@@ -1136,7 +1136,7 @@
+ 	vbroadcasti128 (%rsi), %ymm15; // CTR
+ 
+ 	/* Process 16 blocks per loop. */
+-.align 8
++.balign 8
+ .Lctr32le_enc_blk16:
+ 	cmpq $16, %r8;
+ 	jb .Lctr32le_enc_blk8;
+@@ -1222,7 +1222,7 @@
+ 	jmp .Lctr32le_enc_blk16;
+ 
+ 	/* Handle trailing eight blocks. */
+-.align 8
++.balign 8
+ .Lctr32le_enc_blk8:
+ 	cmpq $8, %r8;
+ 	jb .Lctr32le_enc_blk4;
+@@ -1290,7 +1290,7 @@
+ 	leaq (8 * 16)(%rdx), %rdx;
+ 
+ 	/* Handle trailing four blocks. */
+-.align 8
++.balign 8
+ .Lctr32le_enc_blk4:
+ 	cmpq $4, %r8;
+ 	jb .Lctr32le_enc_blk1;
+@@ -1350,7 +1350,7 @@
+ 	leaq (4 * 16)(%rdx), %rdx;
+ 
+ 	/* Process trailing one to three blocks, one per loop. */
+-.align 8
++.balign 8
+ .Lctr32le_enc_blk1:
+ 	cmpq $1, %r8;
+ 	jb .Ldone_ctr32le_enc;
+@@ -1393,7 +1393,7 @@
+ 
+ 	jmp .Lctr32le_enc_blk1;
+ 
+-.align 8
++.balign 8
+ .Ldone_ctr32le_enc:
+ 	vmovdqu %xmm15, (%rsi);
+ 	vzeroall;
+@@ -1406,7 +1406,7 @@
+  **********************************************************************/
+ ELF(.type _gcry_vaes_avx2_ocb_crypt_amd64,@function)
+ .globl _gcry_vaes_avx2_ocb_crypt_amd64
+-.align 16
++.balign 16
+ _gcry_vaes_avx2_ocb_crypt_amd64:
+ 	/* input:
+ 	 *	%rdi:     round keys
+@@ -1463,7 +1463,7 @@
+ 	vmovdqa %xmm0, (14 * 16)(%rsp);
+ 	vmovdqa %xmm0, (15 * 16)(%rsp);
+ 
+-.align 8
++.balign 8
+ .Lhandle_unaligned_ocb:
+ 	/* Get number of blocks to align nblk to 16 (and L-array optimization). */
+ 	movl %esi, %r10d;
+@@ -1484,7 +1484,7 @@
+ 	cmovbq %r8, %r10;
+ 
+ 	/* Unaligned: Process eight blocks per loop. */
+-.align 8
++.balign 8
+ .Locb_unaligned_blk8:
+ 	cmpq $8, %r10;
+ 	jb .Locb_unaligned_blk4;
+@@ -1599,7 +1599,7 @@
+ 
+ 		jmp .Locb_unaligned_blk8;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_unaligned_blk8_auth:
+ 		vpxor (0 * 16)(%rcx), %ymm5, %ymm0;
+ 		vpxor (2 * 16)(%rcx), %ymm6, %ymm1;
+@@ -1652,7 +1652,7 @@
+ 
+ 		jmp .Locb_unaligned_blk8;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_unaligned_blk8_dec:
+ 		vpxor (0 * 16)(%rcx), %ymm5, %ymm0;
+ 		vpxor (2 * 16)(%rcx), %ymm6, %ymm1;
+@@ -1716,7 +1716,7 @@
+ 		jmp .Locb_unaligned_blk8;
+ 
+ 	/* Unaligned: Process four blocks. */
+-.align 8
++.balign 8
+ .Locb_unaligned_blk4:
+ 	cmpq $4, %r10;
+ 	jb .Locb_unaligned_blk1;
+@@ -1799,7 +1799,7 @@
+ 
+ 		jmp .Locb_unaligned_blk1;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_unaligned_blk4_auth:
+ 		vpxor (0 * 16)(%rcx), %ymm5, %ymm0;
+ 		vpxor (2 * 16)(%rcx), %ymm6, %ymm1;
+@@ -1846,7 +1846,7 @@
+ 
+ 		jmp .Locb_unaligned_blk1;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_unaligned_blk4_dec:
+ 		vpxor (0 * 16)(%rcx), %ymm5, %ymm0;
+ 		vpxor (2 * 16)(%rcx), %ymm6, %ymm1;
+@@ -1897,7 +1897,7 @@
+ 		leaq (4 * 16)(%rdx), %rdx;
+ 
+ 	/* Unaligned: Process one block per loop. */
+-.align 8
++.balign 8
+ .Locb_unaligned_blk1:
+ 	cmpq $1, %r10;
+ 	jb .Lunaligned_ocb_done;
+@@ -1945,7 +1945,7 @@
+ 
+ 		jmp .Locb_unaligned_blk1;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_unaligned_blk1_auth:
+ 		vpxor (%rcx), %xmm15, %xmm0;
+ 		leaq 16(%rcx), %rcx;
+@@ -1978,7 +1978,7 @@
+ 
+ 		jmp .Locb_unaligned_blk1;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_unaligned_blk1_dec:
+ 		vpxor (%rcx), %xmm15, %xmm0;
+ 		leaq 16(%rcx), %rcx;
+@@ -2011,7 +2011,7 @@
+ 
+ 		jmp .Locb_unaligned_blk1;
+ 
+-.align 8
++.balign 8
+ .Lunaligned_ocb_done:
+ 	cmpq $1, %r8;
+ 	jb .Ldone_ocb;
+@@ -2076,7 +2076,7 @@
+ 	vmovdqa %ymm13, (12 * 16)(%rsp);
+ 
+ 	/* Aligned: Process 16 blocks per loop. */
+-.align 8
++.balign 8
+ .Locb_aligned_blk16:
+ 	cmpq $16, %r8;
+ 	jb .Locb_aligned_blk8;
+@@ -2194,7 +2194,7 @@
+ 
+ 		jmp .Locb_aligned_blk16;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_aligned_blk16_auth:
+ 		vpxor (10 * 16)(%rsp), %ymm15, %ymm13;
+ 		vpxor (14 * 16)(%rcx), %ymm14, %ymm7;
+@@ -2269,7 +2269,7 @@
+ 
+ 		jmp .Locb_aligned_blk16;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_aligned_blk16_dec:
+ 		vpxor (10 * 16)(%rsp), %ymm15, %ymm13;
+ 		vpxor (14 * 16)(%rcx), %ymm14, %ymm7;
+@@ -2362,7 +2362,7 @@
+ 		jmp .Locb_aligned_blk16;
+ 
+ 	/* Aligned: Process trailing eight blocks. */
+-.align 8
++.balign 8
+ .Locb_aligned_blk8:
+ 	cmpq $8, %r8;
+ 	jb .Locb_aligned_done;
+@@ -2453,7 +2453,7 @@
+ 
+ 		jmp .Locb_aligned_done;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_aligned_blk8_auth:
+ 		vpxor (0 * 16)(%rcx), %ymm5, %ymm0;
+ 		vpxor (2 * 16)(%rcx), %ymm6, %ymm1;
+@@ -2510,7 +2510,7 @@
+ 
+ 		jmp .Locb_aligned_done;
+ 
+-	.align 8
++	.balign 8
+ 	.Locb_aligned_blk8_dec:
+ 		vpxor (0 * 16)(%rcx), %ymm5, %ymm0;
+ 		vpxor (2 * 16)(%rcx), %ymm6, %ymm1;
+@@ -2576,7 +2576,7 @@
+ 		vpxor (20 * 16)(%rsp), %ymm0, %ymm0;
+ 		vmovdqa %ymm0, (20 * 16)(%rsp);
+ 
+-.align 8
++.balign 8
+ .Locb_aligned_done:
+ 	vmovdqa (20 * 16)(%rsp), %ymm14;
+ 	vpxor %xmm13, %xmm13, %xmm13;
+@@ -2598,7 +2598,7 @@
+ 	cmpq $1, %r8;
+ 	jnb .Locb_unaligned_blk8;
+ 
+-.align 8
++.balign 8
+ .Ldone_ocb:
+ 	vpxor %ymm13, %ymm14, %ymm14;
+ 	vextracti128 $1, %ymm14, %xmm13;
+@@ -2644,7 +2644,7 @@
+  **********************************************************************/
+ ELF(.type _gcry_vaes_avx2_xts_crypt_amd64,@function)
+ .globl _gcry_vaes_avx2_xts_crypt_amd64
+-.align 16
++.balign 16
+ _gcry_vaes_avx2_xts_crypt_amd64:
+ 	/* input:
+ 	 *	%rdi: round keys
+@@ -2694,7 +2694,7 @@
+ 
+ 	leaq (8 * 16)(%rcx), %rcx;
+ 
+-.align 8
++.balign 8
+ .Lxts_crypt_blk8_loop:
+ 	cmpq $8, %r8;
+ 	jb .Lxts_crypt_blk8_tail;
+@@ -2772,7 +2772,7 @@
+ 
+ 			jmp .Lxts_crypt_blk8_loop;
+ 
+-		.align 8
++		.balign 8
+ 		.Lxts_dec_blk8:
+ 			/* AES rounds */
+ 			XOR4(%ymm4, %ymm0, %ymm1, %ymm2, %ymm3);
+@@ -2844,7 +2844,7 @@
+ 
+ 			jmp .Lxts_crypt_blk8_loop;
+ 
+-	.align 8
++	.balign 8
+ 	.Lxts_crypt_blk8_tail:
+ 		testl %eax, %eax;
+ 		jz .Lxts_dec_tail_blk8;
+@@ -2899,7 +2899,7 @@
+ 
+ 			jmp .Lxts_crypt_blk4;
+ 
+-		.align 8
++		.balign 8
+ 		.Lxts_dec_tail_blk8:
+ 			/* AES rounds */
+ 			XOR4(%ymm4, %ymm0, %ymm1, %ymm2, %ymm3);
+@@ -2951,7 +2951,7 @@
+ 			leaq (8 * 16)(%rdx), %rdx;
+ 
+ 	/* Handle trailing four blocks. */
+-.align 8
++.balign 8
+ .Lxts_crypt_blk4:
+ 	/* Try exit early as typically input length is large power of 2. */
+ 	cmpq $1, %r8;
+@@ -3019,7 +3019,7 @@
+ 
+ 		jmp .Lxts_crypt_blk1;
+ 
+-	.align 8
++	.balign 8
+ 	.Lxts_dec_blk4:
+ 		/* AES rounds */
+ 		XOR2(%ymm4, %ymm0, %ymm1);
+@@ -3065,7 +3065,7 @@
+ 		leaq (4 * 16)(%rdx), %rdx;
+ 
+ 	/* Process trailing one to three blocks, one per loop. */
+-.align 8
++.balign 8
+ .Lxts_crypt_blk1:
+ 	cmpq $1, %r8;
+ 	jb .Ldone_xts_crypt;
+@@ -3112,7 +3112,7 @@
+ 
+ 		jmp .Lxts_crypt_blk1;
+ 
+-	.align 8
++	.balign 8
+ 	.Lxts_dec_blk1:
+ 		/* AES rounds. */
+ 		vpxor (0 * 16)(%rdi), %xmm0, %xmm0;
+@@ -3145,7 +3145,7 @@
+ 
+ 		jmp .Lxts_crypt_blk1;
+ 
+-.align 8
++.balign 8
+ .Ldone_xts_crypt:
+ 	/* Store IV. */
+ 	vmovdqu %xmm15, (%rsi);
+@@ -3162,7 +3162,7 @@
+  **********************************************************************/
+ ELF(.type _gcry_vaes_avx2_ecb_crypt_amd64,@function)
+ .globl _gcry_vaes_avx2_ecb_crypt_amd64
+-.align 16
++.balign 16
+ _gcry_vaes_avx2_ecb_crypt_amd64:
+ 	/* input:
+ 	 *	%rdi: round keys
+@@ -3175,7 +3175,7 @@
+ 	CFI_STARTPROC();
+ 
+ 	/* Process 16 blocks per loop. */
+-.align 8
++.balign 8
+ .Lecb_blk16:
+ 	cmpq $16, %r8;
+ 	jb .Lecb_blk8;
+@@ -3246,7 +3246,7 @@
+ 		vaesenclast %ymm8, %ymm7, %ymm7;
+ 		jmp .Lecb_blk16_end;
+ 
+-	  .align 8
++	  .balign 8
+ 	  .Lecb_dec_blk16:
+ 		/* AES rounds */
+ 		VAESDEC8(%ymm8, %ymm0, %ymm1, %ymm2, %ymm3, %ymm4, %ymm5, %ymm6, %ymm7);
+@@ -3289,7 +3289,7 @@
+ 		vaesdeclast %ymm8, %ymm7, %ymm7;
+ 		jmp .Lecb_blk16_end;
+ 
+-  .align 8
++  .balign 8
+   .Lecb_blk16_end:
+ 	vmovdqu %ymm0, (0 * 16)(%rdx);
+ 	vmovdqu %ymm1, (2 * 16)(%rdx);
+@@ -3304,7 +3304,7 @@
+ 	jmp .Lecb_blk16;
+ 
+ 	/* Handle trailing eight blocks. */
+-.align 8
++.balign 8
+ .Lecb_blk8:
+ 	cmpq $8, %r8;
+ 	jmp .Lecb_blk4;
+@@ -3368,7 +3368,7 @@
+ 		leaq (8 * 16)(%rdx), %rdx;
+ 		jmp .Lecb_blk4;
+ 
+-	  .align 8
++	  .balign 8
+ 	  .Lecb_dec_blk8:
+ 		/* AES rounds */
+ 		VAESDEC4(%ymm4, %ymm0, %ymm1, %ymm2, %ymm3);
+@@ -3412,7 +3412,7 @@
+ 		leaq (8 * 16)(%rdx), %rdx;
+ 
+ 	/* Handle trailing four blocks. */
+-.align 8
++.balign 8
+ .Lecb_blk4:
+ 	cmpq $4, %r8;
+ 	jb .Lecb_blk1;
+@@ -3468,7 +3468,7 @@
+ 		leaq (4 * 16)(%rdx), %rdx;
+ 		jmp .Lecb_blk1;
+ 
+-	  .align 8
++	  .balign 8
+ 	  .Lecb_dec_blk4:
+ 		/* AES rounds */
+ 		VAESDEC2(%ymm4, %ymm0, %ymm1);
+@@ -3508,7 +3508,7 @@
+ 		leaq (4 * 16)(%rdx), %rdx;
+ 
+ 	/* Process trailing one to three blocks, one per loop. */
+-.align 8
++.balign 8
+ .Lecb_blk1:
+ 	cmpq $1, %r8;
+ 	jb .Ldone_ecb;
+@@ -3548,7 +3548,7 @@
+ 		vaesenclast %xmm1, %xmm0, %xmm0;
+ 		jmp .Lecb_blk1_end;
+ 
+-	  .align 8
++	  .balign 8
+ 	  .Lecb_dec_blk1:
+ 		/* AES rounds. */
+ 		vaesdec (1 * 16)(%rdi), %xmm0, %xmm0;
+@@ -3574,14 +3574,14 @@
+ 		vaesdeclast %xmm1, %xmm0, %xmm0;
+ 		jmp .Lecb_blk1_end;
+ 
+-  .align 8
++  .balign 8
+   .Lecb_blk1_end:
+ 	vmovdqu %xmm0, (%rdx);
+ 	leaq 16(%rdx), %rdx;
+ 
+ 	jmp .Lecb_blk1;
+ 
+-.align 8
++.balign 8
+ .Ldone_ecb:
+ 	vzeroall;
+ 	ret_spec_stop
+@@ -3595,7 +3595,7 @@
+ 
+ ELF(.type _gcry_vaes_consts,@object)
+ _gcry_vaes_consts:
+-.align 32
++.balign 32
+ .Lbige_addb_0:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ .Lbige_addb_1:
+--- cipher/rijndael-vaes-avx2-i386.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/rijndael-vaes-avx2-i386.S	2024-07-09 18:30:46.000000000 -0600
+@@ -2727,7 +2727,7 @@
+ SECTION_RODATA
+ 
+ ELF(.type SYM_NAME(_gcry_vaes_consts),@object)
+-.align 32
++.balign 32
+ SYM_NAME(_gcry_vaes_consts):
+ .Lbige_addb_0:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+@@ -2800,5 +2800,7 @@
+ 
+ ELF(.size SYM_NAME(_gcry_vaes_consts),.-SYM_NAME(_gcry_vaes_consts))
+ 
++DECL_DATA_POINTER(SYM_NAME(_gcry_vaes_consts))
++
+ #endif /* HAVE_GCC_INLINE_ASM_VAES */
+ #endif /* __i386__ */
+--- cipher/salsa20-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/salsa20-amd64.S	2024-07-09 19:39:56.000000000 -0600
+@@ -32,7 +32,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ .globl _gcry_salsa20_amd64_keysetup
+ ELF(.type  _gcry_salsa20_amd64_keysetup,@function;)
+ _gcry_salsa20_amd64_keysetup:
+@@ -86,7 +86,7 @@
+ 	ret_spec_stop
+ 	CFI_ENDPROC();
+ 
+-.align 16
++.balign 16
+ .globl _gcry_salsa20_amd64_ivsetup
+ ELF(.type  _gcry_salsa20_amd64_ivsetup,@function;)
+ _gcry_salsa20_amd64_ivsetup:
+@@ -102,7 +102,7 @@
+ 	ret_spec_stop
+ 	CFI_ENDPROC();
+ 
+-.align 16
++.balign 16
+ .globl _gcry_salsa20_amd64_encrypt_blocks
+ ELF(.type  _gcry_salsa20_amd64_encrypt_blocks,@function;)
+ _gcry_salsa20_amd64_encrypt_blocks:
+--- cipher/serpent-avx2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/serpent-avx2-amd64.S	2024-07-09 19:40:14.000000000 -0600
+@@ -401,7 +401,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type   __serpent_enc_blk16,@function;)
+ __serpent_enc_blk16:
+ 	/* input:
+@@ -491,7 +491,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __serpent_enc_blk16,.-__serpent_enc_blk16;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   __serpent_dec_blk16,@function;)
+ __serpent_dec_blk16:
+ 	/* input:
+@@ -583,7 +583,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __serpent_dec_blk16,.-__serpent_dec_blk16;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_avx2_blk16
+ ELF(.type   _gcry_serpent_avx2_blk16,@function;)
+ _gcry_serpent_avx2_blk16:
+@@ -639,7 +639,7 @@
+ 	vpslldq $8, tmp, tmp; \
+ 	vpsubq tmp, x, x;
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_avx2_ctr_enc
+ ELF(.type   _gcry_serpent_avx2_ctr_enc,@function;)
+ _gcry_serpent_avx2_ctr_enc:
+@@ -720,7 +720,7 @@
+ 	vextracti128 $1, RTMP0, RTMP0x;
+ 	vpshufb RTMP3x, RTMP0x, RTMP0x; /* +16 */
+ 
+-.align 4
++.balign 4
+ .Lctr_carry_done:
+ 	/* store new IV */
+ 	vmovdqu RTMP0x, (%rcx);
+@@ -751,7 +751,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_avx2_ctr_enc,.-_gcry_serpent_avx2_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_avx2_cbc_dec
+ ELF(.type   _gcry_serpent_avx2_cbc_dec,@function;)
+ _gcry_serpent_avx2_cbc_dec:
+@@ -804,7 +804,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_avx2_cbc_dec,.-_gcry_serpent_avx2_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_avx2_cfb_dec
+ ELF(.type   _gcry_serpent_avx2_cfb_dec,@function;)
+ _gcry_serpent_avx2_cfb_dec:
+@@ -859,7 +859,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_avx2_cfb_dec,.-_gcry_serpent_avx2_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_avx2_ocb_enc
+ ELF(.type _gcry_serpent_avx2_ocb_enc,@function;)
+ 
+@@ -973,7 +973,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_avx2_ocb_enc,.-_gcry_serpent_avx2_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_avx2_ocb_dec
+ ELF(.type _gcry_serpent_avx2_ocb_dec,@function;)
+ 
+@@ -1097,7 +1097,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_avx2_ocb_dec,.-_gcry_serpent_avx2_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_avx2_ocb_auth
+ ELF(.type _gcry_serpent_avx2_ocb_auth,@function;)
+ 
+@@ -1206,7 +1206,7 @@
+ _serpent_avx2_consts:
+ 
+ /* For CTR-mode IV byteswap */
+-.align 16
++.balign 16
+ .Lbswap128_mask:
+ 	.byte 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+ 
+--- cipher/serpent-sse2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/serpent-sse2-amd64.S	2024-07-09 19:40:22.000000000 -0600
+@@ -423,7 +423,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type   __serpent_enc_blk8,@function;)
+ __serpent_enc_blk8:
+ 	/* input:
+@@ -513,7 +513,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __serpent_enc_blk8,.-__serpent_enc_blk8;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   __serpent_dec_blk8,@function;)
+ __serpent_dec_blk8:
+ 	/* input:
+@@ -605,7 +605,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __serpent_dec_blk8,.-__serpent_dec_blk8;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_sse2_blk8
+ ELF(.type   _gcry_serpent_sse2_blk8,@function;)
+ _gcry_serpent_sse2_blk8:
+@@ -670,7 +670,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_sse2_blk8,.-_gcry_serpent_sse2_blk8;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_sse2_ctr_enc
+ ELF(.type   _gcry_serpent_sse2_ctr_enc,@function;)
+ _gcry_serpent_sse2_ctr_enc:
+@@ -802,7 +802,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_sse2_ctr_enc,.-_gcry_serpent_sse2_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_sse2_cbc_dec
+ ELF(.type   _gcry_serpent_sse2_cbc_dec,@function;)
+ _gcry_serpent_sse2_cbc_dec:
+@@ -865,7 +865,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_sse2_cbc_dec,.-_gcry_serpent_sse2_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_sse2_cfb_dec
+ ELF(.type   _gcry_serpent_sse2_cfb_dec,@function;)
+ _gcry_serpent_sse2_cfb_dec:
+@@ -931,7 +931,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_sse2_cfb_dec,.-_gcry_serpent_sse2_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_sse2_ocb_enc
+ ELF(.type _gcry_serpent_sse2_ocb_enc,@function;)
+ 
+@@ -1045,7 +1045,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_sse2_ocb_enc,.-_gcry_serpent_sse2_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_sse2_ocb_dec
+ ELF(.type _gcry_serpent_sse2_ocb_dec,@function;)
+ 
+@@ -1169,7 +1169,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_serpent_sse2_ocb_dec,.-_gcry_serpent_sse2_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_serpent_sse2_ocb_auth
+ ELF(.type _gcry_serpent_sse2_ocb_auth,@function;)
+ 
+--- cipher/sha1-avx-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha1-avx-amd64.S	2024-07-09 19:00:41.000000000 -0600
+@@ -55,7 +55,7 @@
+ #define K2  0x6ED9EBA1
+ #define K3  0x8F1BBCDC
+ #define K4  0xCA62C1D6
+-.align 16
++.balign 16
+ .LK_XMM:
+ .LK1:	.long K1, K1, K1, K1
+ .LK2:	.long K2, K2, K2, K2
+@@ -209,7 +209,7 @@
+  */
+ .globl _gcry_sha1_transform_amd64_avx
+ ELF(.type _gcry_sha1_transform_amd64_avx,@function)
+-.align 16
++.balign 16
+ _gcry_sha1_transform_amd64_avx:
+   /* input:
+    *	%rdi: ctx, CTX
+@@ -265,7 +265,7 @@
+   W_PRECALC_00_15_2(14, W5, Wtmp0);
+   W_PRECALC_00_15_3(15, W5, Wtmp0);
+ 
+-.align 8
++.balign 8
+ .Loop:
+   addq $64, RDATA;
+ 
+@@ -373,7 +373,7 @@
+ 
+   jmp .Loop;
+ 
+-.align 16
++.balign 16
+ .Lend:
+   vzeroall;
+ 
+--- cipher/sha1-avx-bmi2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha1-avx-bmi2-amd64.S	2024-07-09 19:03:16.000000000 -0600
+@@ -53,7 +53,7 @@
+ ELF(.type _sha1_avx_bmi2_consts,@object)
+ _sha1_avx_bmi2_consts:
+ 
+-.align 16
++.balign 16
+ .Lbswap_shufb_ctl:
+ 	.long 0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f
+ 
+@@ -209,7 +209,7 @@
+  */
+ .globl _gcry_sha1_transform_amd64_avx_bmi2
+ ELF(.type _gcry_sha1_transform_amd64_avx_bmi2,@function)
+-.align 16
++.balign 16
+ _gcry_sha1_transform_amd64_avx_bmi2:
+   /* input:
+    *	%rdi: ctx, CTX
+@@ -272,7 +272,7 @@
+   W_PRECALC_00_15_2(14, W5, Wtmp0, K1);
+   W_PRECALC_00_15_3(15, W5, Wtmp0);
+ 
+-.align 8
++.balign 8
+ .Loop:
+   addq $64, RDATA;
+ 
+@@ -382,7 +382,7 @@
+ 
+   jmp .Loop;
+ 
+-.align 16
++.balign 16
+ .Lend:
+   vzeroall;
+ 
+--- cipher/sha1-avx2-bmi2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha1-avx2-bmi2-amd64.S	2024-07-09 19:01:10.000000000 -0600
+@@ -55,7 +55,7 @@
+ ELF(.type _sha1_avx2_bmi2_consts,@object)
+ _sha1_avx2_bmi2_consts:
+ 
+-.align 16
++.balign 16
+ .Lbswap_shufb_ctl:
+ 	.long 0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f
+ 
+@@ -215,7 +215,7 @@
+  */
+ .globl _gcry_sha1_transform_amd64_avx2_bmi2
+ ELF(.type _gcry_sha1_transform_amd64_avx2_bmi2,@function)
+-.align 16
++.balign 16
+ _gcry_sha1_transform_amd64_avx2_bmi2:
+   /* input:
+    *	%rdi: ctx, CTX
+@@ -290,7 +290,7 @@
+   W_PRECALC_16_31_2(30, W1, W2, W3, W4, W5, Wtmp0, Wtmp1);
+   W_PRECALC_16_31_3(31, W1, W2, W3, W4, W5, Wtmp0, Wtmp1, K2);
+ 
+-.align 8
++.balign 8
+ .Loop:
+   addq $(2 * 64), RDATA;
+ 
+@@ -499,7 +499,7 @@
+ 
+   jmp .Loop;
+ 
+-.align 16
++.balign 16
+ .Lend:
+   vzeroall;
+ 
+--- cipher/sha1-ssse3-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha1-ssse3-amd64.S	2024-07-09 19:40:38.000000000 -0600
+@@ -56,7 +56,7 @@
+ #define K2  0x6ED9EBA1
+ #define K3  0x8F1BBCDC
+ #define K4  0xCA62C1D6
+-.align 16
++.balign 16
+ .LK_XMM:
+ .LK1:	.long K1, K1, K1, K1
+ .LK2:	.long K2, K2, K2, K2
+@@ -222,7 +222,7 @@
+  */
+ .globl _gcry_sha1_transform_amd64_ssse3
+ ELF(.type _gcry_sha1_transform_amd64_ssse3,@function)
+-.align 16
++.balign 16
+ _gcry_sha1_transform_amd64_ssse3:
+   /* input:
+    *	%rdi: ctx, CTX
+@@ -276,7 +276,7 @@
+   W_PRECALC_00_15_2(14, W5, Wtmp0);
+   W_PRECALC_00_15_3(15, W5, Wtmp0);
+ 
+-.align 8
++.balign 8
+ .Loop:
+   addq $64, RDATA;
+ 
+@@ -384,7 +384,7 @@
+ 
+   jmp .Loop;
+ 
+-.align 16
++.balign 16
+ .Lend:
+   /* Transform 64-79 + Clear XMM registers + Burn stack. */
+   R( b, c, d, e, a, F4, 64 ); CLEAR_REG(BSWAP_REG);
+--- cipher/sha256-avx-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha256-avx-amd64.S	2024-07-09 19:41:19.000000000 -0600
+@@ -342,7 +342,7 @@
+ .text
+ .globl _gcry_sha256_transform_amd64_avx
+ ELF(.type  _gcry_sha256_transform_amd64_avx,@function;)
+-.align 16
++.balign 16
+ _gcry_sha256_transform_amd64_avx:
+ 	CFI_STARTPROC()
+ 	vzeroupper
+@@ -393,7 +393,7 @@
+ 
+ 	/* schedule 48 input dwords, by doing 3 rounds of 16 each */
+ 	mov	SRND, 3
+-.align 16
++.balign 16
+ .Loop1:
+ 	vpaddd	XFER, X0, [TBL + 0*16]
+ 	vmovdqa	[rsp + _XFER], XFER
+@@ -480,7 +480,7 @@
+ ELF(.type _sha256_avx_consts,@object)
+ _sha256_avx_consts:
+ 
+-.align 16
++.balign 16
+ .LK256:
+ 	.long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
+ 	.long	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5
+--- cipher/sha256-avx2-bmi2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha256-avx2-bmi2-amd64.S	2024-07-09 19:41:44.000000000 -0600
+@@ -247,7 +247,7 @@
+ .text
+ .globl _gcry_sha256_transform_amd64_avx2
+ ELF(.type _gcry_sha256_transform_amd64_avx2,@function)
+-.align 32
++.balign 32
+ _gcry_sha256_transform_amd64_avx2:
+ 	CFI_STARTPROC()
+ 	xor eax, eax
+@@ -341,7 +341,7 @@
+ 	vpaddd	XFER, X3, [TBL + 3*32]
+ 	vmovdqa [rsp + _XFER + 3*32], XFER
+ 
+-.align 16
++.balign 16
+ .Loop1:
+ 	FOUR_ROUNDS_AND_SCHED(rsp + _XFER + SRND + 0*32, SRND + 4*32, X0, X1, X2, X3, a, b, c, d, e, f, g, h)
+ 	FOUR_ROUNDS_AND_SCHED(rsp + _XFER + SRND + 1*32, SRND + 5*32, X1, X2, X3, X0, e, f, g, h, a, b, c, d)
+@@ -375,7 +375,7 @@
+ 
+ 	/* ;;; Do second block using previously scheduled results */
+ 	xor	SRND, SRND
+-.align 16
++.balign 16
+ .Loop3:
+ 	DO_4ROUNDS(rsp + _XFER + SRND + 0*32 + 16, a, b, c, d, e, f, g, h)
+ 	DO_4ROUNDS(rsp + _XFER + SRND + 1*32 + 16, e, f, g, h, a, b, c, d)
+@@ -483,7 +483,7 @@
+ ELF(.type _sha256_avx2_consts,@object)
+ _sha256_avx2_consts:
+ 
+-.align 64
++.balign 64
+ .LK256:
+ 	.long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
+ 	.long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
+--- cipher/sha256-ssse3-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha256-ssse3-amd64.S	2024-07-09 19:41:59.000000000 -0600
+@@ -349,7 +349,7 @@
+ .text
+ .globl _gcry_sha256_transform_amd64_ssse3
+ ELF(.type  _gcry_sha256_transform_amd64_ssse3,@function;)
+-.align 16
++.balign 16
+ _gcry_sha256_transform_amd64_ssse3:
+ 	CFI_STARTPROC()
+ 	push	rbx
+@@ -398,7 +398,7 @@
+ 
+ 	/* schedule 48 input dwords, by doing 3 rounds of 16 each */
+ 	mov	SRND, 3
+-.align 16
++.balign 16
+ .Loop1:
+ 	movdqa	XFER, [TBL + 0*16]
+ 	paddd	XFER, X0
+@@ -502,7 +502,7 @@
+ ELF(.type _sha256_ssse3_consts,@object)
+ _sha256_ssse3_consts:
+ 
+-.align 16
++.balign 16
+ .LK256:
+ 	.long	0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5
+ 	.long	0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5
+--- cipher/sha512-avx-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha512-avx-amd64.S	2024-07-09 19:42:21.000000000 -0600
+@@ -246,7 +246,7 @@
+ */
+ .globl _gcry_sha512_transform_amd64_avx
+ ELF(.type _gcry_sha512_transform_amd64_avx,@function;)
+-.align 16
++.balign 16
+ _gcry_sha512_transform_amd64_avx:
+ 	CFI_STARTPROC()
+ 	xor eax, eax
+@@ -413,7 +413,7 @@
+ ELF(.type _sha512_avx_consts,@object)
+ _sha512_avx_consts:
+ 
+-.align 16
++.balign 16
+ 
+ /* Mask for byte-swapping a couple of qwords in an XMM register using (v)pshufb. */
+ .LXMM_QWORD_BSWAP:
+--- cipher/sha512-avx2-bmi2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha512-avx2-bmi2-amd64.S	2024-07-09 19:42:48.000000000 -0600
+@@ -274,7 +274,7 @@
+ */
+ .globl _gcry_sha512_transform_amd64_avx2
+ ELF(.type _gcry_sha512_transform_amd64_avx2,@function;)
+-.align 16
++.balign 16
+ _gcry_sha512_transform_amd64_avx2:
+ 	CFI_STARTPROC()
+ 	xor eax, eax
+@@ -344,7 +344,7 @@
+ 	/*; schedule 64 input dwords, by doing 12 rounds of 4 each */
+ 	mov	qword ptr [rsp + frame_SRND], 4
+ 
+-.align 16
++.balign 16
+ .Loop0:
+ 	FOUR_ROUNDS_AND_SCHED(0, Y_0, Y_1, Y_2, Y_3, a, b, c, d, e, f, g, h)
+ 	FOUR_ROUNDS_AND_SCHED(1, Y_1, Y_2, Y_3, Y_0, e, f, g, h, a, b, c, d)
+@@ -450,7 +450,7 @@
+ ELF(.type _sha512_avx2_consts,@object)
+ _sha512_avx2_consts:
+ 
+-.align 64
++.balign 64
+ /* K[t] used in SHA512 hashing */
+ .LK512:
+ 	.quad	0x428a2f98d728ae22,0x7137449123ef65cd
+@@ -494,7 +494,7 @@
+ 	.quad	0x4cc5d4becb3e42b6,0x597f299cfc657e2a
+ 	.quad	0x5fcb6fab3ad6faec,0x6c44198c4a475817
+ 
+-.align 32
++.balign 32
+ 
+ /* Mask for byte-swapping a couple of qwords in an XMM register using (v)pshufb. */
+ .LPSHUFFLE_BYTE_FLIP_MASK: .octa 0x08090a0b0c0d0e0f0001020304050607
+--- cipher/sha512-avx512-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha512-avx512-amd64.S	2024-07-09 19:43:08.000000000 -0600
+@@ -256,7 +256,7 @@
+ */
+ .globl _gcry_sha512_transform_amd64_avx512
+ ELF(.type _gcry_sha512_transform_amd64_avx512,@function;)
+-.align 16
++.balign 16
+ _gcry_sha512_transform_amd64_avx512:
+ 	CFI_STARTPROC()
+ 	xor	eax, eax
+@@ -311,7 +311,7 @@
+ 	/*; schedule 64 input dwords, by doing 12 rounds of 4 each */
+ 	mov	SRND, 4
+ 
+-.align 16
++.balign 16
+ .Loop0:
+ 	FOUR_ROUNDS_AND_SCHED(0, Y_0, Y_1, Y_2, Y_3, a, b, c, d, e, f, g, h)
+ 	FOUR_ROUNDS_AND_SCHED(1, Y_1, Y_2, Y_3, Y_0, e, f, g, h, a, b, c, d)
+@@ -408,7 +408,7 @@
+ 
+ ELF(.type _gcry_sha512_avx512_consts,@object)
+ _gcry_sha512_avx512_consts:
+-.align 64
++.balign 64
+ /* K[t] used in SHA512 hashing */
+ .LK512:
+ 	.quad	0x428a2f98d728ae22,0x7137449123ef65cd
+@@ -453,11 +453,11 @@
+ 	.quad	0x5fcb6fab3ad6faec,0x6c44198c4a475817
+ 
+ /* Mask for byte-swapping a couple of qwords in an XMM register using (v)pshufb. */
+-.align 32
++.balign 32
+ .LPSHUFFLE_BYTE_FLIP_MASK:	.octa 0x08090a0b0c0d0e0f0001020304050607
+ 				.octa 0x18191a1b1c1d1e1f1011121314151617
+ 
+-.align 4
++.balign 4
+ .LPERM_VPALIGNR_8:		.byte 5, 6, 7, 0
+ ELF(.size _gcry_sha512_avx512_consts,.-_gcry_sha512_avx512_consts)
+ 
+--- cipher/sha512-ssse3-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sha512-ssse3-amd64.S	2024-07-09 19:43:19.000000000 -0600
+@@ -249,7 +249,7 @@
+ */
+ .globl _gcry_sha512_transform_amd64_ssse3
+ ELF(.type _gcry_sha512_transform_amd64_ssse3,@function;)
+-.align 16
++.balign 16
+ _gcry_sha512_transform_amd64_ssse3:
+ 	CFI_STARTPROC()
+ 	xor eax, eax
+@@ -419,7 +419,7 @@
+ ELF(.type _sha512_ssse3_consts,@object)
+ _sha512_ssse3_consts:
+ 
+-.align 16
++.balign 16
+ 
+ /* Mask for byte-swapping a couple of qwords in an XMM register using (v)pshufb. */
+ .LXMM_QWORD_BSWAP:
+--- cipher/sm3-avx-bmi2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sm3-avx-bmi2-amd64.S	2024-07-09 19:43:37.000000000 -0600
+@@ -42,7 +42,7 @@
+ /* Constants */
+ 
+ SECTION_RODATA
+-.align 16
++.balign 16
+ ELF(.type _gcry_sm3_avx2_consts,@object)
+ _gcry_sm3_avx2_consts:
+ .Lbe32mask:
+@@ -345,7 +345,7 @@
+  */
+ .globl _gcry_sm3_transform_amd64_avx_bmi2
+ ELF(.type _gcry_sm3_transform_amd64_avx_bmi2,@function)
+-.align 16
++.balign 16
+ _gcry_sm3_transform_amd64_avx_bmi2:
+   /* input:
+    *	%rdi: ctx, CTX
+@@ -389,7 +389,7 @@
+   movl state_h6(RSTATE), g;
+   movl state_h7(RSTATE), h;
+ 
+-.align 16
++.balign 16
+ .Loop:
+   /* Load data part1. */
+   LOAD_W_XMM_1();
+--- cipher/sm4-aesni-avx-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sm4-aesni-avx-amd64.S	2024-07-09 19:43:57.000000000 -0600
+@@ -98,7 +98,7 @@
+  **********************************************************************/
+ 
+ SECTION_RODATA
+-.align 16
++.balign 16
+ 
+ ELF(.type _sm4_aesni_avx_consts,@object)
+ _sm4_aesni_avx_consts:
+@@ -182,14 +182,14 @@
+ .Lbige_addb_15:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15
+ 
+-.align 4
++.balign 4
+ /* 4-bit mask */
+ .L0f0f0f0f:
+ 	.long 0x0f0f0f0f
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx_expand_key
+ ELF(.type   _gcry_sm4_aesni_avx_expand_key,@function;)
+ _gcry_sm4_aesni_avx_expand_key:
+@@ -254,7 +254,7 @@
+ 
+ 	leaq (32*4)(%r8), %rax;
+ 	leaq (32*4)(%rdx), %rdx;
+-.align 16
++.balign 16
+ .Lroundloop_expand_key:
+ 	leaq (-4*4)(%rdx), %rdx;
+ 	ROUND(0, RA0, RA1, RA2, RA3);
+@@ -281,7 +281,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx_expand_key,.-_gcry_sm4_aesni_avx_expand_key;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   sm4_aesni_avx_crypt_blk1_4,@function;)
+ sm4_aesni_avx_crypt_blk1_4:
+ 	/* input:
+@@ -349,7 +349,7 @@
+ 	vpxor RTMP1, s0, s0; /* s0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk4:
+ 	ROUND(0, RA0, RA1, RA2, RA3);
+ 	ROUND(1, RA1, RA2, RA3, RA0);
+@@ -386,7 +386,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size sm4_aesni_avx_crypt_blk1_4,.-sm4_aesni_avx_crypt_blk1_4;)
+ 
+-.align 16
++.balign 16
+ ELF(.type __sm4_crypt_blk8,@function;)
+ __sm4_crypt_blk8:
+ 	/* input:
+@@ -466,7 +466,7 @@
+ 	    vpxor RTMP3, r0, r0; /* r0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk8:
+ 	ROUND(0, RA0, RA1, RA2, RA3, RB0, RB1, RB2, RB3);
+ 	ROUND(1, RA1, RA2, RA3, RA0, RB1, RB2, RB3, RB0);
+@@ -495,7 +495,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __sm4_crypt_blk8,.-__sm4_crypt_blk8;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx_crypt_blk1_8
+ ELF(.type   _gcry_sm4_aesni_avx_crypt_blk1_8,@function;)
+ _gcry_sm4_aesni_avx_crypt_blk1_8:
+@@ -549,7 +549,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx_crypt_blk1_8,.-_gcry_sm4_aesni_avx_crypt_blk1_8;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx_ctr_enc
+ ELF(.type   _gcry_sm4_aesni_avx_ctr_enc,@function;)
+ _gcry_sm4_aesni_avx_ctr_enc:
+@@ -600,7 +600,7 @@
+ 	/* store new IV */
+ 	vmovdqu RTMP1, (%rcx);
+ 
+-.align 8
++.balign 8
+ .Lload_ctr_done:
+ 	call __sm4_crypt_blk8;
+ 
+@@ -625,7 +625,7 @@
+ 	vzeroall;
+ 
+ 	ret_spec_stop;
+-	.align 8
++	.balign 8
+ 
+ .Lctr_byteadd_full_ctr_carry:
+ 	movq 8(%rcx), %r11;
+@@ -639,7 +639,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 	jmp .Lctr_byteadd_xmm;
+-.align 8
++.balign 8
+ .Lctr_byteadd:
+ 	vmovdqu (%rcx), RA0;
+ 	je .Lctr_byteadd_full_ctr_carry;
+@@ -657,7 +657,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx_ctr_enc,.-_gcry_sm4_aesni_avx_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx_cbc_dec
+ ELF(.type   _gcry_sm4_aesni_avx_cbc_dec,@function;)
+ _gcry_sm4_aesni_avx_cbc_dec:
+@@ -706,7 +706,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx_cbc_dec,.-_gcry_sm4_aesni_avx_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx_cfb_dec
+ ELF(.type   _gcry_sm4_aesni_avx_cfb_dec,@function;)
+ _gcry_sm4_aesni_avx_cfb_dec:
+@@ -758,7 +758,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx_cfb_dec,.-_gcry_sm4_aesni_avx_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx_ocb_enc
+ ELF(.type _gcry_sm4_aesni_avx_ocb_enc,@function;)
+ 
+@@ -857,7 +857,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx_ocb_enc,.-_gcry_sm4_aesni_avx_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx_ocb_dec
+ ELF(.type _gcry_sm4_aesni_avx_ocb_dec,@function;)
+ 
+@@ -966,7 +966,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx_ocb_dec,.-_gcry_sm4_aesni_avx_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx_ocb_auth
+ ELF(.type _gcry_sm4_aesni_avx_ocb_auth,@function;)
+ 
+--- cipher/sm4-aesni-avx2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sm4-aesni-avx2-amd64.S	2024-07-09 19:44:03.000000000 -0600
+@@ -119,7 +119,7 @@
+  **********************************************************************/
+ 
+ SECTION_RODATA
+-.align 16
++.balign 16
+ 
+ ELF(.type _sm4_aesni_avx2_consts,@object)
+ _sm4_aesni_avx2_consts:
+@@ -172,7 +172,7 @@
+ 	.byte 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12
+ 
+ /* CTR byte addition constants */
+-.align 32
++.balign 32
+ .Lbige_addb_0_1:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+@@ -198,14 +198,14 @@
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15
+ 
+-.align 4
++.balign 4
+ /* 4-bit mask */
+ .L0f0f0f0f:
+ 	.long 0x0f0f0f0f
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ ELF(.type   __sm4_crypt_blk16,@function;)
+ __sm4_crypt_blk16:
+ 	/* input:
+@@ -291,7 +291,7 @@
+ 	    vpxor RTMP3, r0, r0; /* r0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk16:
+ 	ROUND(0, RA0, RA1, RA2, RA3, RB0, RB1, RB2, RB3);
+ 	ROUND(1, RA1, RA2, RA3, RA0, RB1, RB2, RB3, RB0);
+@@ -320,7 +320,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __sm4_crypt_blk16,.-__sm4_crypt_blk16;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx2_crypt_blk1_16
+ ELF(.type   _gcry_sm4_aesni_avx2_crypt_blk1_16,@function;)
+ _gcry_sm4_aesni_avx2_crypt_blk1_16:
+@@ -386,7 +386,7 @@
+ 	vpslldq $8, tmp, tmp; \
+ 	vpsubq tmp, x, x;
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx2_ctr_enc
+ ELF(.type   _gcry_sm4_aesni_avx2_ctr_enc,@function;)
+ _gcry_sm4_aesni_avx2_ctr_enc:
+@@ -472,7 +472,7 @@
+ 	/* store new IV */
+ 	vmovdqu RTMP0x, (%rcx);
+ 
+-.align 8
++.balign 8
+ .Lload_ctr_done:
+ 	call __sm4_crypt_blk16;
+ 
+@@ -498,7 +498,7 @@
+ 
+ 	ret_spec_stop;
+ 
+-.align 8
++.balign 8
+ .Lctr_byteadd_full_ctr_carry:
+ 	movq 8(%rcx), %r11;
+ 	movq (%rcx), %r10;
+@@ -511,7 +511,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 	jmp .Lctr_byteadd_ymm;
+-.align 8
++.balign 8
+ .Lctr_byteadd:
+ 	vbroadcasti128 (%rcx), RB3;
+ 	je .Lctr_byteadd_full_ctr_carry;
+@@ -530,7 +530,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx2_ctr_enc,.-_gcry_sm4_aesni_avx2_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx2_cbc_dec
+ ELF(.type   _gcry_sm4_aesni_avx2_cbc_dec,@function;)
+ _gcry_sm4_aesni_avx2_cbc_dec:
+@@ -581,7 +581,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx2_cbc_dec,.-_gcry_sm4_aesni_avx2_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx2_cfb_dec
+ ELF(.type   _gcry_sm4_aesni_avx2_cfb_dec,@function;)
+ _gcry_sm4_aesni_avx2_cfb_dec:
+@@ -634,7 +634,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx2_cfb_dec,.-_gcry_sm4_aesni_avx2_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx2_ocb_enc
+ ELF(.type _gcry_sm4_aesni_avx2_ocb_enc,@function;)
+ 
+@@ -746,7 +746,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx2_ocb_enc,.-_gcry_sm4_aesni_avx2_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx2_ocb_dec
+ ELF(.type _gcry_sm4_aesni_avx2_ocb_dec,@function;)
+ 
+@@ -868,7 +868,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_aesni_avx2_ocb_dec,.-_gcry_sm4_aesni_avx2_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_aesni_avx2_ocb_auth
+ ELF(.type _gcry_sm4_aesni_avx2_ocb_auth,@function;)
+ 
+--- cipher/sm4-gfni-avx2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sm4-gfni-avx2-amd64.S	2024-07-09 19:44:20.000000000 -0600
+@@ -88,7 +88,7 @@
+ #define RB3x         %xmm15
+ 
+ SECTION_RODATA
+-.align 32
++.balign 32
+ 
+ ELF(.type _sm4_gfni_avx2_consts,@object)
+ _sm4_gfni_avx2_consts:
+@@ -137,7 +137,7 @@
+ 	.byte 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12
+ 
+ /* CTR byte addition constants */
+-.align 32
++.balign 32
+ .Lbige_addb_0_1:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+@@ -165,7 +165,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx2_expand_key
+ ELF(.type   _gcry_sm4_gfni_avx2_expand_key,@function;)
+ _gcry_sm4_gfni_avx2_expand_key:
+@@ -221,7 +221,7 @@
+ 
+ 	leaq (32*4)(%r8), %rax;
+ 	leaq (32*4)(%rdx), %rdx;
+-.align 16
++.balign 16
+ .Lroundloop_expand_key:
+ 	leaq (-4*4)(%rdx), %rdx;
+ 	ROUND(0, RA0x, RA1x, RA2x, RA3x);
+@@ -248,7 +248,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx2_expand_key,.-_gcry_sm4_gfni_avx2_expand_key;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   sm4_gfni_avx2_crypt_blk1_4,@function;)
+ sm4_gfni_avx2_crypt_blk1_4:
+ 	/* input:
+@@ -309,7 +309,7 @@
+ 	vpxor RTMP1x, s0, s0; /* s0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk4:
+ 	ROUND(0, RA0x, RA1x, RA2x, RA3x);
+ 	ROUND(1, RA1x, RA2x, RA3x, RA0x);
+@@ -346,7 +346,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size sm4_gfni_avx2_crypt_blk1_4,.-sm4_gfni_avx2_crypt_blk1_4;)
+ 
+-.align 16
++.balign 16
+ ELF(.type __sm4_gfni_crypt_blk8,@function;)
+ __sm4_gfni_crypt_blk8:
+ 	/* input:
+@@ -418,7 +418,7 @@
+ 	    vpxor RTMP3x, r0, r0; /* r0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk8:
+ 	ROUND(0, RA0x, RA1x, RA2x, RA3x, RB0x, RB1x, RB2x, RB3x);
+ 	ROUND(1, RA1x, RA2x, RA3x, RA0x, RB1x, RB2x, RB3x, RB0x);
+@@ -447,7 +447,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __sm4_gfni_crypt_blk8,.-__sm4_gfni_crypt_blk8;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   _gcry_sm4_gfni_avx2_crypt_blk1_8,@function;)
+ _gcry_sm4_gfni_avx2_crypt_blk1_8:
+ 	/* input:
+@@ -504,7 +504,7 @@
+   16-way SM4 with GFNI and AVX2
+  **********************************************************************/
+ 
+-.align 16
++.balign 16
+ ELF(.type   __sm4_gfni_crypt_blk16,@function;)
+ __sm4_gfni_crypt_blk16:
+ 	/* input:
+@@ -576,7 +576,7 @@
+ 	    vpxor RTMP3, r0, r0; /* r0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk16:
+ 	ROUND(0, RA0, RA1, RA2, RA3, RB0, RB1, RB2, RB3);
+ 	ROUND(1, RA1, RA2, RA3, RA0, RB1, RB2, RB3, RB0);
+@@ -605,7 +605,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __sm4_gfni_crypt_blk16,.-__sm4_gfni_crypt_blk16;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx2_crypt_blk1_16
+ ELF(.type   _gcry_sm4_gfni_avx2_crypt_blk1_16,@function;)
+ _gcry_sm4_gfni_avx2_crypt_blk1_16:
+@@ -673,7 +673,7 @@
+ 	vpslldq $8, tmp, tmp; \
+ 	vpsubq tmp, x, x;
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx2_ctr_enc
+ ELF(.type   _gcry_sm4_gfni_avx2_ctr_enc,@function;)
+ _gcry_sm4_gfni_avx2_ctr_enc:
+@@ -759,7 +759,7 @@
+ 	/* store new IV */
+ 	vmovdqu RTMP0x, (%rcx);
+ 
+-.align 8
++.balign 8
+ .Lload_ctr_done:
+ 	call __sm4_gfni_crypt_blk16;
+ 
+@@ -785,7 +785,7 @@
+ 
+ 	ret_spec_stop;
+ 
+-.align 8
++.balign 8
+ .Lctr_byteadd_full_ctr_carry:
+ 	movq 8(%rcx), %r11;
+ 	movq (%rcx), %r10;
+@@ -798,7 +798,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 	jmp .Lctr_byteadd_ymm;
+-.align 8
++.balign 8
+ .Lctr_byteadd:
+ 	vbroadcasti128 (%rcx), RB3;
+ 	je .Lctr_byteadd_full_ctr_carry;
+@@ -817,7 +817,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx2_ctr_enc,.-_gcry_sm4_gfni_avx2_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx2_cbc_dec
+ ELF(.type   _gcry_sm4_gfni_avx2_cbc_dec,@function;)
+ _gcry_sm4_gfni_avx2_cbc_dec:
+@@ -868,7 +868,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx2_cbc_dec,.-_gcry_sm4_gfni_avx2_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx2_cfb_dec
+ ELF(.type   _gcry_sm4_gfni_avx2_cfb_dec,@function;)
+ _gcry_sm4_gfni_avx2_cfb_dec:
+@@ -921,7 +921,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx2_cfb_dec,.-_gcry_sm4_gfni_avx2_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx2_ocb_enc
+ ELF(.type _gcry_sm4_gfni_avx2_ocb_enc,@function;)
+ 
+@@ -1033,7 +1033,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx2_ocb_enc,.-_gcry_sm4_gfni_avx2_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx2_ocb_dec
+ ELF(.type _gcry_sm4_gfni_avx2_ocb_dec,@function;)
+ 
+@@ -1155,7 +1155,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx2_ocb_dec,.-_gcry_sm4_gfni_avx2_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx2_ocb_auth
+ ELF(.type _gcry_sm4_gfni_avx2_ocb_auth,@function;)
+ 
+--- cipher/sm4-gfni-avx512-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/sm4-gfni-avx512-amd64.S	2024-07-09 19:44:28.000000000 -0600
+@@ -104,7 +104,7 @@
+ #define RB3z         %zmm15
+ 
+ SECTION_RODATA
+-.align 32
++.balign 32
+ 
+ /* Affine transform, SM4 field to AES field */
+ .Lpre_affine_s:
+@@ -139,7 +139,7 @@
+ .Lcounter1111_hi:
+ 	.quad 0, 1
+ 
+-.align 64
++.balign 64
+ .Lcounter0123_lo:
+ 	.quad 0, 0
+ 	.quad 1, 0
+@@ -147,7 +147,7 @@
+ 	.quad 3, 0
+ 
+ /* CTR byte addition constants */
+-.align 64
++.balign 64
+ .Lbige_addb_0_1:
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ 	.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+@@ -177,7 +177,7 @@
+ 
+ .text
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_expand_key
+ ELF(.type   _gcry_sm4_gfni_avx512_expand_key,@function;)
+ _gcry_sm4_gfni_avx512_expand_key:
+@@ -227,7 +227,7 @@
+ 
+ 	leaq (32*4)(%r8), %rax;
+ 	leaq (32*4)(%rdx), %rdx;
+-.align 16
++.balign 16
+ .Lroundloop_expand_key:
+ 	leaq (-4*4)(%rdx), %rdx;
+ 	ROUND(0, RA0x, RA1x, RA2x, RA3x);
+@@ -254,7 +254,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_expand_key,.-_gcry_sm4_gfni_avx512_expand_key;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   sm4_gfni_avx512_crypt_blk1_4,@function;)
+ sm4_gfni_avx512_crypt_blk1_4:
+ 	/* input:
+@@ -306,7 +306,7 @@
+ 	vpxor RX0x, s0, s0; /* s0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk4:
+ 	ROUND(0, RA0x, RA1x, RA2x, RA3x);
+ 	ROUND(1, RA1x, RA2x, RA3x, RA0x);
+@@ -343,7 +343,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size sm4_gfni_avx512_crypt_blk1_4,.-sm4_gfni_avx512_crypt_blk1_4;)
+ 
+-.align 16
++.balign 16
+ ELF(.type __sm4_gfni_crypt_blk8,@function;)
+ __sm4_gfni_crypt_blk8:
+ 	/* input:
+@@ -401,7 +401,7 @@
+ 	    vpxor RX1x, r0, r0; /* r0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk8:
+ 	ROUND(0, RA0x, RA1x, RA2x, RA3x, RB0x, RB1x, RB2x, RB3x);
+ 	ROUND(1, RA1x, RA2x, RA3x, RA0x, RB1x, RB2x, RB3x, RB0x);
+@@ -430,7 +430,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __sm4_gfni_crypt_blk8,.-__sm4_gfni_crypt_blk8;)
+ 
+-.align 16
++.balign 16
+ ELF(.type   _gcry_sm4_gfni_avx512_crypt_blk1_8,@function;)
+ _gcry_sm4_gfni_avx512_crypt_blk1_8:
+ 	/* input:
+@@ -487,7 +487,7 @@
+   16-way SM4 with GFNI and AVX512 (256-bit vectors)
+  **********************************************************************/
+ 
+-.align 16
++.balign 16
+ ELF(.type   __sm4_gfni_crypt_blk16,@function;)
+ __sm4_gfni_crypt_blk16:
+ 	/* input:
+@@ -545,7 +545,7 @@
+ 	    vpxor RX1, r0, r0; /* r0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk16:
+ 	ROUND(0, RA0, RA1, RA2, RA3, RB0, RB1, RB2, RB3);
+ 	ROUND(1, RA1, RA2, RA3, RA0, RB1, RB2, RB3, RB0);
+@@ -574,7 +574,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __sm4_gfni_crypt_blk16,.-__sm4_gfni_crypt_blk16;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_crypt_blk1_16
+ ELF(.type   _gcry_sm4_gfni_avx512_crypt_blk1_16,@function;)
+ _gcry_sm4_gfni_avx512_crypt_blk1_16:
+@@ -643,7 +643,7 @@
+ 	kaddb %k1, %k1, %k1; \
+ 	vpaddq hi_counter1, out, out{%k1};
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_ctr_enc
+ ELF(.type   _gcry_sm4_gfni_avx512_ctr_enc,@function;)
+ _gcry_sm4_gfni_avx512_ctr_enc:
+@@ -715,7 +715,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 
+-.align 16
++.balign 16
+ .Lctr_carry_done_blk16:
+ 	/* Byte-swap IVs. */
+ 	vpshufb RTMP0, RA0, RA0;
+@@ -727,7 +727,7 @@
+ 	vpshufb RTMP0, RB2, RB2;
+ 	vpshufb RTMP0, RB3, RB3;
+ 
+-.align 16
++.balign 16
+ .Lload_ctr_done16:
+ 	call __sm4_gfni_crypt_blk16;
+ 
+@@ -754,7 +754,7 @@
+ 
+ 	ret_spec_stop;
+ 
+-.align 16
++.balign 16
+ .Lctr_byteadd_full_ctr_carry16:
+ 	movq 8(%rcx), %r11;
+ 	movq (%rcx), %r10;
+@@ -767,7 +767,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 	jmp .Lctr_byteadd_ymm16;
+-.align 16
++.balign 16
+ .Lctr_byteadd16:
+ 	vbroadcasti128 (%rcx), RB3;
+ 	je .Lctr_byteadd_full_ctr_carry16;
+@@ -786,7 +786,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_ctr_enc,.-_gcry_sm4_gfni_avx512_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_cbc_dec
+ ELF(.type   _gcry_sm4_gfni_avx512_cbc_dec,@function;)
+ _gcry_sm4_gfni_avx512_cbc_dec:
+@@ -838,7 +838,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_cbc_dec,.-_gcry_sm4_gfni_avx512_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_cfb_dec
+ ELF(.type   _gcry_sm4_gfni_avx512_cfb_dec,@function;)
+ _gcry_sm4_gfni_avx512_cfb_dec:
+@@ -892,7 +892,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_cfb_dec,.-_gcry_sm4_gfni_avx512_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_ocb_enc
+ ELF(.type _gcry_sm4_gfni_avx512_ocb_enc,@function;)
+ 
+@@ -1008,7 +1008,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_ocb_enc,.-_gcry_sm4_gfni_avx512_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_ocb_dec
+ ELF(.type _gcry_sm4_gfni_avx512_ocb_dec,@function;)
+ 
+@@ -1126,7 +1126,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_ocb_dec,.-_gcry_sm4_gfni_avx512_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_ocb_auth
+ ELF(.type _gcry_sm4_gfni_avx512_ocb_auth,@function;)
+ 
+@@ -1226,7 +1226,7 @@
+   32-way SM4 with GFNI and AVX512 (512-bit vectors)
+  **********************************************************************/
+ 
+-.align 16
++.balign 16
+ ELF(.type   __sm4_gfni_crypt_blk32,@function;)
+ __sm4_gfni_crypt_blk32:
+ 	/* input:
+@@ -1283,7 +1283,7 @@
+ 	    vpxord RX1z, r0, r0; /* r0 ^ x ^ rol(x,2) ^ rol(x,10) ^ rol(x,18) ^ rol(x,24) */
+ 
+ 	leaq (32*4)(%rdi), %rax;
+-.align 16
++.balign 16
+ .Lroundloop_blk32:
+ 	ROUND(0, RA0z, RA1z, RA2z, RA3z, RB0z, RB1z, RB2z, RB3z);
+ 	ROUND(1, RA1z, RA2z, RA3z, RA0z, RB1z, RB2z, RB3z, RB0z);
+@@ -1315,7 +1315,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __sm4_gfni_crypt_blk32,.-__sm4_gfni_crypt_blk32;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_crypt_blk32
+ ELF(.type   _gcry_sm4_gfni_avx512_crypt_blk32,@function;)
+ _gcry_sm4_gfni_avx512_crypt_blk32:
+@@ -1355,7 +1355,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_crypt_blk32,.-_gcry_sm4_gfni_avx512_crypt_blk32;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_ctr_enc_blk32
+ ELF(.type   _gcry_sm4_gfni_avx512_ctr_enc_blk32,@function;)
+ _gcry_sm4_gfni_avx512_ctr_enc_blk32:
+@@ -1427,7 +1427,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 
+-.align 16
++.balign 16
+ .Lctr_carry_done_blk32:
+ 	/* Byte-swap IVs. */
+ 	vpshufb RTMP0z, RA0z, RA0z;
+@@ -1439,7 +1439,7 @@
+ 	vpshufb RTMP0z, RB2z, RB2z;
+ 	vpshufb RTMP0z, RB3z, RB3z;
+ 
+-.align 16
++.balign 16
+ .Lload_ctr_done32:
+ 	call __sm4_gfni_crypt_blk32;
+ 
+@@ -1466,7 +1466,7 @@
+ 
+ 	ret_spec_stop;
+ 
+-.align 16
++.balign 16
+ .Lctr_byteadd_full_ctr_carry32:
+ 	movq 8(%rcx), %r11;
+ 	movq (%rcx), %r10;
+@@ -1479,7 +1479,7 @@
+ 	movq %r11, 8(%rcx);
+ 	movq %r10, (%rcx);
+ 	jmp .Lctr_byteadd_zmm32;
+-.align 16
++.balign 16
+ .Lctr_byteadd32:
+ 	vbroadcasti64x2 (%rcx), RA3z;
+ 	je .Lctr_byteadd_full_ctr_carry32;
+@@ -1500,7 +1500,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_ctr_enc_blk32,.-_gcry_sm4_gfni_avx512_ctr_enc_blk32;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_cbc_dec_blk32
+ ELF(.type   _gcry_sm4_gfni_avx512_cbc_dec_blk32,@function;)
+ _gcry_sm4_gfni_avx512_cbc_dec_blk32:
+@@ -1553,7 +1553,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_cbc_dec_blk32,.-_gcry_sm4_gfni_avx512_cbc_dec_blk32;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_cfb_dec_blk32
+ ELF(.type   _gcry_sm4_gfni_avx512_cfb_dec_blk32,@function;)
+ _gcry_sm4_gfni_avx512_cfb_dec_blk32:
+@@ -1608,7 +1608,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_cfb_dec_blk32,.-_gcry_sm4_gfni_avx512_cfb_dec_blk32;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_ocb_enc_blk32
+ ELF(.type _gcry_sm4_gfni_avx512_ocb_enc_blk32,@function;)
+ _gcry_sm4_gfni_avx512_ocb_enc_blk32:
+@@ -1732,7 +1732,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_sm4_gfni_avx512_ocb_enc_blk32,.-_gcry_sm4_gfni_avx512_ocb_enc_blk32;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_sm4_gfni_avx512_ocb_dec_blk32
+ ELF(.type _gcry_sm4_gfni_avx512_ocb_dec_blk32,@function;)
+ _gcry_sm4_gfni_avx512_ocb_dec_blk32:
+--- cipher/twofish-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/twofish-amd64.S	2024-07-09 19:44:39.000000000 -0600
+@@ -161,7 +161,7 @@
+ 	xorl (w + 4 * (m))(CTX), x; \
+ 	movl x, (4 * (n))(out);
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_encrypt_block
+ ELF(.type   _gcry_twofish_amd64_encrypt_block,@function;)
+ 
+@@ -215,7 +215,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_amd64_encrypt_block,.-_gcry_twofish_amd64_encrypt_block;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_decrypt_block
+ ELF(.type   _gcry_twofish_amd64_decrypt_block,@function;)
+ 
+@@ -486,7 +486,7 @@
+ 	rorq $32,			RAB2; \
+ 	outunpack3(RAB, 2);
+ 
+-.align 16
++.balign 16
+ ELF(.type __twofish_enc_blk3,@function;)
+ 
+ __twofish_enc_blk3:
+@@ -515,7 +515,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __twofish_enc_blk3,.-__twofish_enc_blk3;)
+ 
+-.align 16
++.balign 16
+ ELF(.type  __twofish_dec_blk3,@function;)
+ 
+ __twofish_dec_blk3:
+@@ -544,7 +544,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __twofish_dec_blk3,.-__twofish_dec_blk3;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_blk3
+ ELF(.type   _gcry_twofish_amd64_blk3,@function;)
+ _gcry_twofish_amd64_blk3:
+@@ -618,7 +618,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_amd64_blk3,.-_gcry_twofish_amd64_blk3;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_ctr_enc
+ ELF(.type   _gcry_twofish_amd64_ctr_enc,@function;)
+ _gcry_twofish_amd64_ctr_enc:
+@@ -719,7 +719,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_amd64_ctr_enc,.-_gcry_twofish_amd64_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_cbc_dec
+ ELF(.type   _gcry_twofish_amd64_cbc_dec,@function;)
+ _gcry_twofish_amd64_cbc_dec:
+@@ -804,7 +804,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_amd64_cbc_dec,.-_gcry_twofish_amd64_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_cfb_dec
+ ELF(.type   _gcry_twofish_amd64_cfb_dec,@function;)
+ _gcry_twofish_amd64_cfb_dec:
+@@ -889,7 +889,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_amd64_cfb_dec,.-_gcry_twofish_amd64_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_ocb_enc
+ ELF(.type   _gcry_twofish_amd64_ocb_enc,@function;)
+ _gcry_twofish_amd64_ocb_enc:
+@@ -1015,7 +1015,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_amd64_ocb_enc,.-_gcry_twofish_amd64_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_ocb_dec
+ ELF(.type   _gcry_twofish_amd64_ocb_dec,@function;)
+ _gcry_twofish_amd64_ocb_dec:
+@@ -1149,7 +1149,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_amd64_ocb_dec,.-_gcry_twofish_amd64_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_amd64_ocb_auth
+ ELF(.type   _gcry_twofish_amd64_ocb_auth,@function;)
+ _gcry_twofish_amd64_ocb_auth:
+--- cipher/twofish-avx2-amd64.S~	2024-03-28 04:07:27.000000000 -0600
++++ cipher/twofish-avx2-amd64.S	2024-07-09 19:44:50.000000000 -0600
+@@ -362,7 +362,7 @@
+ 	outunpack_dec8(a ## 0, b ## 0, c ## 0, d ## 0); \
+ 	outunpack_dec8(a ## 1, b ## 1, c ## 1, d ## 1);
+ 
+-.align 16
++.balign 16
+ ELF(.type __twofish_enc_blk16,@function;)
+ __twofish_enc_blk16:
+ 	/* input:
+@@ -402,7 +402,7 @@
+ 
+ 	encrypt_round_first16(RA, RB, RC, RD, 0, RROUND);
+ 
+-.align 16
++.balign 16
+ .Loop_enc16:
+ 	encrypt_round16(RC, RD, RA, RB, 8, RROUND);
+ 	encrypt_round16(RA, RB, RC, RD, 16, RROUND);
+@@ -435,7 +435,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __twofish_enc_blk16,.-__twofish_enc_blk16;)
+ 
+-.align 16
++.balign 16
+ ELF(.type __twofish_dec_blk16,@function;)
+ __twofish_dec_blk16:
+ 	/* input:
+@@ -475,7 +475,7 @@
+ 
+ 	decrypt_round_first16(RC, RD, RA, RB, 8, RROUND);
+ 
+-.align 16
++.balign 16
+ .Loop_dec16:
+ 	decrypt_round16(RA, RB, RC, RD, 0, RROUND);
+ 	decrypt_round16(RC, RD, RA, RB, -8, RROUND);
+@@ -507,7 +507,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size __twofish_dec_blk16,.-__twofish_dec_blk16;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_avx2_blk16
+ ELF(.type   _gcry_twofish_avx2_blk16,@function;)
+ _gcry_twofish_avx2_blk16:
+@@ -559,7 +559,7 @@
+ 	vpslldq $8, tmp, tmp; \
+ 	vpsubq tmp, x, x;
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_avx2_ctr_enc
+ ELF(.type   _gcry_twofish_avx2_ctr_enc,@function;)
+ _gcry_twofish_avx2_ctr_enc:
+@@ -640,7 +640,7 @@
+ 	vextracti128 $1, RTMP0, RTMP0x;
+ 	vpshufb RTMP3x, RTMP0x, RTMP0x; /* +16 */
+ 
+-.align 4
++.balign 4
+ .Lctr_carry_done:
+ 	/* store new IV */
+ 	vmovdqu RTMP0x, (%rcx);
+@@ -671,7 +671,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_avx2_ctr_enc,.-_gcry_twofish_avx2_ctr_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_avx2_cbc_dec
+ ELF(.type   _gcry_twofish_avx2_cbc_dec,@function;)
+ _gcry_twofish_avx2_cbc_dec:
+@@ -724,7 +724,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_avx2_cbc_dec,.-_gcry_twofish_avx2_cbc_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_avx2_cfb_dec
+ ELF(.type   _gcry_twofish_avx2_cfb_dec,@function;)
+ _gcry_twofish_avx2_cfb_dec:
+@@ -779,7 +779,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_avx2_cfb_dec,.-_gcry_twofish_avx2_cfb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_avx2_ocb_enc
+ ELF(.type _gcry_twofish_avx2_ocb_enc,@function;)
+ 
+@@ -893,7 +893,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_avx2_ocb_enc,.-_gcry_twofish_avx2_ocb_enc;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_avx2_ocb_dec
+ ELF(.type _gcry_twofish_avx2_ocb_dec,@function;)
+ 
+@@ -1018,7 +1018,7 @@
+ 	CFI_ENDPROC();
+ ELF(.size _gcry_twofish_avx2_ocb_dec,.-_gcry_twofish_avx2_ocb_dec;)
+ 
+-.align 16
++.balign 16
+ .globl _gcry_twofish_avx2_ocb_auth
+ ELF(.type _gcry_twofish_avx2_ocb_auth,@function;)
+ 
+@@ -1123,7 +1123,7 @@
+ 
+ SECTION_RODATA
+ 
+-.align 16
++.balign 16
+ 
+ /* For CTR-mode IV byteswap */
+ ELF(.type _gcry_twofish_bswap128_mask,@object)
+--- cipher/whirlpool-sse2-amd64.S~	2022-01-25 14:55:44.000000000 -0700
++++ cipher/whirlpool-sse2-amd64.S	2024-07-09 19:45:02.000000000 -0600
+@@ -152,7 +152,7 @@
+ #define RB_ADD6 RB6, RB7, RB0, RB1, RB2, RB3, RB4, RB5
+ #define RB_ADD7 RB7, RB0, RB1, RB2, RB3, RB4, RB5, RB6
+ 
+-.align 8
++.balign 8
+ .globl _gcry_whirlpool_transform_amd64
+ ELF(.type  _gcry_whirlpool_transform_amd64,@function;)
+ 
+@@ -190,7 +190,7 @@
+ 
+ 	jmp .Lfirst_block;
+ 
+-.align 8
++.balign 8
+ .Lblock_loop:
+ 	movq STACK_DATAP(%rsp), %rsi;
+ 	movq RI1, %rdi;
+@@ -258,7 +258,7 @@
+ 
+ 	addq $64, STACK_DATAP(%rsp);
+ 	movl $(0), STACK_ROUNDS(%rsp);
+-.align 8
++.balign 8
+ .Lround_loop:
+ 	do_whirl(mov, RI1 /*XKEY0*/, RB_ADD0, do_movq, XKEY4);
+ 	do_whirl(xor, RI2 /*XKEY1*/, RB_ADD1, do_movq, XKEY5);
+@@ -303,7 +303,7 @@
+ 	movq RB7, XSTATE7;
+ 
+ 	jmp .Lround_loop;
+-.align 8
++.balign 8
+ .Lis_last_round:
+ 	do_whirl(xor, RI1 /*XSTATE4*/, RB_ADD4, dummy, _);
+ 	movq STACK_STATEP(%rsp), RI1;

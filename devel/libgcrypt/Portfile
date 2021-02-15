@@ -31,7 +31,8 @@ checksums       rmd160  6f9bd06fa04fdcb397a349a4ecdc6fcc25ac1bb5 \
 
 depends_lib     port:libgpg-error
 
-configure.args  --disable-asm
+patchfiles-append \
+                patch-darwin-asm-fixes.diff
 
 # libgcrypt detects GNU grep in $prefix/bin/ggrep when it is installed and uses
 # it in its libgcrypt-config file; If GNU grep is later uninstalled, building
@@ -56,6 +57,7 @@ if {${build_arch} eq "i386" || ([variant_isset universal] && [lsearch ${configur
         compiler.blacklist-append gcc-4.0
     }
     compiler.blacklist-append gcc-4.2
+    set merger_configure_args(i386) "--enable-mpi-path='i586 i386'"
 }
 
 platform darwin 10 {
