@@ -1,0 +1,37 @@
+--- coregrind/m_syswrap/syswrap-darwin.c~	2018-01-13 02:12:12.000000000 -0800
++++ coregrind/m_syswrap/syswrap-darwin.c	2018-01-13 02:36:42.000000000 -0800
+@@ -9960,7 +9960,7 @@
+     PRINT("faccessat(fd:%d, path:%#lx(%s), amode:%#lx, flag:%#lx)",
+           fd, ARG2, ARG2 ? (HChar*)ARG2 : "null", ARG3, ARG4);
+     PRE_REG_READ4(int, "faccessat",
+-                  int, fd, user_addr_t, path, int, amode, int, flag);
++                  int, fd, const char*, path, int, amode, int, flag);
+ 
+     if (fd != VKI_AT_FDCWD && !ML_(fd_allowed)(fd, "faccessat", tid, False)) {
+       SET_STATUS_Failure( VKI_EBADF );
+@@ -9974,7 +9974,7 @@
+     PRINT("fstatat64(fd:%d, path:%#lx(%s), ub:%#lx, flag:%#lx)",
+           fd, ARG2, ARG2 ? (HChar*)ARG2 : "null", ARG3, ARG4);
+     PRE_REG_READ4(int, "fstatat64",
+-                  int, fd, user_addr_t, path, user_addr_t, ub, int, flag);
++                  int, fd, const char*, path, void*, ub, int, flag);
+ 
+     if (fd != VKI_AT_FDCWD && !ML_(fd_allowed)(fd, "fstatat64", tid, False)) {
+       SET_STATUS_Failure( VKI_EBADF );
+@@ -10025,14 +10025,14 @@
+    case VKI_CSR_CHECK:
+      PRINT("csrctl(op:CSR_CHECK, useraddr:%#lx, usersize:%#lx)", ARG2, ARG3);
+    PRE_REG_READ3(int, "csrctl",
+-                 uint32_t, op, user_addr_t, useraddr, user_addr_t, usersize);
++                 uint32_t, op, void *, useraddr, size_t, usersize);
+      PRE_MEM_READ( "csrctl(useraddr)", ARG2, ARG3 );
+      break;
+ 
+    case VKI_CSR_GET_ACTIVE_CONFIG:
+       PRINT("csrctl(op:CSR_GET_ACTIVE_CONFIG, useraddr:%#lx, usersize:%#lx)", ARG2, ARG3);
+       PRE_REG_READ3(int, "csrctl",
+-                    uint32_t, op, user_addr_t, useraddr, user_addr_t, usersize);
++                    uint32_t, op, void *, useraddr, size_t, usersize);
+       PRE_MEM_WRITE( "csrctl(useraddr)", ARG2, ARG3 );
+       break;
+ 
