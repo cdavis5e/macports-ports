@@ -1,0 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+PortGroup           cmake 1.0
+
+name                jxrlib
+version             1.1
+revision            0
+checksums           rmd160  e6b7b1ff29eb251c8aecd62834702cc765de5b23 \
+                    sha256  c7287b86780befa0914f2eeb8be2ac83e672ebd4bd16dc5574a36a59d9708303 \
+                    size    287517
+
+categories          graphics
+platforms           darwin freebsd sunos
+maintainers         nomaintainer
+license             BSD
+
+description         Library for manipulating JPEG XR images
+
+long_description    JPEG XR is an approved ISO/IEC International standard. Its \
+                    official designation is ISO/IEC 29199-2. JPEG XR started \
+                    its life in Microsoft Research. It publicly first appeared \
+                    as the HD Photo format in Windows Vista. For web \
+                    developers, JPEG XR has a large number of interesting \
+                    features, including better compression, a lossless \
+                    compression mode, alpha channel support, extended bit \
+                    depths, progressive decode, and advanced decoding features \
+                    such as tile-based layout.
+
+homepage            https://jxrlib.codeplex.com/
+master_sites        debian:j/${name}
+
+distname            ${name}_${version}.orig
+worksrcdir          ${name}-${version}
+
+# Use Debian's patches
+patchfiles          usecmake.patch \
+                    bug748590.patch \
+                    typos.patch
+patch.args          -p1
+
