@@ -1,0 +1,55 @@
+--- m4/libtool.m4~	2015-01-20 10:15:19.000000000 -0600
++++ m4/libtool.m4	2021-02-21 16:40:06.000000000 -0600
+@@ -3473,7 +3473,7 @@
+     lt_cv_file_magic_cmd='func_win32_libid'
+   else
+     # Keep this pattern in sync with the one in func_win32_libid.
+-    lt_cv_deplibs_check_method='file_magic file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64)'
++    lt_cv_deplibs_check_method='file_magic file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64|COFF-(i386|x86-64|ARM|ARM64))'
+     lt_cv_file_magic_cmd='$OBJDUMP -f'
+   fi
+   ;;
+--- build-aux/ltmain.in~	2015-02-06 06:57:56.000000000 -0600
++++ build-aux/ltmain.in	2021-02-21 16:41:30.000000000 -0600
+@@ -3019,7 +3019,7 @@
+   *ar\ archive*) # could be an import, or static
+     # Keep the egrep pattern in sync with the one in _LT_CHECK_MAGIC_METHOD.
+     if eval $OBJDUMP -f $1 | $SED -e '10q' 2>/dev/null |
+-       $EGREP 'file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64)' >/dev/null; then
++      $EGREP 'file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64|COFF-(i386|x86-64|ARM|ARM64))' >/dev/null; then
+       case $nm_interface in
+       "MS dumpbin")
+ 	if func_cygming_ms_implib_p "$1" ||
+--- build-aux/ltmain.sh~	2015-02-15 10:15:12.000000000 -0600
++++ build-aux/ltmain.sh	2021-02-21 16:59:03.000000000 -0600
+@@ -4931,7 +4931,7 @@
+   *ar\ archive*) # could be an import, or static
+     # Keep the egrep pattern in sync with the one in _LT_CHECK_MAGIC_METHOD.
+     if eval $OBJDUMP -f $1 | $SED -e '10q' 2>/dev/null |
+-       $EGREP 'file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64)' >/dev/null; then
++      $EGREP 'file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64|COFF-(i386|x86-64|ARM|ARM64))' >/dev/null; then
+       case $nm_interface in
+       "MS dumpbin")
+ 	if func_cygming_ms_implib_p "$1" ||
+--- configure~	2015-02-15 10:14:34.000000000 -0600
++++ configure	2021-02-21 17:00:32.000000000 -0600
+@@ -6296,7 +6296,7 @@
+     lt_cv_file_magic_cmd='func_win32_libid'
+   else
+     # Keep this pattern in sync with the one in func_win32_libid.
+-    lt_cv_deplibs_check_method='file_magic file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64)'
++	lt_cv_deplibs_check_method='file_magic file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64|COFF-(i386|x86-64|ARM|ARM64))'
+     lt_cv_file_magic_cmd='$OBJDUMP -f'
+   fi
+   ;;
+--- libltdl/configure~	2015-02-15 10:15:15.000000000 -0600
++++ libltdl/configure	2021-02-21 17:01:08.000000000 -0600
+@@ -5181,7 +5181,7 @@
+     lt_cv_file_magic_cmd='func_win32_libid'
+   else
+     # Keep this pattern in sync with the one in func_win32_libid.
+-    lt_cv_deplibs_check_method='file_magic file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64)'
++	lt_cv_deplibs_check_method='file_magic file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64|pe-aarch64|COFF-(i386|x86-64|ARM|ARM64))'
+     lt_cv_file_magic_cmd='$OBJDUMP -f'
+   fi
+   ;;

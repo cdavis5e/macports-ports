@@ -26,7 +26,8 @@ checksums           rmd160 8dcde730274c8ac3d0bce43f58bb9ba18d0b9a1e \
                     size   1056924
 
 # hardcode the M4 executable, similar to other executables such as SED, GREP, LN ...
-patchfiles          hardcode-m4.patch
+patchfiles          hardcode-m4.patch \
+                    llvm-objdump-mingw.patch
 
 post-patch {
     # Stop build from trying to regenerate these after patching.
