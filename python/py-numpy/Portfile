@@ -98,8 +98,40 @@ if {${name} ne ${subport}} {
     # do not allow fallback to (slow) NumPy-internal routines if no external BLAS/LAPACK libraries are found
     build.args-append -Csetup-args=-Dallow-noblas=false
 
-    compilers.setup     -clang -gcc44 -gcc45 -gcc46 -gcc47 -gcc48 \
-                        -gcc5 -gcc6 -gcc7 --g95
+    # Should mirror clang_compilers.tcl
+    set clang_compilers             {}
+    if {[option build_arch] ne "ppc" && [option build_arch] ne "ppc64"} {
+        if {${os.major} >= 11 || ${os.platform} ne "darwin"} {
+            lappend clang_compilers clang19 clang18
+            if {${os.major} < 24 || ${os.platform} ne "darwin"} {
+                lappend clang_compilers clang17
+            }
+        }
+        # FIXME: Status of these compilers is unknown
+        if {0} {
+        if {${os.major} < 24 || ${os.platform} ne "darwin"} {
+            lappend clang_compilers clang16 clang15 clang14
+        }
+        if {(${os.major} < 23 && ${os.major} >= 10) || ${os.platform} ne "darwin"} {
+            lappend clang_compilers clang13 clang12
+        }
+        if {${os.platform} eq "darwin" && ${os.major} >= 9 && ${os.major} < 23} {
+            lappend clang_compilers clang11
+            if {[option build_arch] ne "arm64"} {
+                lappend clang_compilers clang10 clang90
+                if {${os.major} < 20} {
+                    lappend clang_compilers clang80
+                }
+            }
+            if {${os.major} < 20} {
+                lappend clang_compilers clang70 clang60 clang50
+            }
+        }
+        }
+    }
+    compilers.setup         -clang -gcc44 -gcc45 -gcc46 -gcc47 -gcc48 \
+                            -gcc5 -gcc6 -gcc7 -g95 \
+                            {*}${clang_compilers}
 
     # https://trac.macports.org/ticket/67136
     depends_run-append  port:py${python.version}-oldest-supported-numpy
