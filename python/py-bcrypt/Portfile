@@ -111,6 +111,16 @@ if {${name} ne ${subport}} {
                             winapi-x86_64-pc-windows-gnu 0.4.0 712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f \
                             zeroize 1.5.7 c394b5bd0c6f669e7275d9c20aa90ae064cb22e75a1cad54e1b34088034b149f
 
+        if {[variant_isset universal]} {
+            foreach arch ${configure.universal_archs} {
+                if {"${arch}" ne "${configure.build_arch}"} {
+                    # Cross-compiled pyo3 must set PYO3_CROSS_LIB_DIR
+                    build.env.${arch}-append "PYO3_CROSS_LIB_DIR=${prefix}/Library/Frameworks/Python.framework/Versions/${python.branch}/lib/python${python.branch}"
+                    destroot.env.${arch}-append "PYO3_CROSS_LIB_DIR=${prefix}/Library/Frameworks/Python.framework/Versions/${python.branch}/lib/python${python.branch}"
+                }
+            }
+        }
+
         test.run            yes
     } else {
         PortGroup           cargo_fetch 1.0
@@ -174,6 +184,16 @@ if {${name} ne ${subport}} {
                             windows_x86_64_gnullvm 0.52.6 24d5b23dc417412679681396f2b49f3de8c1473deb516bd34410872eff51ed0d \
                             windows_x86_64_msvc 0.52.6 589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec \
                             zeroize 1.8.1 ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde
+
+        if {[variant_isset universal]} {
+            foreach arch ${configure.universal_archs} {
+                if {"${arch}" ne "${configure.build_arch}"} {
+                    # Cross-compiled pyo3 must set PYO3_CROSS_LIB_DIR
+                    build.env.${arch}-append "PYO3_CROSS_LIB_DIR=${prefix}/Library/Frameworks/Python.framework/Versions/${python.branch}/lib/python${python.branch}"
+                    destroot.env.${arch}-append "PYO3_CROSS_LIB_DIR=${prefix}/Library/Frameworks/Python.framework/Versions/${python.branch}/lib/python${python.branch}"
+                }
+            }
+        }
 
         test.run            yes
     }

@@ -219,6 +219,16 @@ if {${name} ne ${subport} \
                     port:py${python.version}-pytest-xdist \
                     port:py${python.version}-pretend
 
+        if {[variant_isset universal]} {
+            foreach arch ${configure.universal_archs} {
+                if {"${arch}" ne "${configure.build_arch}"} {
+                    # Cross-compiled pyo3 must set PYO3_CROSS_LIB_DIR
+                    build.env.${arch}-append "PYO3_CROSS_LIB_DIR=${prefix}/Library/Frameworks/Python.framework/Versions/${python.branch}/lib/python${python.branch}"
+                    destroot.env.${arch}-append "PYO3_CROSS_LIB_DIR=${prefix}/Library/Frameworks/Python.framework/Versions/${python.branch}/lib/python${python.branch}"
+                }
+            }
+        }
+
         test.run    yes
         test.target tests
     }
