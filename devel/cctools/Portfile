@@ -68,7 +68,7 @@ if {${os.major} < 11} {
     patchfiles-append snowleopard-strnlen.patch
 }
 
-set all_llvm_variants [list llvm16 llvm15 llvm14 llvm13 llvm12 llvm11 llvm10 llvmdev]
+set all_llvm_variants [list llvm17 llvm16 llvm15 llvm14 llvm13 llvm12 llvm11 llvm10 llvmdev]
 if {${os.major} < 12} {
     lappend all_llvm_variants llvm34
 }
@@ -80,7 +80,7 @@ if {${os.major} < 19} {
 }
 array set llvm_variant_version [list llvm34 3.4 llvm37 3.7 llvm50 5.0 \
     llvm60 6.0 llvm70 7.0 llvm80 8.0 llvm90 9.0 llvm10 10 llvm11 11 \
-    llvm12 12 llvm13 13 llvm14 14 llvm15 15 llvm16 16 llvmdev devel]
+    llvm12 12 llvm13 13 llvm14 14 llvm15 15 llvm16 16 llvm17 17 llvmdev devel]
 set llvm_version {}
 
 foreach variantname $all_llvm_variants {
@@ -90,6 +90,7 @@ foreach variantname $all_llvm_variants {
         depends_lib-append      port:llvm-${this_llvm_version}
     "
 }
+unset this_llvm_version
 
 proc some_llvm_variant_set {} {
     global all_llvm_variants
@@ -141,6 +142,10 @@ if { ![some_llvm_variant_set] && ![variant_isset xcode] && ![variant_isset xtool
 if {[variant_isset llvm34] && ${os.major} < 11} {
     # This port is used by clang-3.4 to bootstrap libcxx
     configure.cxx_stdlib    libstdc++
+}
+
+if {[variant_isset llvm11] || [variant_isset llvm12] || [variant_isset llvm13] || [variant_isset llvm14] || [variant_isset llvm15] || [variant_isset llvm16] || [variant_isset llvm17]} {
+    patchfiles-append       cctools-949-llvm-otool-long-options.diff
 }
 
 variant xcode description "Use Xcode supplied cctools" {

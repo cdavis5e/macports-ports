@@ -1,0 +1,128 @@
+--- otool/main.c~	2020-02-28 12:02:49.000000000 -0600
++++ otool/main.c	2021-03-31 20:29:40.000000000 -0500
+@@ -822,59 +822,59 @@
+ 
+ 	reset_execute_list();
+ 	add_execute_list(objdump);
+-	add_execute_list("-macho");
++	add_execute_list("--macho");
+ 
+ 	if(fflag)
+-	    add_execute_list("-universal-headers");
++	    add_execute_list("--universal-headers");
+ 	if(aflag){
+-	    add_execute_list("-archive-headers");
++	    add_execute_list("--archive-headers");
+ 	    if(Vflag)
+-		add_execute_list("-archive-member-offsets");
++		add_execute_list("--archive-member-offsets");
+ 	}
+ 	if(hflag && !lflag)
+-	    add_execute_list("-private-header");
++	    add_execute_list("--private-header");
+ 	if(lflag)
+-	    add_execute_list("-private-headers");
++	    add_execute_list("--private-headers");
+ 	if(xflag){
+ 	    if(vflag)
+-		add_execute_list("-disassemble-all");
++		add_execute_list("--disassemble-all");
+ 	    else{
+-		add_execute_list("-section");
++		add_execute_list("--section");
+ 		add_execute_list(",__text");
+ 	    }
+ 	}
+ 	else if(tflag){
+ 	    if(vflag)
+-		add_execute_list("-disassemble");
++		add_execute_list("--disassemble");
+ 	    else{
+-		add_execute_list("-section");
++		add_execute_list("--section");
+ 		add_execute_list("__TEXT,__text");
+ 	    }
+ 	}
+ 	if(tflag || xflag || segname != NULL){
+-	    add_execute_list("-full-leading-addr");
+-	    add_execute_list("-print-imm-hex");
++	    add_execute_list("--full-leading-addr");
++	    add_execute_list("--print-imm-hex");
+ 	}
+ 	if(pflag != NULL){
+-	    add_execute_list("-dis-symname");
++	    add_execute_list("--dis-symname");
+ 	    add_execute_list(pflag);
+ 	}
+ 	if(*mcpu != '\0')
+-	    add_execute_list(makestr("-mcpu=", mcpu, NULL));
++	    add_execute_list(makestr("--mcpu=", mcpu, NULL));
+ 	if(Iflag)
+-	    add_execute_list("-indirect-symbols");
++	    add_execute_list("--indirect-symbols");
+ 	if(Gflag)
+-	    add_execute_list("-data-in-code");
++	    add_execute_list("--data-in-code");
+ 	if(Cflag)
+-	    add_execute_list("-link-opt-hints");
++	    add_execute_list("--link-opt-hints");
+ 	if(Pflag)
+-	    add_execute_list("-info-plist");
++	    add_execute_list("--info-plist");
+ 	if(segname != NULL && sectname != NULL){
+-	    add_execute_list("-section");
++	    add_execute_list("--section");
+ 	    add_execute_list(makestr(segname, ",", sectname, NULL));
+ 	}
+ 	if(dflag){
+-	    add_execute_list("-section");
++	    add_execute_list("--section");
+ 	    add_execute_list("__DATA,__data");
+ 	}
+ 	if(rflag)
+@@ -882,33 +882,33 @@
+ 	if(Sflag)
+ 	    error("for -S functionality, use llvm-nm with -print-armap");
+ 	if(version)
+-	    add_execute_list("-version");
++	    add_execute_list("--version");
+ 	if(print_bind_info)
+-	    add_execute_list("-bind");
++	    add_execute_list("--bind");
+ 	if(Lflag)
+-	    add_execute_list("-dylibs-used");
++	    add_execute_list("--dylibs-used");
+ 	if(Dflag)
+-	    add_execute_list("-dylib-id");
++	    add_execute_list("--dylib-id");
+ 	if(oflag)
+-	    add_execute_list("-objc-meta-data");
++	    add_execute_list("--objc-meta-data");
+ 
+ 	if(!vflag)
+-	    add_execute_list("-non-verbose");
++	    add_execute_list("--non-verbose");
+ 	if(!Vflag && (tflag || xflag || segname != NULL))
+-	    add_execute_list("-no-symbolic-operands");
++	    add_execute_list("--no-symbolic-operands");
+ 	if((!jflag && (tflag || xflag || segname != NULL)) || no_show_raw_insn)
+-	    add_execute_list("-no-show-raw-insn");
++	    add_execute_list("--no-show-raw-insn");
+ 	if(Xflag){
+-	    add_execute_list("-no-leading-addr");
+-	    add_execute_list("-no-leading-headers");
++	    add_execute_list("--no-leading-addr");
++	    add_execute_list("--no-leading-headers");
+ 	}
+ 
+ 	if(all_archs){
+-	    add_execute_list("-arch");
++	    add_execute_list("--arch");
+ 	    add_execute_list("all");
+ 	}
+ 	for(i = 0; i < narch_flags; i++){
+-	    add_execute_list("-arch");
++	    add_execute_list("--arch");
+ 	    add_execute_list(arch_flags[i].name);
+ 	}
+ 
