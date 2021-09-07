@@ -24,6 +24,8 @@ depends_lib-append          path:lib/pkgconfig/libgit2.pc:libgit2 \
                             port:libiconv \
                             port:zlib
 
+installs_libs               no
+
 openssl.branch              3
 
 cargo.offline_cmd
