@@ -45,6 +45,7 @@ if {${os.platform} ne "darwin"} {
 platform darwin {
     variant aqua conflicts x11 description {Build the Cocoa front-end} {
         use_configure       no
+        supported_archs     x86_64 arm64
 
         build.dir           ${worksrcpath}/src
         build.args          -f Makefile.osx \
