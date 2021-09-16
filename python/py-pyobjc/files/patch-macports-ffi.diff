@@ -1,0 +1,103 @@
+--- pyobjc-core/setup.py~	2020-12-29 03:53:05.000000000 -0600
++++ pyobjc-core/setup.py	2021-02-28 10:57:05.000000000 -0600
+@@ -98,6 +98,7 @@
+     "Carbon",
+     # "-fvisibility=protected",
+     "-g",
++    "-L/opt/local/lib",
+     "-lffi",
+     # "-fsanitize=address", "-fsanitize=undefined", "-fno-sanitize=vptr",
+     "-fvisibility=hidden",
+--- pyobjc-core/Modules/objc/libffi_extra.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/libffi_extra.m	2022-09-10 19:33:32.000000000 -0500
+@@ -11,59 +11,12 @@
+     *codeloc = NULL;
+ 
+     /* And finally create the actual closure */
+-#ifdef HAVE_CLOSURE_POOL
+-
+-#if PyObjC_BUILD_RELEASE >= 1015
+-    if (@available(macOS 10.15, *)) { // LCOV_BR_EXCL_LINE
+-        (*cl) = ffi_closure_alloc(sizeof(**cl), codeloc);
+-    } else
+-#endif
+-    {
+-        (*cl) = PyObjC_ffi_closure_alloc(sizeof(**cl), codeloc);
+-    }
+-#else
+-#pragma clang diagnostic push
+-#pragma clang diagnostic ignored "-Wunguarded-availability-new"
+     (*cl) = ffi_closure_alloc(sizeof(**cl), codeloc);
+-#pragma clang diagnostic pop
+-#endif
+     if (*cl == NULL) { // LCOV_BR_EXCL_LINE
+         return -1;     // LCOV_EXCL_LINE
+     }
+ 
+-#ifdef __arm64__
+-
+-    /* This pragma is needed because we compile with deployment
+-     * target 10.9 even for arm64.
+-     */
+-#pragma clang diagnostic push
+-#pragma clang diagnostic ignored "-Wunguarded-availability-new"
+-
+     rv = ffi_prep_closure_loc(*cl, cif, func, userdata, *codeloc);
+-
+-#pragma clang diagnostic pop
+-
+-#else /* x86_64 */
+-
+-#if PyObjC_BUILD_RELEASE >= 1015
+-
+-    if (@available(macOS 10.15, *)) { // LCOV_BR_EXCL_LINE
+-        rv = ffi_prep_closure_loc(*cl, cif, func, userdata, *codeloc);
+-    } else {
+-#pragma clang diagnostic push
+-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+-
+-        rv = ffi_prep_closure(*cl, cif, func, userdata);
+-
+-#pragma clang diagnostic pop
+-    }
+-
+-#else  /* PyObjC_BUILD_RELEASE < 1015 */
+-    rv = ffi_prep_closure(*cl, cif, func, userdata);
+-#endif /* PyObjC_BUILD_RELEASE < 1015 */
+-
+-#endif /* !__arm64__ */
+-
+     return rv == FFI_OK ? 0 : -1;
+ }
+ 
+@@ -72,29 +25,8 @@
+ {
+     ffi_closure* cl;
+ 
+-#ifdef HAVE_CLOSURE_POOL
+-
+-#if PyObjC_BUILD_RELEASE >= 1015
+-    if (@available(macOS 10.15, *)) { // LCOV_BR_EXCL_LINE
+-        cl        = ffi_find_closure_for_code_np(codeloc);
+-        *cif      = cl->cif;
+-        *userdata = cl->user_data;
+-        ffi_closure_free(cl);
+-    } else
+-#endif
+-    {
+-        cl        = (ffi_closure*)codeloc;
+-        *cif      = cl->cif;
+-        *userdata = cl->user_data;
+-        PyObjC_ffi_closure_free(cl);
+-    }
+-#else
+-#pragma clang diagnostic push
+-#pragma clang diagnostic ignored "-Wunguarded-availability-new"
+-    cl        = ffi_find_closure_for_code_np(codeloc);
++    cl        = ffi_find_closure_for_code(codeloc);
+     *cif      = cl->cif;
+     *userdata = cl->user_data;
+     ffi_closure_free(cl);
+-#pragma clang diagnostic pop
+-#endif
+ }

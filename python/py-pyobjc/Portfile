@@ -52,6 +52,8 @@ if {${name} ne ${subport}} {
     if {${os.major} < 19} {
         depends_lib-append \
                     port:libffi
+        patchfiles-append \
+                    patch-macports-ffi.diff
     }
 
     compiler.blacklist-append  {clang < 900}
@@ -76,7 +78,10 @@ if {${name} ne ${subport}} {
 
             reinplace \
                 "s,<ffi/ffi.h>,<ffi.h>,g" \
-                ${worksrcpath}/pyobjc-core/Modules/objc/libffi_support.h
+                ${worksrcpath}/pyobjc-core/Modules/objc/libffi_support.h \
+                ${worksrcpath}/pyobjc-core/Modules/objc/libffi_extra.h \
+                ${worksrcpath}/pyobjc-core/Modules/objc/libffi_extra.m \
+                ${worksrcpath}/pyobjc-core/Modules/objc/selector.h
         } else {
             # force linking against system libffi by path, so that we
             # bypass CPython's dependency on it
