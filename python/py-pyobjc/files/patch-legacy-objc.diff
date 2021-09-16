@@ -1,0 +1,2005 @@
+--- pyobjc-core/Modules/objc/class-builder.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/class-builder.m	2022-09-07 17:16:52.000000000 -0500
+@@ -766,7 +766,7 @@
+ 
+     PyObjC_END_WITH_GIL
+ 
+-    spr.super_class = (Class _Nonnull)class_getSuperclass((Class)userdata);
++    objc_superSetClass(spr, (Class _Nonnull)class_getSuperclass((Class)userdata));
+     spr.receiver    = self;
+ 
+     ((void (*)(struct objc_super*, SEL))objc_msgSendSuper)(&spr, _meth);
+@@ -789,7 +789,7 @@
+ 
+     /* Ask super to create a copy */
+ 
+-    spr.super_class = super_cls = (Class _Nonnull)class_getSuperclass((Class)userdata);
++    objc_superSetClass(spr, super_cls = (Class _Nonnull)class_getSuperclass((Class)userdata));
+     spr.receiver                = self;
+     copy =
+         ((id(*)(struct objc_super*, SEL, NSZone*))objc_msgSendSuper)(&spr, _meth, zone);
+@@ -927,7 +927,7 @@
+         Py_XDECREF(pymeth);
+         Py_XDECREF(pyself);
+ 
+-        spr.super_class = class_getSuperclass((Class)userdata);
++        objc_superSetClass(spr, class_getSuperclass((Class)userdata));
+         spr.receiver    = self;
+         PyGILState_Release(state);
+         ((void (*)(struct objc_super*, SEL, NSInvocation*))objc_msgSendSuper)(&spr, _meth,
+@@ -986,7 +986,7 @@
+ 
+     /* First check super */
+     @try {
+-        spr.super_class = class_getSuperclass((Class)userdata);
++        objc_superSetClass(spr, class_getSuperclass((Class)userdata));
+         spr.receiver    = self;
+         *((id*)retval)  = ((id(*)(struct objc_super*, SEL, NSString*))objc_msgSendSuper)(
+             &spr, _meth, key);
+@@ -1067,7 +1067,7 @@
+ 
+     @try {
+         /* First check super */
+-        spr.super_class = class_getSuperclass((Class)userdata);
++        objc_superSetClass(spr, class_getSuperclass((Class)userdata));
+         spr.receiver    = self;
+         ((void (*)(struct objc_super*, SEL, id, id))objc_msgSendSuper)(&spr, _meth, value,
+                                                                        key);
+--- pyobjc-core/Modules/objc/helpers-foundation-nscoder.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/helpers-foundation-nscoder.m	2022-09-07 17:15:20.000000000 -0500
+@@ -53,7 +53,7 @@
+ 
+             } else {
+                 super.receiver    = PyObjCObject_GetObject(self);
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+ 
+                 ((void (*)(struct objc_super*, SEL, char*, void*))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), view.buf, buf);
+@@ -215,7 +215,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), view.buf,
+                     count, buf);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, char*, NSUInteger,
+@@ -365,7 +365,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), view.buf,
+                     buf);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, char*, void*))objc_msgSendSuper)(
+@@ -489,7 +489,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), view.buf,
+                     buf, size);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, char*, void*,
+@@ -634,7 +634,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), view.buf,
+                     count, buf);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, char*, NSUInteger,
+@@ -796,7 +796,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), view.buf,
+                     length);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, void*, NSUInteger))objc_msgSendSuper)(
+@@ -903,7 +903,7 @@
+                 bytes = ((void* (*)(id, SEL, NSUInteger*))(PyObjCIMP_GetIMP(method)))(
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), &size);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 bytes =
+@@ -1048,7 +1048,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), key,
+                     (NSUInteger*)&size);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 bytes = ((void* (*)(struct objc_super*, SEL, id,
+@@ -1233,7 +1233,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), view.buf,
+                     (NSUInteger)view.len, key);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, void*, NSUInteger,
+--- pyobjc-core/Modules/objc/helpers-foundation-nsdata.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/helpers-foundation-nsdata.m	2022-09-07 17:17:25.000000000 -0500
+@@ -17,7 +17,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+             bytes             = ((void* (*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                 &super, PyObjCSelector_GetSelector(method));
+@@ -119,7 +119,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             bytes = ((void* (*)(struct objc_super*, SEL))objc_msgSendSuper)(
+--- pyobjc-core/Modules/objc/helpers-foundation-nsdecimal.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/helpers-foundation-nsdecimal.m	2022-09-07 17:14:52.000000000 -0500
+@@ -795,7 +795,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = object_getClass(PyObjCSelector_GetClass(method));
++            objc_superSetClass(super, object_getClass(PyObjCSelector_GetClass(method)));
+             super.receiver    = object_getClass(PyObjCClass_GetClass(self));
+ 
+             res = ((id(*)(struct objc_super*, SEL, NSDecimal))objc_msgSendSuper)(
+@@ -833,7 +833,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             res = ((id(*)(struct objc_super*, SEL, NSDecimal))objc_msgSendSuper)(
+@@ -916,7 +916,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+ #if defined(__i386__) || defined(__arm64__)
+--- pyobjc-core/Modules/objc/helpers-foundation-nsinvocation.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/helpers-foundation-nsinvocation.m	2022-09-07 17:08:01.000000000 -0500
+@@ -58,7 +58,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), buf,
+                     index);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, void*, NSUInteger))objc_msgSendSuper)(
+@@ -134,7 +134,7 @@
+                 ((void (*)(id, SEL, void*))(PyObjCIMP_GetIMP(method)))(
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), buf);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, void*))objc_msgSendSuper)(
+@@ -214,7 +214,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), buf,
+                     index);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, void*, NSUInteger))objc_msgSendSuper)(
+@@ -294,7 +294,7 @@
+                 ((void (*)(id, SEL, void*))(PyObjCIMP_GetIMP(method)))(
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), buf);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, void*))objc_msgSendSuper)(
+--- pyobjc-core/Modules/objc/helpers-foundation-nsobject.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/helpers-foundation-nsobject.m	2022-09-07 17:13:28.000000000 -0500
+@@ -50,7 +50,7 @@
+         Py_END_ALLOW_THREADS
+ 
+     } else {
+-        spr.super_class = object_getClass(PyObjCSelector_GetClass(method));
++        objc_superSetClass(spr, object_getClass(PyObjCSelector_GetClass(method)));
+         if (PyObjCClass_Check(self)) {
+             spr.receiver = PyObjCClass_GetClass(self);
+         } else {
+@@ -153,7 +153,7 @@
+         Py_END_ALLOW_THREADS
+ 
+     } else {
+-        spr.super_class = PyObjCSelector_GetClass(method);
++        objc_superSetClass(spr, PyObjCSelector_GetClass(method));
+         spr.receiver    = PyObjCObject_GetObject(self);
+         aSel            = PyObjCSelector_GetSelector(method);
+ 
+@@ -247,7 +247,7 @@
+         Py_END_ALLOW_THREADS
+ 
+     } else {
+-        spr.super_class = PyObjCSelector_GetClass(method);
++        objc_superSetClass(spr, PyObjCSelector_GetClass(method));
+         spr.receiver    = PyObjCObject_GetObject(self);
+         aSel            = PyObjCSelector_GetSelector(method);
+ 
+@@ -308,7 +308,7 @@
+         // Py_END_ALLOW_THREADS
+ 
+     } else {
+-        spr.super_class = PyObjCSelector_GetClass(method);
++        objc_superSetClass(spr, PyObjCSelector_GetClass(method));
+         spr.receiver    = PyObjCObject_GetObject(self);
+         aSel            = PyObjCSelector_GetSelector(method);
+ 
+--- pyobjc-core/Modules/objc/helpers-vector.m~	2022-12-19 02:42:31.000000000 -0700
++++ pyobjc-core/Modules/objc/helpers-vector.m	2023-01-26 22:56:05.000000000 -0700
+@@ -255,7 +255,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_double2(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -356,7 +356,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv =
+                     ((simd_double2(*)(struct objc_super*, SEL, double))objc_msgSendSuper)(
+@@ -459,7 +459,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float2(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -560,7 +560,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float2(*)(struct objc_super*, SEL,
+                                       unsigned long long))objc_msgSendSuper)(
+@@ -667,7 +667,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float2(*)(struct objc_super*, SEL, double))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -772,7 +772,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((
+                     simd_float2(*)(struct objc_super*, SEL, long long))objc_msgSendSuper)(
+@@ -875,7 +875,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_int2(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -976,7 +976,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv =
+                     ((simd_double3(*)(struct objc_super*, SEL, double))objc_msgSendSuper)(
+@@ -1079,7 +1079,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float3(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -1184,7 +1184,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float3(*)(struct objc_super*, SEL, simd_int2,
+                                       simd_int2))objc_msgSendSuper)(
+@@ -1294,7 +1294,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float3(*)(struct objc_super*, SEL,
+                                       simd_float3))objc_msgSendSuper)(
+@@ -1404,7 +1404,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float3(*)(struct objc_super*, SEL, simd_float3,
+                                       id))objc_msgSendSuper)(
+@@ -1514,7 +1514,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((
+                     simd_float3(*)(struct objc_super*, SEL, simd_int4))objc_msgSendSuper)(
+@@ -1620,7 +1620,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float3(*)(struct objc_super*, SEL,
+                                       unsigned long long))objc_msgSendSuper)(
+@@ -1727,7 +1727,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float3(*)(struct objc_super*, SEL, double))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -1832,7 +1832,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv =
+                     ((simd_double4(*)(struct objc_super*, SEL, double))objc_msgSendSuper)(
+@@ -1935,7 +1935,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float4(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -2036,7 +2036,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float4(*)(struct objc_super*, SEL, double))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -2141,7 +2141,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((
+                     simd_int4(*)(struct objc_super*, SEL, simd_float3))objc_msgSendSuper)(
+@@ -2175,7 +2175,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv =
+                     ((id(*)(struct objc_super*, SEL, simd_double2, id))objc_msgSendSuper)(
+@@ -2289,7 +2289,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_double2,
+                              long long))objc_msgSendSuper)(
+@@ -2399,7 +2399,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -2517,7 +2517,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float2, simd_uint2, long long,
+                              id))objc_msgSendSuper)(
+@@ -2637,7 +2637,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float2,
+                              simd_float2))objc_msgSendSuper)(
+@@ -2747,7 +2747,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_int2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -2865,7 +2865,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_int2, int, int,
+                              BOOL))objc_msgSendSuper)(
+@@ -2999,7 +2999,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_int2, int, int, BOOL,
+                              Class))objc_msgSendSuper)(&super,
+@@ -3119,7 +3119,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -3251,7 +3251,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, simd_uint2, BOOL, BOOL,
+                              BOOL, long long, id))objc_msgSendSuper)(
+@@ -3401,7 +3401,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, simd_uint2, BOOL, BOOL,
+                              long long, id))objc_msgSendSuper)(
+@@ -3543,7 +3543,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, simd_uint2, BOOL,
+                              long long, id))objc_msgSendSuper)(
+@@ -3686,7 +3686,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, simd_uint2, int, BOOL,
+                              long long, id))objc_msgSendSuper)(
+@@ -3823,7 +3823,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, simd_uint2, long long,
+                              id))objc_msgSendSuper)(
+@@ -3957,7 +3957,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, simd_uint3, BOOL,
+                              long long, id))objc_msgSendSuper)(
+@@ -4096,7 +4096,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, simd_uint3, long long,
+                              BOOL, id))objc_msgSendSuper)(
+@@ -4244,7 +4244,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, unsigned long long,
+                              unsigned long long, long long, BOOL, BOOL,
+@@ -4386,7 +4386,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float3, BOOL, long long,
+                              id))objc_msgSendSuper)(
+@@ -4502,7 +4502,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float4))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -4625,7 +4625,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, simd_double2, simd_double2,
+                              simd_int2, BOOL))objc_msgSendSuper)(
+@@ -4750,7 +4750,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, simd_float2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -4862,7 +4862,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, simd_float3))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -4974,7 +4974,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, simd_float4))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -5090,7 +5090,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((
+                     id(*)(struct objc_super*, SEL, id, id, simd_int2))objc_msgSendSuper)(
+@@ -5216,7 +5216,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, id, simd_int2,
+                              float))objc_msgSendSuper)(
+@@ -5341,7 +5341,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, unsigned long long,
+                              simd_float2))objc_msgSendSuper)(
+@@ -5463,7 +5463,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, unsigned long long,
+                              simd_float3))objc_msgSendSuper)(
+@@ -5585,7 +5585,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, unsigned long long,
+                              simd_float4))objc_msgSendSuper)(
+@@ -5708,7 +5708,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, unsigned long long,
+                              simd_float4x4))objc_msgSendSuper)(
+@@ -5853,7 +5853,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, BOOL, id, simd_int2, long long,
+                              unsigned long long, long long, BOOL))objc_msgSendSuper)(
+@@ -6011,7 +6011,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, long long, simd_int2, float,
+                              float, float, float))objc_msgSendSuper)(
+@@ -6169,7 +6169,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, long long, simd_int2, float,
+                              float, float, float, float))objc_msgSendSuper)(
+@@ -6304,7 +6304,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, GKBox))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -6418,7 +6418,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, GKQuad))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -6540,7 +6540,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, MDLAxisAlignedBoundingBox,
+                              float))objc_msgSendSuper)(
+@@ -6662,7 +6662,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((
+                     id(*)(struct objc_super*, SEL, id, simd_float2x2))objc_msgSendSuper)(
+@@ -6777,7 +6777,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((
+                     id(*)(struct objc_super*, SEL, id, simd_float3x3))objc_msgSendSuper)(
+@@ -6892,7 +6892,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((
+                     id(*)(struct objc_super*, SEL, id, simd_float4x4))objc_msgSendSuper)(
+@@ -7007,7 +7007,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, id, simd_quatf))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -7128,7 +7128,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((
+                     id(*)(struct objc_super*, SEL, id, simd_quatf, id))objc_msgSendSuper)(
+@@ -7259,7 +7259,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, CGColorRef, CGColorRef, id,
+                              simd_int2))objc_msgSendSuper)(
+@@ -7383,7 +7383,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, float, simd_float2,
+                              simd_float2))objc_msgSendSuper)(
+@@ -7510,7 +7510,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, float, simd_float2, simd_float2,
+                              Class))objc_msgSendSuper)(
+@@ -7658,7 +7658,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, float, simd_float2,
+                              unsigned long long, unsigned long long, unsigned long long,
+@@ -7818,7 +7818,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, float, simd_float2,
+                              unsigned long long, unsigned long long, long long, BOOL,
+@@ -7969,7 +7969,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, float, id, simd_int2, int,
+                              long long, BOOL))objc_msgSendSuper)(
+@@ -8119,7 +8119,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, float, id, simd_int2, int,
+                              long long, CGColorRef, CGColorRef))objc_msgSendSuper)(
+@@ -8259,7 +8259,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, float, id, simd_int2,
+                              long long))objc_msgSendSuper)(
+@@ -8388,7 +8388,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, float, float, id,
+                              simd_int2))objc_msgSendSuper)(
+@@ -8505,7 +8505,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, GKBox))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -8616,7 +8616,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, GKBox, float))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -8726,7 +8726,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, GKQuad))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -8839,7 +8839,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, GKQuad, float))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -8953,7 +8953,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL,
+                              MDLVoxelIndexExtent))objc_msgSendSuper)(
+@@ -9063,7 +9063,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float4x4))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -9173,7 +9173,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((id(*)(struct objc_super*, SEL, simd_float4x4,
+                              BOOL))objc_msgSendSuper)(
+@@ -9301,7 +9301,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((BOOL(*)(struct objc_super*, SEL, simd_int2, id, id, id,
+                                id))objc_msgSendSuper)(&super,
+@@ -9443,7 +9443,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((BOOL(*)(struct objc_super*, SEL, simd_int2, long long, float, id,
+                                id, id))objc_msgSendSuper)(
+@@ -9584,7 +9584,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((BOOL(*)(struct objc_super*, SEL, simd_int4, BOOL, BOOL, BOOL,
+                                BOOL))objc_msgSendSuper)(
+@@ -9704,7 +9704,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((CGColorRef(*)(struct objc_super*, SEL,
+                                      simd_float3))objc_msgSendSuper)(
+@@ -9816,7 +9816,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((CGColorRef(*)(struct objc_super*, SEL, simd_float3,
+                                      CGColorSpaceRef))objc_msgSendSuper)(
+@@ -9926,7 +9926,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((float (*)(struct objc_super*, SEL, simd_float2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -10031,7 +10031,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((float (*)(struct objc_super*, SEL, simd_int2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -10135,7 +10135,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_double2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -10243,7 +10243,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_double2,
+                            double))objc_msgSendSuper)(
+@@ -10352,7 +10352,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -10460,7 +10460,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float2,
+                            double))objc_msgSendSuper)(
+@@ -10569,7 +10569,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_double3))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -10677,7 +10677,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_double3,
+                            double))objc_msgSendSuper)(
+@@ -10786,7 +10786,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float3))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -10894,7 +10894,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float3,
+                            simd_float3))objc_msgSendSuper)(
+@@ -11012,7 +11012,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float3, simd_float3,
+                            simd_float3))objc_msgSendSuper)(
+@@ -11128,7 +11128,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float3,
+                            double))objc_msgSendSuper)(
+@@ -11241,7 +11241,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_double4,
+                            double))objc_msgSendSuper)(
+@@ -11350,7 +11350,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float4))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -11458,7 +11458,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float4,
+                            double))objc_msgSendSuper)(
+@@ -11567,7 +11567,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_int4))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -11679,7 +11679,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, id, simd_float2,
+                            simd_float2))objc_msgSendSuper)(
+@@ -11804,7 +11804,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, id, simd_float2, simd_float2,
+                            long long))objc_msgSendSuper)(
+@@ -11923,7 +11923,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, float, simd_int2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0, arg1);
+@@ -12035,7 +12035,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, MDLAxisAlignedBoundingBox))
+                      objc_msgSendSuper)(&super, PyObjCSelector_GetSelector(method), arg0);
+@@ -12151,7 +12151,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, MDLAxisAlignedBoundingBox,
+                            BOOL))objc_msgSendSuper)(
+@@ -12263,7 +12263,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_double4x4))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -12372,7 +12372,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_double4x4,
+                            double))objc_msgSendSuper)(
+@@ -12481,7 +12481,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float2x2))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -12585,7 +12585,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float3x3))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -12689,7 +12689,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float4x4))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -12798,7 +12798,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_float4x4,
+                            double))objc_msgSendSuper)(
+@@ -12912,7 +12912,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_quatd,
+                            double))objc_msgSendSuper)(
+@@ -13025,7 +13025,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_quatf))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -13137,7 +13137,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_quatf,
+                            simd_float3))objc_msgSendSuper)(
+@@ -13254,7 +13254,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 ((void (*)(struct objc_super*, SEL, simd_quatf,
+                            double))objc_msgSendSuper)(
+@@ -13365,7 +13365,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((GKBox(*)(struct objc_super*, SEL))objc_msgSendSuper_stret)(
+@@ -13470,7 +13470,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((GKQuad(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -13576,7 +13576,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((GKTriangle(*)(struct objc_super*, SEL,
+@@ -13690,7 +13690,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((MDLAxisAlignedBoundingBox(*)(struct objc_super*,
+@@ -13805,7 +13805,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((MDLAxisAlignedBoundingBox(*)(struct objc_super*, SEL,
+@@ -13924,7 +13924,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((MDLAxisAlignedBoundingBox(*)(struct objc_super*, SEL,
+@@ -14037,7 +14037,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((MDLVoxelIndexExtent(*)(struct objc_super*,
+@@ -14145,7 +14145,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv =
+@@ -14252,7 +14252,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((simd_double4x4(*)(struct objc_super*, SEL,
+@@ -14360,7 +14360,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_float2x2(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -14459,7 +14459,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((simd_float3x3(*)(struct objc_super*, SEL))objc_msgSendSuper_stret)(
+@@ -14562,7 +14562,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((simd_float4x4(*)(struct objc_super*, SEL))objc_msgSendSuper_stret)(
+@@ -14673,7 +14673,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((simd_float4x4(*)(struct objc_super*, SEL, id,
+@@ -14787,7 +14787,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((simd_float4x4(*)(struct objc_super*, SEL,
+@@ -14904,7 +14904,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((simd_float4x4(*)(struct objc_super*, SEL, simd_float4x4,
+@@ -15020,7 +15020,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((simd_quatd(*)(struct objc_super*, SEL,
+@@ -15131,7 +15131,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_quatf(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -15237,7 +15237,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_quatf(*)(struct objc_super*, SEL, double))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method), arg0);
+@@ -15342,7 +15342,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+                 rv = ((simd_uchar16(*)(struct objc_super*, SEL))objc_msgSendSuper)(
+                     &super, PyObjCSelector_GetSelector(method));
+@@ -15442,7 +15442,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((MPSImageHistogramInfo(*)(struct objc_super*,
+@@ -15553,7 +15553,7 @@
+ 
+             } else {
+                 super.receiver    = self_obj;
+-                super.super_class = super_class;
++                objc_superSetClass(super, super_class);
+ 
+ #ifdef __x86_64__
+                 rv = ((MPSAxisAlignedBoundingBox(*)(struct objc_super*,
+--- pyobjc-core/Modules/objc/libffi_support.m~	2020-12-29 03:53:05.000000000 -0600
++++ pyobjc-core/Modules/objc/libffi_support.m	2021-02-27 19:34:32.000000000 -0600
+@@ -32,6 +32,10 @@
+ 
+ /* pass */
+ 
++#elif defined(__i386__)
++
++#define SMALL_STRUCT_LIMIT 8
++
+ #else
+ 
+ #error "Unsupported CPU architecture"
+@@ -3915,9 +3919,16 @@
+ 
+     if (*typestr == _C_STRUCT_B
+         && (resultSize > SMALL_STRUCT_LIMIT
++#ifdef __i386__
++            /* darwin/x86 ABI is slightly odd ;-) */
++            || (resultSize != 1 && resultSize != 2 && resultSize != 4 && resultSize != 8)
++#endif
++#ifdef __x86_64__
+             /* darwin/x86-64 ABI is slightly odd ;-) */
+             || (resultSize != 1 && resultSize != 2 && resultSize != 4 && resultSize != 8
+-                && resultSize != 16))) {
++                && resultSize != 16)
++#endif
++            )) {
+ 
+         return 1;
+     } else {
+@@ -4312,9 +4323,9 @@
+ 
+     } else {
+         if (meth->base.sel_flags & PyObjCSelector_kCLASS_METHOD) {
+-            super.super_class = object_getClass(meth->base.sel_class);
++            objc_superSetClass(super, object_getClass(meth->base.sel_class));
+         } else {
+-            super.super_class = meth->base.sel_class;
++            objc_superSetClass(super, meth->base.sel_class);
+         }
+         super.receiver = self_obj;
+ 
+@@ -4597,9 +4598,9 @@
+ 
+     } else {
+         if (meth->base.sel_flags & PyObjCSelector_kCLASS_METHOD) {
+-            super.super_class = object_getClass(meth->base.sel_class);
++            objc_superSetClass(super, object_getClass(meth->base.sel_class));
+         } else {
+-            super.super_class = meth->base.sel_class;
++            objc_superSetClass(super, meth->base.sel_class);
+         }
+         super.receiver = self_obj;
+ #ifndef __arm64__
+@@ -4776,9 +4777,9 @@
+     useStret = 0;
+ #endif
+     if (meth->base.sel_flags & PyObjCSelector_kCLASS_METHOD) {
+-        super.super_class = object_getClass(meth->base.sel_class);
++        objc_superSetClass(super, object_getClass(meth->base.sel_class));
+     } else {
+-        super.super_class = meth->base.sel_class;
++        objc_superSetClass(super, meth->base.sel_class);
+     }
+     super.receiver = self_obj;
+ #ifndef __arm64__
+--- pyobjc-core/Modules/objc/module.m~	2020-12-29 03:53:05.000000000 -0600
++++ pyobjc-core/Modules/objc/module.m	2021-02-27 19:35:02.000000000 -0600
+@@ -2067,6 +2067,8 @@
+                           {"arch", "x86_64"},
+ #elif defined(__arm64__)
+                           {"arch", "arm64"},
++#elif defined(__i386__)
++                          {"arch", "i386"},
+ #else
+ #error "Unsupported CPU architecture"
+ #endif
+--- pyobjc-core/Modules/objc/method-imp.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/method-imp.m	2022-09-07 17:17:55.000000000 -0500
+@@ -503,7 +503,7 @@
+     } else {
+         super.receiver = PyObjCObject_GetObject(self);
+     }
+-    super.super_class = object_getClass(super.receiver);
++    objc_superSetClass(super, object_getClass(super.receiver));
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+--- pyobjc-core/Modules/objc/objc-runtime-compat.h~	2020-12-29 03:53:05.000000000 -0600
++++ pyobjc-core/Modules/objc/objc-runtime-compat.h	2021-02-27 19:16:36.000000000 -0600
+@@ -37,6 +37,15 @@
+ #define _C_CHAR_AS_INT 'z'
+ #define _C_NSBOOL 'Z'
+ 
++#ifndef objc_superSetClass
++#if defined(__cplusplus) || defined(__OBJC2__)
++#define objc_superSetClass(super, cls) (super).super_class = (cls)
++#else
++#define objc_superSetClass(super, cls) (super).class = (cls)
++#endif
++#endif
++
++
+ /* Some functions that are missing (oddly enough) */
+ BOOL PyObjC_class_isSubclassOf(Class child, Class parent);
+ 
+--- pyobjc-core/Modules/objc/objc_support.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/objc_support.m	2022-09-12 19:08:48.000000000 -0500
+@@ -29,10 +29,6 @@
+ 
+ #include <CoreFoundation/CFNumber.h>
+ 
+-#ifndef __LP64__
+-#error "Requires LP64"
+-#endif
+-
+ NS_ASSUME_NONNULL_BEGIN
+ 
+ /*
+--- pyobjc-core/Modules/objc/pyobjc.h~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/pyobjc.h	2022-09-12 16:03:40.000000000 -0500
+@@ -18,10 +18,6 @@
+ 
+ #include <objc/objc.h>
+ 
+-#ifndef __LP64__
+-#error "No in 64-bit mode"
+-#endif
+-
+ #ifndef NS_ASSUME_NONNULL_BEGIN
+ /*
+  * Old compiler without nullability support
+--- pyobjc-core/Modules/objc/pyobjc-compat.h~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-core/Modules/objc/pyobjc-compat.h	2022-09-12 18:49:39.000000000 -0500
+@@ -303,10 +303,16 @@
+  *
+  * End of compiler support helpers
+  *
+- * XXX: These two are no longer needed, all supported platforms
+- *      are 64-bit
+  */
+ 
++#ifndef objc_superSetClass
++#if defined(__cplusplus) || defined(__OBJC2__)
++#define objc_superSetClass(super, cls) (super).super_class = (cls)
++#else
++#define objc_superSetClass(super, cls) (super).class = (cls)
++#endif
++#endif
++
+ #if __LP64__
+ #define Py_ARG_NSInteger "l"
+ #define Py_ARG_NSUInteger "k"
+--- pyobjc-core/Modules/objc/OC_PythonArray.m~	2023-12-09 01:46:45.000000000 -0700
++++ pyobjc-core/Modules/objc/OC_PythonArray.m	2024-01-28 23:12:50.000000000 -0700
+@@ -584,6 +584,7 @@
+         PyObjC_Assert(tmpVal == self, nil);
+         return tmpVal;
+ 
++#ifdef __LP64__
+     case 5:
+         /* tuple with more than MAX_INT elements */
+         /* Excluded from coverage check because testing this would
+@@ -607,6 +608,7 @@
+         PyObjC_Assert(tmpVal == self, nil);
+         // LCOV_EXCL_STOP
+         return tmpVal;
++#endif
+ 
+     default:
+         // LCOV_EXCL_START
+--- pyobjc-core/Tools/generate-helpers-vector.py~	2023-12-09 01:46:45.000000000 -0700
++++ pyobjc-core/Tools/generate-helpers-vector.py	2024-01-18 13:43:59.000000000 -0700
+@@ -657,7 +657,7 @@
+     print("", file=stream)
+     print("        } else {", file=stream)
+     print("            super.receiver    = self_obj;", file=stream)
+-    print("            super.super_class = super_class;", file=stream)
++    print("            objc_superSetClass(super, super_class);", file=stream)
+     print("", file=stream)
+     if use_stret(rv_type):
+         print("#ifdef __x86_64__", file=stream)
+--- pyobjc-framework-AVFoundation/Modules/_AVFoundation_AVAudioBuffer.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-AVFoundation/Modules/_AVFoundation_AVAudioBuffer.m	2022-09-07 16:56:31.000000000 -0500
+@@ -24,7 +24,7 @@
+                 res = ((float** (*)(id, SEL))PyObjCIMP_GetIMP(method))(
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method));
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 res = ((float** (*)(struct objc_super*, SEL))objc_msgSendSuper)(
+@@ -86,7 +86,7 @@
+                 res = ((int16_t * *(*)(id, SEL)) PyObjCIMP_GetIMP(method))(
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method));
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 res = ((int16_t * *(*)(struct objc_super*, SEL))
+@@ -148,7 +148,7 @@
+                 res = ((int32_t * *(*)(id, SEL)) PyObjCIMP_GetIMP(method))(
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method));
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 res = ((int32_t * *(*)(struct objc_super*, SEL))
+--- pyobjc-framework-AVFoundation/Modules/_AVFoundation_protocols.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-AVFoundation/Modules/_AVFoundation_protocols.m	2022-09-12 19:15:09.000000000 -0500
+@@ -57,7 +57,7 @@
+     p = PyObjC_IdToPython(@protocol(AVPlayerItemMetadataCollectorPushDelegate));
+     Py_XDECREF(p);
+ #endif
+-#if PyObjC_BUILD_RELEASE >= 1014
++#if PyObjC_BUILD_RELEASE >= 1014 && defined(__OBJC2__)
+     // Defined in the AVFAudio subframework, but header is never included in the
+     // toplevel framework...
+     p = PyObjC_IdToPython(@protocol(AVSpeechSynthesizerDelegate));
+--- pyobjc-framework-AVFoundation/Modules/pyobjc-compat.h~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-AVFoundation/Modules/pyobjc-compat.h	2022-09-12 18:49:39.000000000 -0500
+@@ -303,10 +303,16 @@
+  *
+  * End of compiler support helpers
+  *
+- * XXX: These two are no longer needed, all supported platforms
+- *      are 64-bit
+  */
+ 
++#ifndef objc_superSetClass
++#if defined(__cplusplus) || defined(__OBJC2__)
++#define objc_superSetClass(super, cls) (super).super_class = (cls)
++#else
++#define objc_superSetClass(super, cls) (super).class = (cls)
++#endif
++#endif
++
+ #if __LP64__
+ #define Py_ARG_NSInteger "l"
+ #define Py_ARG_NSUInteger "k"
+--- pyobjc-framework-CoreSpotlight/Modules/_CoreSpotlight.m~	2020-12-29 03:53:05.000000000 -0600
++++ pyobjc-framework-CoreSpotlight/Modules/_CoreSpotlight.m	2021-02-28 12:34:35.000000000 -0600
+@@ -3,6 +3,7 @@
+ #include "Python.h"
+ #include "pyobjc-api.h"
+ 
++#ifdef __OBJC2__
+ #import <CoreSpotlight/CoreSpotlight.h>
+ #import <Foundation/Foundation.h>
+ 
+@@ -40,3 +41,4 @@
+ 
+     return m;
+ }
++#endif
+--- pyobjc-framework-Cocoa/Modules/pyobjc-compat.h~	2023-12-09 01:46:45.000000000 -0700
++++ pyobjc-framework-Cocoa/Modules/pyobjc-compat.h	2024-01-28 23:18:21.000000000 -0700
+@@ -75,10 +75,16 @@
+  *
+  * End of compiler support helpers
+  *
+- * XXX: These two are no longer needed, all supported platforms
+- *      are 64-bit
+  */
+ 
++#ifndef objc_superSetClass
++#if defined(__cplusplus) || defined(__OBJC2__)
++#define objc_superSetClass(super, cls) (super).super_class = (cls)
++#else
++#define objc_superSetClass(super, cls) (super).class = (cls)
++#endif
++#endif
++
+ #if __LP64__
+ #define Py_ARG_NSInteger "l"
+ #define Py_ARG_NSUInteger "k"
+--- pyobjc-framework-Cocoa/Modules/_AppKit_nsbezierpath.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-Cocoa/Modules/_AppKit_nsbezierpath.m	2022-09-07 17:12:46.000000000 -0500
+@@ -38,7 +38,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), idx,
+                     points);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 res = ((NSBezierPathElement(*)(struct objc_super*, SEL, NSInteger,
+@@ -143,7 +143,7 @@
+                     PyObjCObject_GetObject(self), PyObjCIMP_GetSelector(method), points,
+                     idx);
+             } else {
+-                super.super_class = PyObjCSelector_GetClass(method);
++                objc_superSetClass(super, PyObjCSelector_GetClass(method));
+                 super.receiver    = PyObjCObject_GetObject(self);
+ 
+                 ((void (*)(struct objc_super*, SEL, NSPoint*,
+--- pyobjc-framework-Cocoa/Modules/_AppKit_nsbitmap.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-Cocoa/Modules/_AppKit_nsbitmap.m	2022-09-07 16:58:54.000000000 -0500
+@@ -23,8 +23,8 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class =
+-                (Class _Nonnull)object_getClass(PyObjCSelector_GetClass(method));
++            objc_superSetClass(super,
++                (Class _Nonnull)object_getClass(PyObjCSelector_GetClass(method)));
+             super.receiver = PyObjCClass_GetClass(self);
+ 
+             ((void (*)(struct objc_super*, SEL, NSTIFFCompression**,
+@@ -149,7 +149,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             newImageRep = ((id(*)(struct objc_super*, SEL, const void**, NSInteger,
+@@ -273,7 +273,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             newImageRep =
+@@ -333,7 +333,7 @@
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+ 
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             ((void (*)(struct objc_super*, SEL, unsigned char***))objc_msgSendSuper)(
+@@ -397,7 +397,7 @@
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+ 
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             bitmapData = ((unsigned char* (*)(struct objc_super*, SEL))objc_msgSendSuper)(
+--- pyobjc-framework-Cocoa/Modules/_AppKit_protocols.m~	2020-12-29 03:53:05.000000000 -0600
++++ pyobjc-framework-Cocoa/Modules/_AppKit_protocols.m	2021-02-28 14:21:56.000000000 -0600
+@@ -264,11 +264,11 @@
+     Py_XDECREF(p);
+     p = PyObjC_IdToPython(@protocol(NSViewToolTipOwner));
+     Py_XDECREF(p);
++#endif
++#if PyObjC_BUILD_RELEASE >= 1014 && defined(__OBJC2__)
+     p = PyObjC_IdToPython(@protocol(NSUserActivityRestoring));
+     Py_XDECREF(p);
+ #endif
+-#if PyObjC_BUILD_RELEASE >= 1014
+-#endif
+ #if PyObjC_BUILD_RELEASE >= 1015
+     p = PyObjC_IdToPython(@protocol(NSCollectionLayoutContainer));
+     Py_XDECREF(p);
+--- pyobjc-framework-Cocoa/Modules/_Foundation_netservice.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-Cocoa/Modules/_Foundation_netservice.m	2022-09-07 16:59:26.000000000 -0500
+@@ -91,7 +91,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             res = ((id(*)(struct objc_super*, SEL))objc_msgSendSuper)(&super, @selector
+--- pyobjc-framework-Cocoa/Modules/_AppKit_nsview.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-Cocoa/Modules/_AppKit_nsview.m	2022-09-07 16:59:54.000000000 -0500
+@@ -26,7 +26,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             ((void (*)(struct objc_super*, SEL, NSRect**, NSInteger*))objc_msgSendSuper)(
+--- pyobjc-framework-Cocoa/Modules/_Foundation_protocols.m~	2020-12-29 03:53:05.000000000 -0600
++++ pyobjc-framework-Cocoa/Modules/_Foundation_protocols.m	2021-02-28 14:01:39.000000000 -0600
+@@ -85,10 +85,12 @@
+     Py_XDECREF(p);
+     p = PyObjC_IdToPython(@protocol(NSXPCProxyCreating));
+     Py_XDECREF(p);
++#ifdef __OBJC2__
+     p = PyObjC_IdToPython(@protocol(NSExtensionRequestHandling));
+     Py_XDECREF(p);
+     p = PyObjC_IdToPython(@protocol(NSUserActivityDelegate));
+     Py_XDECREF(p);
++#endif /* __OBJC2__ */
+ #endif /* PyObjC_BUILD_RELEASE >= 1010 */
+ #if PyObjC_BUILD_RELEASE >= 1011
+     p = PyObjC_IdToPython(@protocol(NSProgressReporting));
+@@ -93,7 +95,7 @@
+     p = PyObjC_IdToPython(@protocol(NSURLSessionStreamDelegate));
+     Py_XDECREF(p);
+ #endif /* PyObjC_BUILD_RELEASE >= 1011 */
+-#if PyObjC_BUILD_RELEASE >= 1013
++#if PyObjC_BUILD_RELEASE >= 1013 && defined(__OBJC2__)
+     p = PyObjC_IdToPython(@protocol(NSItemProviderWriting));
+     Py_XDECREF(p);
+     p = PyObjC_IdToPython(@protocol(NSItemProviderReading));
+--- pyobjc-framework-Cocoa/Modules/_Foundation_string.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-Cocoa/Modules/_Foundation_string.m	2022-09-07 17:00:50.000000000 -0500
+@@ -51,7 +51,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             ((void (*)(struct objc_super*, SEL, void*, NSInteger, NSRange,
+@@ -127,7 +127,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             ((void (*)(struct objc_super*, SEL, void*, NSUInteger))objc_msgSendSuper)(
+--- pyobjc-framework-Intents/Modules/_Intents.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-Intents/Modules/_Intents.m	2022-09-12 16:46:20.000000000 -0500
+@@ -3,6 +3,7 @@
+ #include "Python.h"
+ #include "pyobjc-api.h"
+ 
++#ifdef __OBJC2__
+ #import <Foundation/Foundation.h>
+ 
+ #import <Intents/Intents.h>
+@@ -35,3 +36,4 @@
+ 
+     return m;
+ }
++#endif
+--- pyobjc-framework-PhotosUI/Modules/_PhotosUI.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-PhotosUI/Modules/_PhotosUI.m	2022-09-12 16:18:40.000000000 -0500
+@@ -3,6 +3,7 @@
+ #include "Python.h"
+ #include "pyobjc-api.h"
+ 
++#ifdef __OBJC2__
+ #import <PhotosUI/PhotosUI.h>
+ 
+ /* We include the source code here instead of
+@@ -34,3 +35,4 @@
+ 
+     return m;
+ }
++#endif
+--- pyobjc-framework-SecurityInterface/Modules/_SecurityInterface.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-SecurityInterface/Modules/_SecurityInterface.m	2022-09-07 16:57:18.000000000 -0500
+@@ -91,7 +91,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             rights = ((AuthorizationRights * (*)(struct objc_super*, SEL))
+@@ -135,7 +135,7 @@
+ 
+     Py_BEGIN_ALLOW_THREADS
+         @try {
+-            super.super_class = PyObjCSelector_GetClass(method);
++            objc_superSetClass(super, PyObjCSelector_GetClass(method));
+             super.receiver    = PyObjCObject_GetObject(self);
+ 
+             ((void (*)(struct objc_super*, SEL, AuthorizationRights*))objc_msgSendSuper)(
+--- pyobjc-framework-SecurityInterface/Modules/pyobjc-compat.h~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-SecurityInterface/Modules/pyobjc-compat.h	2022-09-12 18:49:39.000000000 -0500
+@@ -303,10 +303,16 @@
+  *
+  * End of compiler support helpers
+  *
+- * XXX: These two are no longer needed, all supported platforms
+- *      are 64-bit
+  */
+ 
++#ifndef objc_superSetClass
++#if defined(__cplusplus) || defined(__OBJC2__)
++#define objc_superSetClass(super, cls) (super).super_class = (cls)
++#else
++#define objc_superSetClass(super, cls) (super).class = (cls)
++#endif
++#endif
++
+ #if __LP64__
+ #define Py_ARG_NSInteger "l"
+ #define Py_ARG_NSUInteger "k"
+--- pyobjc-framework-SpriteKit/Modules/_SpriteKit.m~	2023-01-26 22:04:05.000000000 -0700
++++ pyobjc-framework-SpriteKit/Modules/_SpriteKit.m	2023-01-26 23:12:52.000000000 -0700
+@@ -98,7 +98,7 @@
+         PyMem_Free(dstPos);
+         return NULL;
+     }
+-    super.super_class = object_getClass(super.receiver);
++    objc_superSetClass(super, object_getClass(super.receiver));
+ 
+     SEL sel = PyObjCSelector_GetSelector(method);
+ 
+@@ -162,7 +162,7 @@
+         PyMem_Free(pos);
+         return NULL;
+     }
+-    super.super_class = object_getClass(super.receiver);
++    objc_superSetClass(super, object_getClass(super.receiver));
+ 
+     SEL sel = PyObjCSelector_GetSelector(method);
+ 
+--- pyobjc-framework-SpriteKit/Modules/pyobjc-compat.h~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-SpriteKit/Modules/pyobjc-compat.h	2022-09-12 18:49:39.000000000 -0500
+@@ -303,10 +303,16 @@
+  *
+  * End of compiler support helpers
+  *
+- * XXX: These two are no longer needed, all supported platforms
+- *      are 64-bit
+  */
+ 
++#ifndef objc_superSetClass
++#if defined(__cplusplus) || defined(__OBJC2__)
++#define objc_superSetClass(super, cls) (super).super_class = (cls)
++#else
++#define objc_superSetClass(super, cls) (super).class = (cls)
++#endif
++#endif
++
+ #if __LP64__
+ #define Py_ARG_NSInteger "l"
+ #define Py_ARG_NSUInteger "k"
+--- pyobjc-framework-WebKit/Modules/_WebKit_protocols.m~	2022-03-12 05:37:38.000000000 -0600
++++ pyobjc-framework-WebKit/Modules/_WebKit_protocols.m	2022-09-12 16:35:38.000000000 -0500
+@@ -34,12 +36,14 @@
+     Py_XDECREF(p);
+     p = PyObjC_IdToPython(@protocol(WebPolicyDecisionListener));
+     Py_XDECREF(p);
++#if WK_API_ENABLED
+     p = PyObjC_IdToPython(@protocol(WKNavigationDelegate));
+     Py_XDECREF(p);
+     p = PyObjC_IdToPython(@protocol(WKScriptMessageHandler));
+     Py_XDECREF(p);
+     p = PyObjC_IdToPython(@protocol(WKUIDelegate));
+     Py_XDECREF(p);
++#endif
+ #endif /* PyObjC_BUILD_RELEASE >= 1010 */
+ #if PyObjC_BUILD_RELEASE >= 1011
+     p = PyObjC_IdToPython(@protocol(WebUIDelegate));

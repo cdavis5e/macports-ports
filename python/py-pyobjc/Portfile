@@ -44,7 +44,8 @@ if {${name} ne ${subport}} {
                     patch-docs-conf.py.diff \
                     patch-pyobjc-core-setup.py.diff \
                     patch-setup-no-werror.diff \
-                    patch-development-support-_install_tool.py-no-setup.diff
+                    patch-development-support-_install_tool.py-no-setup.diff \
+                    patch-legacy-objc.diff
 
     # use system libffi on Catalina and Big Sur until upstream merges
     # and releases Apple's changes
