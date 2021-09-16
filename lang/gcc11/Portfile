@@ -124,6 +124,9 @@ set major           [lindex [split ${version} .-] 0]
 
 platform darwin {
     configure.pre_args-append --build=${build_arch}-apple-darwin${os.major}
+    if { ${os.major} >= 18 } {
+        patchfiles-append darwin18-universal.patch
+    }
 }
 
 set gcc_configure_langs {c c++ objc obj-c++ lto fortran}

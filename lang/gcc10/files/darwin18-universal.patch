@@ -1,0 +1,11 @@
+--- gcc/config.gcc~	2019-08-03 15:16:22.000000000 -0500
++++ gcc/config.gcc	2019-11-24 14:17:32.000000000 -0600
+@@ -1619,7 +1619,7 @@
+ 	tmake_file="${tmake_file} ${cpu_type}/t-darwin32-biarch t-slibgcc"
+ 	tm_file="${tm_file} ${cpu_type}/darwin32-biarch.h"
+ 	;;
+-x86_64-*-darwin1[89]* | x86_64-*-darwin2[01]*)
++x86_64-*-darwin19* | x86_64-*-darwin2[01]*)
+ 	# Only 64b from now
+ 	with_cpu=${with_cpu:-core2}
+ 	tmake_file="${tmake_file} t-slibgcc"

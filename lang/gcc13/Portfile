@@ -84,6 +84,9 @@ proc gcc_arch {arch} {
 platform darwin {
     set gcc_triple [gcc_arch ${build_arch}]-apple-darwin${os.major}
     configure.pre_args-append --build=${gcc_triple}
+    if { ${os.major} >= 18 } {
+        patchfiles-append darwin18-universal.diff
+    }
 }
 
 set gcc_configure_langs {c c++ objc obj-c++ lto fortran}
