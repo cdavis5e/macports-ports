@@ -1,0 +1,14 @@
+--- build/make/configure.sh~	2021-10-17 16:59:13.000000000 -0500
++++ build/make/configure.sh	2021-10-20 18:53:59.000000000 -0500
+@@ -703,8 +703,9 @@
+ # Reliably find the newest available Darwin SDKs. (Older versions of
+ # xcrun don't support --show-sdk-path.)
+ show_darwin_sdk_path() {
+-  xcrun --sdk $1 --show-sdk-path 2>/dev/null ||
+-    xcodebuild -sdk $1 -version Path 2>/dev/null
++  #xcrun --sdk $1 --show-sdk-path 2>/dev/null ||
++  #  xcodebuild -sdk $1 -version Path 2>/dev/null
++  echo "/"
+ }
+ 
+ # Print the major version number of the Darwin SDK specified by $1.

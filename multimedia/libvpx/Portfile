@@ -140,6 +140,12 @@ if {${universal_possible} && [variant_isset universal]} {
 
     }
 
+    platform darwin 18 {
+        if {"i386" in ${configure.universal_archs}} {
+            patchfiles-append patch-build_make_configure.sh-i386-on-mojave.diff
+        }
+    }
+
 } else {
 
     # single-arch build
@@ -165,6 +171,13 @@ if {${universal_possible} && [variant_isset universal]} {
             build.args-append CFLAGS_S=-fno-integrated-as
         }
     }
+
+    platform darwin 18 {
+        if {"i386" == "${configure.build_arch}"} {
+            patchfiles-append patch-build_make_configure.sh-i386-on-mojave.diff
+        }
+    }
+
 }
 
 # shared library uses relative path in install name
