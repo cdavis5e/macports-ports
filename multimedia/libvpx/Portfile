@@ -3,9 +3,11 @@
 PortSystem          1.0
 PortGroup           compiler_blacklist_versions 1.0
 PortGroup           muniversal 1.0
+PortGroup           conflicts_build 1.0
 
 name                libvpx
 conflicts           libvpx-devel
+conflicts_build     gtest
 set my_name         libvpx
 version             1.15.0
 revision            0
