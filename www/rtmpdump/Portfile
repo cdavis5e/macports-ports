@@ -54,9 +54,11 @@ makefile.prefix_name \
 
 variant universal {}
 
-build.args-append   OPT="${configure.optflags}" \
-                    XCFLAGS="${configure.cflags} [get_canonical_archflags cc]" \
-                    XLDFLAGS="${configure.ldflags} [get_canonical_archflags ld]"
+post-configure {
+    build.args-append   OPT="${configure.optflags}" \
+                        XCFLAGS="${configure.cflags} [get_canonical_archflags cc]" \
+                        XLDFLAGS="${configure.ldflags} [get_canonical_archflags ld]"
+}
 
 pre-destroot {
     destroot.args   {*}${build.args}
