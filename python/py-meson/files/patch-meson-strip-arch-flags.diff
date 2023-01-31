@@ -1,0 +1,32 @@
+--- mesonbuild/compilers/compilers.py~	2023-01-27 18:59:06.000000000 -0700
++++ mesonbuild/compilers/compilers.py	2023-01-27 19:10:17.000000000 -0700
+@@ -987,6 +987,18 @@
+             ret.append(arg)
+         return ret
+ 
++    def remove_arch_args(self, args: T.List[str]) -> T.List[str]:
++        rm_next = ('-arch')
++        ret = []  # T.List[str]
++        iargs = iter(args)
++        for arg in iargs:
++            # Ignore this argument and the one after it
++            if arg in rm_next:
++                next(iargs)
++                continue
++            ret.append(arg)
++        return ret
++
+     def get_lto_compile_args(self, *, threads: int = 0, mode: str = 'default') -> T.List[str]:
+         return []
+ 
+--- mesonbuild/compilers/mixins/clike.py~	2023-01-27 18:59:06.000000000 -0700
++++ mesonbuild/compilers/mixins/clike.py	2023-01-27 19:12:06.000000000 -0700
+@@ -406,6 +406,8 @@
+         # also used during linking. These flags can break
+         # argument checks. Thanks, Autotools.
+         cleaned_sys_args = self.remove_linkerlike_args(sys_args)
++        if mode is CompileCheckMode.PREPROCESS and env.machines[self.for_machine].is_darwin():
++            cleaned_sys_args = self.remove_arch_args(cleaned_sys_args)
+         cargs += cleaned_sys_args
+ 
+         if mode is CompileCheckMode.LINK:

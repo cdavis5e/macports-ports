@@ -1,0 +1,35 @@
+--- mesonbuild/compilers/detect.py~	2022-04-23 04:53:34.000000000 -0500
++++ mesonbuild/compilers/detect.py	2022-06-07 16:02:41.000000000 -0500
+@@ -14,7 +14,7 @@
+ 
+ from ..mesonlib import (
+     MesonException, EnvironmentException, MachineChoice, join_args,
+-    search_version, is_windows, Popen_safe, Popen_safe_logged, windows_proof_rm,
++    search_version, is_windows, is_osx, Popen_safe, Popen_safe_logged, windows_proof_rm,
+ )
+ from ..envconfig import BinaryTable
+ from .. import mlog
+@@ -176,12 +176,17 @@
+             # Use gcc-ar if available; needed for LTO
+             trials = [defaults['gcc_static_linker']] + default_linkers
+         elif compiler.id == 'clang':
+-            # Use llvm-ar if available; needed for LTO
+-            llvm_ar = defaults['clang_static_linker']
+-            # Extract the version major of the compiler to use as a suffix
+-            suffix = compiler.version.split('.')[0]
+-            # Prefer suffixed llvm-ar first, then unsuffixed then the defaults
+-            trials = [[f'{llvm_ar[0]}-{suffix}'], llvm_ar] + default_linkers
++            if is_osx():
++                # Do NOT use llvm-ar on Apple OSes; needed for fat (universal)
++                # objects, and Apple's tools support LLVM LTO out of the box
++                trials = default_linkers
++            else:
++                # Use llvm-ar if available; needed for LTO
++                llvm_ar = defaults['clang_static_linker']
++                # Extract the version major of the compiler to use as a suffix
++                suffix = compiler.version.split('.')[0]
++                # Prefer suffixed llvm-ar first, then unsuffixed then the defaults
++                trials = [[f'{llvm_ar[0]}-{suffix}'], llvm_ar] + default_linkers
+         elif compiler.language == 'd':
+             # Prefer static linkers over linkers used by D compilers
+             if is_windows():
