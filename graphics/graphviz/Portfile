@@ -2,6 +2,7 @@
 
 PortSystem                      1.0
 PortGroup                       xcodeversion 1.0
+PortGroup                       active_variants 1.1
 
 # Please keep the graphviz and graphviz-devel ports as similar as possible.
 
@@ -191,22 +192,30 @@ variant perl description {Include PERL 5 language bindings} {
     configure.perl              ${prefix}/bin/perl
 }
 
-# TODO: support current PHP versions
-# https://trac.macports.org/ticket/45149
+set php_suffixes {70 71 72 73 74 80 81 82 83}
 
-#variant php description {Include PHP language bindings} {
-#    depends_lib-append          path:bin/php:php5
-#    depends_build-append        port:swig-php5
-#
-#    configure.args-replace      --disable-swig --enable-swig
-#    configure.args-replace      --disable-php --enable-php
-#
-#    post-patch {
-#        reinplace "s|/usr/include/php|${prefix}/include/php|g" ${worksrcpath}/configure
-#        reinplace "s|/usr/lib\${LIBPOSTFIX}/php|${prefix}/lib\${LIBPOSTFIX}/php|g" ${worksrcpath}/configure
-#        reinplace "s|/usr/share/php|${prefix}/share/php|g" ${worksrcpath}/configure
-#    }
-#}
+set php_ports {}
+foreach s ${php_suffixes} {
+    lappend php_ports php${s}
+}
+
+foreach s ${php_suffixes} {
+    set p php${s}
+    set major [string index ${s} 0]
+    set v ${major}.[string range ${s} 1 end]
+    set i [lsearch -exact ${php_ports} ${p}]
+    set c [lreplace ${php_ports} ${i} ${i}]
+    variant ${p} description "Include PHP ${v} language bindings" conflicts {*}${c} "
+        depends_lib-append          path:bin/php${s}:${p}
+        depends_build-append        port:swig-php
+        require_active_variants     swig-php ${p}
+
+        configure.args-replace      --disable-swig --enable-swig
+        configure.args-replace      --disable-php --enable-php
+        configure.args-append       PHP=${prefix}/bin/php${s} \
+                                    PHP_CONFIG=${prefix}/bin/php-config${s}
+    "
+}
 
 set pythons_suffixes {36 37 38 39 310 311 312}
 
