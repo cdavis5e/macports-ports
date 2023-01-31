@@ -48,6 +48,8 @@ if { ${os.platform} eq "darwin" && ${os.major} < 9 } {
     patchfiles-append patch-util-linux-disable-posix-tiger.diff
 }
 
+installs_libs       no
+
 depends_lib-append  port:gettext \
                     port:ncurses
 
