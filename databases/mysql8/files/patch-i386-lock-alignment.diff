@@ -1,0 +1,42 @@
+--- a/storage/innobase/include/lock0priv.h	2022-09-13 10:15:16.000000000 -0600
++++ b/storage/innobase/include/lock0priv.h	2023-01-27 01:40:57.000000000 -0700
+@@ -132,7 +132,7 @@
+ static inline bool lock_rec_get_nth_bit(const lock_t *lock, ulint i);
+ 
+ /** Lock struct; protected by lock_sys latches */
+-struct lock_t {
++struct alignas(8) lock_t {
+   /** transaction owning the lock */
+   trx_t *trx;
+ 
+--- a/CMakeLists.txt	2024-06-03 05:39:00.000000000 -0600
++++ b/CMakeLists.txt	2024-07-20 05:25:13.000000000 -0600
+@@ -663,9 +663,9 @@
+ # On some platforms, cmake may think that CMAKE_SIZEOF_VOID_P == 4
+ # even if we have configured for 64bit build....
+ SET(CMAKE_SIZEOF_VOID_P ${SIZEOF_VOIDP})
+-IF(NOT SIZEOF_VOIDP EQUAL 8)
+-  MESSAGE(FATAL_ERROR "MySQL supports only 64-bit platforms.")
+-ENDIF()
++#IF(NOT SIZEOF_VOIDP EQUAL 8)
++#  MESSAGE(FATAL_ERROR "MySQL supports only 64-bit platforms.")
++#ENDIF()
+ 
+ INCLUDE(compile_flags)
+ INCLUDE(install_layout)
+--- router/src/harness/include/mysql/harness/net_ts/impl/kqueue_io_service.h~	2024-06-03 05:39:00.000000000 -0600
++++ router/src/harness/include/mysql/harness/net_ts/impl/kqueue_io_service.h	2024-07-20 20:02:30.000000000 -0600
+@@ -189,9 +189,10 @@
+         auto secs = std::chrono::duration_cast<std::chrono::seconds>(timeout);
+         timeout -= secs;
+ 
+-        ts = {secs.count(),
+-              std::chrono::duration_cast<std::chrono::nanoseconds>(timeout)
+-                  .count()};
++        ts = {static_cast<time_t>(secs.count()),
++              static_cast<long>(
++                  std::chrono::duration_cast<std::chrono::nanoseconds>(timeout)
++                  .count())};
+ 
+         p_ts = &ts;
+       }

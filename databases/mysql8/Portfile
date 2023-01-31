@@ -164,7 +164,8 @@ if {$subport eq $name} {
     patch.pre_args-replace  -p0 -p1
     patchfiles      patch-cmake-install_layout.cmake.diff \
                     patch-readline.cmake.diff \
-                    patch-scripts-cmakelists.diff
+                    patch-scripts-cmakelists.diff \
+                    patch-i386-lock-alignment.diff
 
     post-extract {
         file mkdir ${cmake.build_dir}/macports
