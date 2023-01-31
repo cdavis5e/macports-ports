@@ -1,0 +1,11 @@
+--- CMake/AbseilHelpers.cmake.orig	2023-01-25 09:31:08.000000000 -0700
++++ CMake/AbseilHelpers.cmake	2023-01-30 03:10:57.000000000 -0700
+@@ -193,7 +193,7 @@
+         set(PC_CFLAGS "${PC_CFLAGS} ${cflag}")
+       elseif(${cflag} MATCHES "^(-W|/w[1234eo])")
+         # Don't impose our warnings on others.
+-      elseif(${cflag} MATCHES "^-m")
++      elseif(${cflag} MATCHES "^(-m|-Xarch_)")
+         # Don't impose CPU instruction requirements on others, as
+         # the code performs feature detection on runtime.
+       else()
