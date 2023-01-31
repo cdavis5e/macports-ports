@@ -82,6 +82,7 @@ patchfiles-append               smyrna.patch
 
 configure.args \
                                 ac_cv_prog_AWK=/usr/bin/awk \
+                                --disable-go \
                                 --disable-guile \
                                 --disable-io \
                                 --disable-java \
@@ -153,6 +154,14 @@ variant guile description {Include Guile 2.2 language bindings} {
     post-patch {
         reinplace "s/\\(GUILE_VERSION=.* | \\)sed/\\1\$SED/" ${worksrcpath}/configure.ac
     }
+}
+
+variant go description {Include Go language bindings} {
+    depends_lib-append          port:go
+    depends_build-append        port:swig-go
+
+    configure.args-replace      --disable-swig --enable-swig
+    configure.args-replace      --disable-go --enable-go
 }
 
 variant lua description {Include Lua language bindings} {
