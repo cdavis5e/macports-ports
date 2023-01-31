@@ -1,0 +1,12 @@
+--- Modules/CMakeFindBinUtils.cmake~	2024-04-13 02:17:03
++++ Modules/CMakeFindBinUtils.cmake	2024-04-13 03:48:07
+@@ -193,8 +193,8 @@
+     # llvm-ar does not generate a symbol table that the Apple ld64 linker accepts.
+     if(NOT APPLE)
+       list(PREPEND _CMAKE_AR_NAMES "llvm-ar")
++      list(PREPEND _CMAKE_RANLIB_NAMES "llvm-ranlib")
+     endif()
+-    list(PREPEND _CMAKE_RANLIB_NAMES "llvm-ranlib")
+     # llvm-strip versions prior to 11 require additional flags we do not yet add.
+     if("${CMAKE_${_CMAKE_PROCESSING_LANGUAGE}_COMPILER_VERSION}" VERSION_GREATER_EQUAL 11)
+       # llvm-strip does not seem to support chained fixup format on macOS correctly.

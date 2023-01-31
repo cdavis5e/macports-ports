@@ -40,7 +40,7 @@ gitlab.setup        cmake   cmake 3.31.3 v
 checksums           rmd160  089b5fe70330cae4ed3d11ce793c1bf00412af31 \
                     sha256  2ae922cd02572fc4e00fcdd17ce9e4f5ed76a0565bf80b43419fd754ea1d6c7a \
                     size    8940284
-revision            0
+revision            1
 
 dist_subdir         ${my_name}
 
@@ -77,6 +77,7 @@ patchfiles-append patch-cmakeroot-with-app.diff
 patchfiles-append patch-remove-homebrew-references.diff
 patchfiles-append patch-Modules-CMakeDetermineCompilerId.cmake-universal.diff
 patchfiles-append patch-Modules-FindLua51.cmake.diff
+patchfiles-append patch-Modules-CMakeFindBinUtils.cmake.diff
 
 platform darwin 8 {
     # Tiger doesn't have _DARWIN_C_SOURCE macro so have to disable _POSIX_C_SOURCE instead
