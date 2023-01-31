@@ -7,7 +7,7 @@
 -    vm_statistics64_data_t vm_stat;
      kern_return_t	         kret;
 +
-+#if defined(__LP64__)
++#if defined(HOST_VM_INFO64)
 +    vm_statistics64_data_t vm_stat;
      unsigned int           count = HOST_VM_INFO64_COUNT;
  
