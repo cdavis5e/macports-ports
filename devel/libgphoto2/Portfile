@@ -56,7 +56,9 @@ configure.args      --with-drivers=all \
 # In our case, utilize our standard cflags. That prevents use of the default
 # warning-related options, along with adding anything necessary for MacPorts.
 
-build.args-append   CFLAGS="${configure.cflags} [get_canonical_archflags cc]"
+pre-build {
+    build.args-append   CFLAGS="${configure.cflags} [get_canonical_archflags cc]"
+}
 
 variant doxygen description {Use doxygen to generate API docs} {
     depends_build-append    path:bin/doxygen:doxygen \
