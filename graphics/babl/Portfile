@@ -43,6 +43,7 @@ depends_lib-append  port:lcms2 \
                     path:bin/vala:vala
 
 patchfiles-append   patch-babl-linker-fix-darwin.diff
+patchfiles-append   patch-simplify-sse.diff
 
 # require C11 (typedef redefinition)
 # babl-icc.c:1031:25: error: redefinition of typedef 'UTF8' is invalid in C
