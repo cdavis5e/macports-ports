@@ -172,9 +172,7 @@ variant lua description {Include Lua language bindings} {
     configure.args-replace      --disable-lua --enable-lua
 
     post-patch {
-        # TODO: I think this is broken.  It patches configure, but
-        #       use_autoreconf is yes.
-        reinplace "s|/usr/lib\$LIBPOSTFIX/lua|${prefix}/lib\$LIBPOSTFIX/lua|g" ${worksrcpath}/configure
+        reinplace "s|/usr/lib\$LIBPOSTFIX/lua|${prefix}/lib\$LIBPOSTFIX/lua|g" ${worksrcpath}/configure.ac
     }
 }
 
