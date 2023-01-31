@@ -1,0 +1,140 @@
+diff --git include/ffi.h.in include/ffi.h.in
+index 0aa5b61..0131a1c 100644
+--- include/ffi.h.in
++++ include/ffi.h.in
+@@ -390,6 +390,14 @@ ffi_prep_closure_loc (ffi_closure*,
+ 		      void *user_data,
+ 		      void*codeloc);
+ 
++FFI_API ffi_closure *
++ffi_find_closure_for_code(void *codeloc);
++
++#if defined(__x86_64__) || defined(__arm64__)
++FFI_API ffi_closure *
++ffi_find_closure_for_code_np(void *code);
++#endif
++
+ #ifdef __sgi
+ # pragma pack 8
+ #endif
+diff --git src/aarch64/ffi.c src/aarch64/ffi.c
+index 76d2938..dda4474 100644
+--- src/aarch64/ffi.c
++++ src/aarch64/ffi.c
+@@ -887,6 +887,23 @@ out:
+   return FFI_OK;
+ }
+ 
++ffi_closure *
++ffi_find_closure_for_code(void *codeloc)
++{
++#if FFI_EXEC_TRAMPOLINE_TABLE
++	void **config = (void **)((uint8_t *)codeloc - PAGE_MAX_SIZE);
++	return config[0];
++#else
++	return (ffi_closure *)codeloc;
++#endif
++}
++
++ffi_closure *
++ffi_find_closure_for_code_np(void *codeloc)
++{
++	return ffi_find_closure_for_code(codeloc);
++}
++
+ #ifdef FFI_GO_CLOSURES
+ extern void ffi_go_closure_SYSV (void) FFI_HIDDEN;
+ extern void ffi_go_closure_SYSV_V (void) FFI_HIDDEN;
+diff --git src/closures.c src/closures.c
+index 6cbe2f0..7ab9ff4 100644
+--- src/closures.c
++++ src/closures.c
+@@ -51,9 +51,9 @@
+ #endif
+ 
+ static const size_t overhead =
+-  (sizeof(max_align_t) > sizeof(void *) + sizeof(size_t)) ?
++  (sizeof(max_align_t) > 2 * sizeof(void *) + sizeof(size_t)) ?
+     sizeof(max_align_t)
+-    : sizeof(void *) + sizeof(size_t);
++    : 2 * sizeof(void *) + sizeof(size_t);
+ 
+ #define ADD_TO_POINTER(p, d) ((void *)((uintptr_t)(p) + (d)))
+ 
+@@ -97,6 +97,7 @@ ffi_closure_alloc (size_t size, void **code)
+   /* Remember allocation size and location of the secondary mapping for ffi_closure_free. */
+   memcpy(dataseg, &rounded_size, sizeof(rounded_size));
+   memcpy(ADD_TO_POINTER(dataseg, sizeof(size_t)), &codeseg, sizeof(void *));
++  memcpy(ADD_TO_POINTER(dataseg, sizeof(size_t)) + sizeof(void *), &dataseg, sizeof(void *));
+   *code = ADD_TO_POINTER(codeseg, overhead);
+   return ADD_TO_POINTER(dataseg, overhead);
+ }
+@@ -114,6 +115,16 @@ ffi_closure_free (void *ptr)
+   munmap(codeseg, rounded_size);
+ }
+ 
++ffi_closure *
++ffi_find_closure_for_code (void *codeloc)
++{
++  void *dataseg;
++
++  codeloc = ADD_TO_POINTER(codeloc, -overhead);
++  memcpy(&dataseg, ADD_TO_POINTER(codeloc, sizeof(size_t) + sizeof(void *)), sizeof(void *));
++  return ADD_TO_POINTER(dataseg, overhead);
++}
++
+ int
+ ffi_tramp_is_present (__attribute__((unused)) void *ptr)
+ {
+@@ -383,6 +394,13 @@ ffi_closure_free (void *ptr)
+   free (closure);
+ }
+ 
++ffi_closure *
++ffi_find_closure_for_code (void *codeloc)
++{
++  void **config = (void **)((uint8_t *)codeloc - PAGE_MAX_SIZE);
++  return config[0];
++}
++
+ #endif
+ 
+ // Per-target implementation; It's unclear what can reasonable be shared between two OS/architecture implementations.
+@@ -1034,6 +1052,17 @@ ffi_data_to_code_pointer (void *data)
+     return data;
+ }
+ 
++ffi_closure *
++ffi_find_closure_for_code (void *codeloc)
++{
++#if FFI_CLOSURE_FREE_CODE
++  msegmentptr seg = segment_holding_code (gm, codeloc);
++  if (seg)
++    return sub_segment_exec_offset (codeloc, seg);
++#endif
++  return codeloc;
++}
++
+ /* Release a chunk of memory allocated with ffi_closure_alloc.  If
+    FFI_CLOSURE_FREE_CODE is nonzero, the given address can be the
+    writable or the executable address given.  Otherwise, only the
+diff --git src/x86/ffi64.c src/x86/ffi64.c
+index 22d43f5..b87a74d 100644
+--- src/x86/ffi64.c
++++ src/x86/ffi64.c
+@@ -807,6 +807,12 @@ out:
+   return FFI_OK;
+ }
+ 
++ffi_closure *
++ffi_find_closure_for_code_np(void *code)
++{
++	return ffi_find_closure_for_code(code);
++}
++
+ int FFI_HIDDEN
+ ffi_closure_unix64_inner(ffi_cif *cif,
+ 			 void (*fun)(ffi_cif*, void*, void**, void*),
+-- 
+2.37.3
+

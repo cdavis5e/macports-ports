@@ -25,7 +25,8 @@ long_description    The libffi library provides a portable, high level \
 
 homepage            https://www.sourceware.org/libffi/
 
-patchfiles          patch-pre-snowleopard.diff
+patchfiles          patch-pre-snowleopard.diff \
+                    patch-add-ffi_find_closure_for_code.diff
 
 # Don't use macports gcc or clang toolchains to build this due to dependency cycles
 compiler.blacklist-append macports-*
