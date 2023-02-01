@@ -90,6 +90,7 @@ configure.args-append   -DWITH_ENCHANT=ON \
                         -DWITH_HSPELL=OFF \
                         -DWITH_FAM=OFF \
                         -DKDE4_AUTH_BACKEND_NAME="OSX" \
+                        -DJASPER_INCLUDE_DIR=${prefix}/libexec/jasper2/include \
                         -DJASPER_LIBRARY_RELEASE=${prefix}/libexec/jasper2/lib/libjasper.dylib
 
 # Install the kdelibs headerfiles in their own directory to prevent clashes with KF5 headers
