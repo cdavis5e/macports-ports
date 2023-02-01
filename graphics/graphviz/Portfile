@@ -338,6 +338,11 @@ variant poppler description {Add poppler support} {
     configure.args-replace      --without-poppler --with-poppler
 }
 
+variant ghostscript description {Add ghostscript support} {
+    depends_lib-append          port:ghostscript
+    configure.args-replace      --without-ghostscript --with-ghostscript
+}
+
 variant x11 {
     depends_lib-append          port:xorg-libXaw
     configure.args-delete       --without-x
