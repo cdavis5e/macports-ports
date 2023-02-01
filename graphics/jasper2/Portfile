@@ -48,6 +48,8 @@ variant docs description {build documentation} {
 
     configure.args-delete   -DJAS_ENABLE_DOC=false
     configure.args-append   -DJAS_ENABLE_DOC=true
+    # error: Could not create output directory doc/html
+    use_parallel_build      no
 }
 
 livecheck.url   https://api.github.com/repos/jasper-software/jasper/tags
