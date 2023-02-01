@@ -342,6 +342,9 @@ platform darwin {
     }
 }
 
+# Blacklist Xcode 11 and Clang 11 due to ICEs during stage 1.
+compiler.blacklist-append {clang >= 1100 < 1200} macports-clang-11
+
 # "-stdlib" would be passed on to the bootstrap compiler if present
 configure.cxx_stdlib
 
