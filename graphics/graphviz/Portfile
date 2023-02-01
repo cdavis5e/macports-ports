@@ -231,8 +231,8 @@ foreach s ${pythons_suffixes} {
     set i [lsearch -exact ${pythons_ports} ${p}]
     set c [lreplace ${pythons_ports} ${i} ${i}]
     variant ${p} description "Include Python ${v} language bindings" conflicts {*}${c} "
-        depends_build-append    port:swig-python
         depends_lib-append      port:${p}
+        depends_build-append    port:swig-python
 
         configure.python        ${prefix}/bin/python${v}
         configure.args-replace  --disable-swig --enable-swig
@@ -241,12 +241,32 @@ foreach s ${pythons_suffixes} {
     "
 }
 
-variant ruby description {Include Ruby language bindings} {
-    depends_lib-append          port:ruby
-    depends_build-append        port:swig-ruby
+set ruby_suffixes {186 187 19 20 21 22 23 24 25 26 27 30 31 32 33}
 
-    configure.args-replace      --disable-swig --enable-swig
-    configure.args-replace      --disable-ruby --enable-ruby
+set ruby_ports {}
+foreach s ${ruby_suffixes} {
+    lappend ruby_ports ruby${s}
+}
+
+foreach s ${ruby_suffixes} {
+    set p ruby${s}
+    set major [string index ${s} 0]
+    set v ${major}.[string index ${s} 1]
+    set i [lsearch -exact ${ruby_ports} ${p}]
+    set c [lreplace ${ruby_ports} ${i} ${i}]
+    variant ruby${s} description "Include Ruby ${v} language bindings" conflicts {*}${c} "
+        if {${s} eq 187} {
+            depends_lib-append          path:bin/ruby${v}:ruby
+        } else {
+            depends_lib-append          path:bin/ruby${v}:${p}
+        }
+        depends_build-append        port:swig-ruby
+
+        configure.ruby              ${prefix}/bin/ruby${v}
+        configure.args-replace      --disable-swig --enable-swig
+        configure.args-replace      --disable-ruby --enable-ruby
+        configure.args-append       RUBY_VER=${v}
+    "
 }
 
 variant tcl description {Include Tcl language bindings} {
