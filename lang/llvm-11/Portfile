@@ -405,8 +405,13 @@ if {${subport} eq "clang-${llvm_version}"} {
 
         delete ${destroot}${sub_prefix}/bin/clang
         file rename ${destroot}${sub_prefix}/bin/clang-${clang_executable_version} ${destroot}${sub_prefix}/bin/clang
-        reinplace "s|/bin/clang-${clang_executable_version}|/bin/clang|g" \
-            "${destroot}${sub_prefix}/lib/cmake/clang/ClangTargets-release.cmake"
+        if {[variant_isset debug]} {
+            reinplace "s|/bin/clang-${clang_executable_version}|/bin/clang|g" \
+                "${destroot}${sub_prefix}/lib/cmake/clang/ClangTargets-debug.cmake"
+        } else {
+            reinplace "s|/bin/clang-${clang_executable_version}|/bin/clang|g" \
+                "${destroot}${sub_prefix}/lib/cmake/clang/ClangTargets-release.cmake"
+        }
     }
 }
 
