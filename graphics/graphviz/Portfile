@@ -275,6 +275,7 @@ variant tcl description {Include Tcl language bindings} {
 
     configure.args-replace      --disable-swig --enable-swig
     configure.args-replace      --disable-tcl --enable-tcl
+    configure.args-append       TCLSH=${prefix}/bin/tclsh
 }
 
 variant java description {Include Java language bindings} {
