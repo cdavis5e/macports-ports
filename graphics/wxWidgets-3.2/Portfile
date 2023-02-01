@@ -43,6 +43,8 @@ dist_subdir         wxWidgets/${version}
 worksrcdir          ${distname}/build
 patch.dir           ${worksrcpath}/..
 
+patchfiles-append   fix-install-name-flavour.diff
+
 set selectdir       ${workpath}/select
 select.group        wxWidgets
 select.file         ${selectdir}/${subport}
@@ -69,13 +71,19 @@ depends_run         port:wxWidgets-common \
 configure.env-append \
                     GREP=/usr/bin/grep
 
+set flavor release
+if {[variant_isset debug]} {
+    set flavor debug
+}
+
 post-patch {
     file mkdir ${selectdir}
-    system "echo \"${wxWidgets.wxdir}/wx-config\n${wxWidgets.wxdir}/wxrc-${branch}\" > ${select.file}"
+    system "echo \"${wxWidgets.wxdir}/wx-config\n${wxWidgets.wxdir}/wxrc-${branch}-${flavor}\" > ${select.file}"
 }
 
 configure.cmd       ../configure
 configure.args      --prefix=${wxWidgets.prefix} \
+                    --with-flavour=release \
                     --with-libiconv-prefix=${prefix} \
                     --with-libjpeg \
                     --with-libtiff \
@@ -118,7 +126,7 @@ if { ${os.platform} eq "darwin" && ${os.major} == 11 } {
 }
 
 post-destroot {
-    set confscript ${wxWidgets.prefix}/lib/wx/config/${wxtype}-unicode-${branch}
+    set confscript ${wxWidgets.prefix}/lib/wx/config/${wxtype}-unicode-${branch}-${flavor}
     ln -sf ${confscript} ${destroot}${wxWidgets.prefix}/bin/wx-config
 }
 
@@ -150,6 +158,8 @@ configure.universal_cppflags
 
 variant debug description {add debug info to libraries} {
     configure.args-append   --enable-debug
+    configure.args-replace  --with-flavour=release \
+                            --with-flavour=debug
 }
 
 variant stdlib description {add support for various standard library features} {

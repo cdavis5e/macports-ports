@@ -1,0 +1,26 @@
+--- configure.in~	2023-01-29 02:17:32.000000000 -0700
++++ configure.in	2023-01-29 02:34:27.000000000 -0700
+@@ -4070,8 +4070,8 @@
+     ${HOST_PREFIX}install_name_tool \${changes} -id \${3}/\${i} \${1}/\${i}
+ done
+ 
+-if test -f "\${2}/wxrc-${WX_RELEASE}" ; then
+-    ${HOST_PREFIX}install_name_tool \${changes} \${2}/wxrc-${WX_RELEASE}
++if test -f "\${2}/wxrc-${WX_RELEASE}${WX_FLAVOUR:+-${WX_FLAVOUR}}" ; then
++    ${HOST_PREFIX}install_name_tool \${changes} \${2}/wxrc-${WX_RELEASE}${WX_FLAVOUR:+-${WX_FLAVOUR}}
+ fi
+ EOF
+             chmod +x change-install-names
+--- configure~	2023-01-29 02:17:32.000000000 -0700
++++ configure	2023-01-29 02:42:56.000000000 -0700
+@@ -33988,8 +33988,8 @@
+     ${HOST_PREFIX}install_name_tool \${changes} -id \${3}/\${i} \${1}/\${i}
+ done
+ 
+-if test -f "\${2}/wxrc-${WX_RELEASE}" ; then
+-    ${HOST_PREFIX}install_name_tool \${changes} \${2}/wxrc-${WX_RELEASE}
++if test -f "\${2}/wxrc-${WX_RELEASE}${WX_FLAVOUR:+-${WX_FLAVOUR}}" ; then
++    ${HOST_PREFIX}install_name_tool \${changes} \${2}/wxrc-${WX_RELEASE}${WX_FLAVOUR:+-${WX_FLAVOUR}}
+ fi
+ EOF
+             chmod +x change-install-names
