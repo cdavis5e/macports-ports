@@ -31,7 +31,7 @@ distname                llvm-project-${version}.src
 use_xz                  yes
 
 name                    llvm-${llvm_version}
-revision                3
+revision                4
 subport                 clang-${llvm_version} {revision 4}
 subport                 lldb-${llvm_version}  {revision 4}
 dist_subdir             llvm
@@ -125,7 +125,8 @@ patchfiles-append \
     patch-lldb-stdc-macros-134877.diff \
     patch-lldb-fix-swig-lvalue-2128646.diff \
     patch-xcode-15.diff \
-    0001-llvm-config-Correct-big-dylib-name-for-Darwin.patch
+    0001-llvm-config-Correct-big-dylib-name-for-Darwin.patch \
+    0028-LoopIdiom-avoid-patterned-memset-if-constant-is-not-relocatable.patch
 
 if {${os.platform} eq "darwin" && ${os.major} < 14} {
     patchfiles-append \
