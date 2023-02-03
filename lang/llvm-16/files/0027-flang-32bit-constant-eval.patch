@@ -1,0 +1,57 @@
+--- a/flang/runtime/command.cpp	2023-01-12 00:12:30.000000000 -0700
++++ b/flang/runtime/command.cpp	2023-01-20 03:04:32.000000000 -0700
+@@ -31,7 +31,7 @@
+   if constexpr (sizeof(std::size_t) < sizeof(std::int64_t)) {
+     return static_cast<std::int64_t>(length);
+   } else {
+-    std::size_t max{std::numeric_limits<std::int64_t>::max()};
++    std::size_t max{static_cast<std::size_t>(std::numeric_limits<std::int64_t>::max())};
+     return length > max ? 0 // Just fail.
+                         : static_cast<std::int64_t>(length);
+   }
+--- a/flang/runtime/derived.cpp	2023-01-12 00:12:30.000000000 -0700
++++ b/flang/runtime/derived.cpp	2023-01-20 03:37:17.000000000 -0700
+@@ -188,9 +188,9 @@
+       SubscriptValue extent[maxRank];
+       const typeInfo::Value *bounds{comp.bounds()};
+       for (int dim{0}; dim < comp.rank(); ++dim) {
+-        SubscriptValue lb{bounds[2 * dim].GetValue(&descriptor).value_or(0)};
++        SubscriptValue lb{static_cast<SubscriptValue>(bounds[2 * dim].GetValue(&descriptor).value_or(0))};
+         SubscriptValue ub{
+-            bounds[2 * dim + 1].GetValue(&descriptor).value_or(0)};
++            static_cast<SubscriptValue>(bounds[2 * dim + 1].GetValue(&descriptor).value_or(0))};
+         extent[dim] = ub >= lb ? ub - lb + 1 : 0;
+       }
+       StaticDescriptor<maxRank, true, 0> staticDescriptor;
+--- a/flang/runtime/transformational.cpp	2023-01-12 00:12:30.000000000 -0700
++++ b/flang/runtime/transformational.cpp	2023-01-20 13:41:41.000000000 -0700
+@@ -191,7 +191,7 @@
+   SubscriptValue lb{sourceDim.LowerBound()};
+   for (SubscriptValue j{0}; j < extent; ++j) {
+     SubscriptValue resultAt{1 + j};
+-    SubscriptValue sourceAt{lb + (j + shift) % extent};
++    SubscriptValue sourceAt{static_cast<SubscriptValue>(lb + (j + shift) % extent)};
+     if (sourceAt < lb) {
+       sourceAt += extent;
+     }
+@@ -302,7 +302,7 @@
+   }
+   SubscriptValue lb{source.GetDimension(0).LowerBound()};
+   for (SubscriptValue j{1}; j <= extent; ++j) {
+-    SubscriptValue sourceAt{lb + j - 1 + shift};
++    SubscriptValue sourceAt{static_cast<SubscriptValue>(lb + j - 1 + shift)};
+     if (sourceAt >= lb && sourceAt < lb + extent) {
+       CopyElement(result, &j, source, &sourceAt, terminator);
+     } else if (boundary) {
+--- a/flang/lib/Evaluate/constant.cpp	2021-06-28 11:23:38.000000000 -0500
++++ b/flang/lib/Evaluate/constant.cpp	2021-08-20 19:34:04.000000000 -0500
+@@ -251,7 +251,8 @@
+     return count;
+   } else {
+     std::size_t copied{0};
+-    std::size_t elementBytes{length_ * sizeof(decltype(values_[0]))};
++    std::size_t elementBytes{
++        static_cast<std::size_t>(length_) * sizeof(decltype(values_[0]))};
+     ConstantSubscripts sourceSubscripts{source.lbounds()};
+     while (copied < count) {
+       auto *dest{&values_.at(SubscriptsToOffset(resultSubscripts) * length_)};

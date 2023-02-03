@@ -311,8 +311,10 @@ if { ${subport} eq "flang-${llvm_version}" } {
     description         LLVM Fortran compiler
     long_description    {*}${description}
 
-    # CMakeLists.txt: flang isn't supported on 32 bit CPUs
-    supported_archs     arm64 x86_64
+    if {${configure.build_arch} eq "i386" || "i386" in ${configure.universal_archs}} {
+        patchfiles-append \
+            0027-flang-32bit-constant-eval.patch
+    }
 
     post-patch {
         reinplace -E "1s|^#!.*$|#!${prefix}/bin/bash|" ${worksrcpath}/../flang/tools/f18/flang-to-external-fc.in
