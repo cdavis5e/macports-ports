@@ -299,14 +299,6 @@ if { ${subport} eq "flang-${llvm_version}" } {
         # components we want to install are not available; we want "everything but llvm"
         system "cd ${destroot.dir}/tools/flang && ${destroot.cmd} ${destroot.pre_args} ${destroot.target} ${destroot.post_args}"
     }
-
-    notes-append {
-        This version of flang passes off to another fortran compiler to do the actual compiling.
-        At present, you may need to set the desired fortran compiler with an ENV VAR if\
-        the default gfortran is not found on PATH.
-        For example: F18_FC=gfortran-mp-11 flang-mp-13 hello.f90 -o hello.bin
-        See https://github.com/llvm/llvm-project/blob/master/flang/docs/ReleaseNotes.md
-    }
 }
 
 if { ${subport} eq "clang-${llvm_version}" || ${subport} eq "flang-${llvm_version}" } {
@@ -420,6 +412,10 @@ post-destroot {
         # remove the clang symlink and replace it with the actual binary
         delete      ${destroot}${sub_prefix}/bin/clang
         file rename ${destroot}${sub_prefix}/bin/clang-${clang_exe_version} ${destroot}${sub_prefix}/bin/clang
+    }
+
+    if {${subport} eq "flang-${llvm_version}"} {
+        ln -s flang-new ${destroot}${sub_prefix}/bin/flang
     }
 
     # generate a versioned wrapper script for each file in the bin directory
