@@ -415,6 +415,7 @@ variant tests description {Enable building of test code} {
     test.target             check
 
    if {${subport} eq "clang-${llvm_version}"} {
+       configure.args-replace -DCLANG_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=ON
        test.target    check-all
    }
 
