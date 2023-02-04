@@ -56,6 +56,11 @@ compiler.fallback       clang macports-clang-14 macports-clang-15
 cmake.install_prefix    ${sub_prefix}
 cmake.build_type        Release
 
+if {${subport} ne "llvm-${llvm_version}"} {
+    configure.args-append \
+                        -DLLVM_DIR="${sub_prefix}/lib/cmake/llvm"
+}
+
 # clean up some cmake-PG added values we don't want to use, because we want @rpaths
 cmake.install_rpath
 
@@ -140,6 +145,9 @@ patchfiles-append \
     0019-10.6-and-less-use-emulated-TLS-before-10.7.patch \
     0025-lldb-add-defines-needed-for-older-SDKs.patch \
     0026-llvm-set-memrchr-unavailable.patch \
+    0028-mlir-Store-absolute-path-to-tblgen-in-CMake-Config.patch \
+    0029-cmake-Use-libtool-on-Darwin-for-standalone-builds.patch \
+    0030-cmake-Set-CMAKE_BUILD_RPATH-for-standalone-Darwin-builds.patch \
     0032-lldb-Add-cstdio-include-to-fix-a595b931f1f91897317a4.patch \
     0033-xray-Use-L-instead-of-.L-for-Mach-O.patch \
     0034-builtins-Move-cfi-start-s-after-the-symbol-name-NFC.patch \
@@ -266,14 +274,12 @@ if {${subport} eq "mlir-${llvm_version}"} {
 
     depends_lib-append  port:llvm-${llvm_version}
 
-    configure.args-append \
-                        -DLLVM_ENABLE_PROJECTS="mlir"
+    worksrcdir          ${distname}/mlir
 
-    destroot {
-        # we have to run the destroot like this, because individual targets for each of the
-        # components we want to install are not available; we want "everything but llvm"
-        system "cd ${destroot.dir}/tools/mlir && ${destroot.cmd} ${destroot.pre_args} ${destroot.target} ${destroot.post_args}"
-    }
+    configure.args-append \
+                        -DLLVM_BUILD_TOOLS=ON \
+                        -DLLVM_BUILD_UTILS=ON \
+                        -DLLVM_BUILD_LLVM_DYLIB=ON
 }
 
 if { ${subport} eq "clang-${llvm_version}" } {
@@ -311,6 +317,14 @@ if { ${subport} eq "flang-${llvm_version}" } {
     description         LLVM Fortran compiler
     long_description    {*}${description}
 
+    worksrcdir          ${distname}/flang
+
+    depends_lib-append  port:clang-${llvm_version} port:mlir-${llvm_version} \
+                        port:libxml2 port:libomp port:llvm-${llvm_version}
+    depends_run-append  port:ld64
+    depends_run-append  port:bash
+    depends_skip_archcheck-append ld64
+
     depends_run-append  port:flang_select
     select.group        flang
     select.file         ${filespath}/mp-${subport}
@@ -324,22 +338,15 @@ if { ${subport} eq "flang-${llvm_version}" } {
         reinplace -E "1s|^#!.*$|#!${prefix}/bin/bash|" ${worksrcpath}/../flang/tools/f18/flang-to-external-fc.in
     }
 
+    # CMAKE_LINKER is used to determine the value for HOST_LINK_VERSION
     configure.args-append \
-        -DLLVM_ENABLE_PROJECTS="clang\;flang\;compiler-rt\;mlir" \
-        -DLIBCXX_ENABLE_SHARED=OFF          \
-        -DLIBCXX_INSTALL_LIBRARY=OFF
-
-    depends_lib-append  port:clang-${llvm_version} port:mlir-${llvm_version}
-    depends_run-append  port:bash
-
-    destroot {
-        # we have to run the destroot like this, because individual targets for each of the
-        # components we want to install are not available; we want "everything but llvm"
-        system "cd ${destroot.dir}/tools/flang && ${destroot.cmd} ${destroot.pre_args} ${destroot.target} ${destroot.post_args}"
-    }
+        -DCMAKE_LINKER=${prefix}/bin/ld     \
+        -DCLANG_DIR="${sub_prefix}/lib/cmake/clang" \
+        -DFLANG_INCLUDE_TESTS=OFF           \
+        -DMLIR_DIR="${sub_prefix}/lib/cmake/mlir"
 }
 
-if { ${subport} eq "clang-${llvm_version}" || ${subport} eq "flang-${llvm_version}" } {
+if { ${subport} eq "clang-${llvm_version}" } {
 
     depends_lib-append  port:libxml2 port:libomp port:llvm-${llvm_version}
     depends_run-append  port:ld64
@@ -424,6 +431,7 @@ if {${subport} eq "lldb-${llvm_version}"} {
         -DLLDB_ENABLE_LUA=OFF
 
     set worksrcpath ${workpath}/${distname}/lldb
+    worksrcdir      ${distname}/lldb
 
     notes "Please follow the instructions at https://lldb.llvm.org/resources/build.html#code-signing-on-macos and then codesign lldb-server with:\n--------------------\n"
     notes-append "${sub_prefix}/scripts/lldb/macos-setup-codesign.sh"

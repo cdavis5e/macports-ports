@@ -1,0 +1,15 @@
+--- a/llvm/cmake/modules/CMakeLists.txt	2023-01-12 00:12:30.000000000 -0700
++++ b/llvm/cmake/modules/CMakeLists.txt	2023-01-22 18:37:17.000000000 -0700
+@@ -114,6 +114,12 @@
+ #
+ 
+ find_prefix_from_config(LLVM_CONFIG_CODE LLVM_INSTALL_PREFIX "${LLVM_INSTALL_PACKAGE_DIR}")
++extend_path(LLVM_CONFIG_BUILD_RPATH "\${LLVM_INSTALL_PREFIX}" "${CMAKE_INSTALL_LIBDIR}")
++string(APPEND LLVM_CONFIG_CODE "
++if(APPLE)
++  # Set the build RPATH so projects built standalone can link to us correctly.
++  list(APPEND CMAKE_BUILD_RPATH \"${LLVM_CONFIG_BUILD_RPATH}\" \"@loader_path/../lib\${LLVM_LIBDIR_SUFFIX}\")
++endif()")
+ 
+ extend_path(LLVM_CONFIG_MAIN_INCLUDE_DIR "\${LLVM_INSTALL_PREFIX}" "${CMAKE_INSTALL_INCLUDEDIR}")
+ # This is the same as the above because the handwritten and generated headers

@@ -1,0 +1,13 @@
+--- a/mlir/cmake/modules/CMakeLists.txt	2023-01-12 00:12:30.000000000 -0700
++++ b/mlir/cmake/modules/CMakeLists.txt	2023-01-21 15:34:56.000000000 -0700
+@@ -68,8 +68,8 @@
+   )
+ # Ensure that we are using the installed mlir-tblgen. This might not be MLIR_TABLEGEN_EXE
+ # if we're building with a host-optimized mlir-tblgen (with LLVM_OPTIMIZED_TABLEGEN).
+-set(MLIR_CONFIG_TABLEGEN_EXE mlir-tblgen)
+-set(MLIR_CONFIG_PDLL_TABLEGEN_EXE mlir-pdll)
++extend_path(MLIR_CONFIG_TABLEGEN_EXE "\${MLIR_INSTALL_PREFIX}" "${CMAKE_INSTALL_BINDIR}/mlir-tblgen")
++extend_path(MLIR_CONFIG_PDLL_TABLEGEN_EXE "\${MLIR_INSTALL_PREFIX}" "${CMAKE_INSTALL_BINDIR}/mlir-pdll")
+ 
+ configure_file(
+   ${CMAKE_CURRENT_SOURCE_DIR}/MLIRConfig.cmake.in
