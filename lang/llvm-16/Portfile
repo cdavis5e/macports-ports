@@ -358,6 +358,13 @@ if { ${subport} eq "clang-${llvm_version}" || ${subport} eq "flang-${llvm_versio
     # https://trac.macports.org/ticket/65578
     configure.args-append        -DCOMPILER_RT_BUILD_ORC=OFF
 
+    if {${os.platform} eq "darwin" && ${os.major} == 18 && [variant_isset universal]} {
+        if {${configure.sdkroot} eq ""} {set configure.sdkroot "/"}
+        configure.args-append    -DDARWIN_osx_SYSROOT="${configure.sdkroot}" \
+                                 -DDARWIN_macosx_OVERRIDE_SDK_VERSION=10.14 \
+                                 -DRUNTIMES_CMAKE_ARGS="-DCMAKE_OSX_SYSROOT=${configure.sdkroot}\;-DCMAKE_OSX_ARCHITECTURES=[join ${configure.universal_archs} |]\;-DCMAKE_OSX_DEPLOYMENT_TARGET=${macosx_deployment_target}"
+    }
+
     if {${os.platform} eq "darwin" && ${os.major} <= 18} {
         # on systems that might build i386, we need atomic builtins
         # https://trac.macports.org/ticket/58712

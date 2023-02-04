@@ -284,6 +284,12 @@ if {[string match macports-clang-* ${configure.compiler}]} {
     depends_skip_archcheck-append cctools
 }
 
+if {${os.platform} eq "darwin" && ${os.major} == 18 && [variant_isset universal]} {
+    if {${configure.sdkroot} eq ""} {set configure.sdkroot "/"}
+    configure.args-append    -DDARWIN_osx_SYSROOT="${configure.sdkroot}" \
+                             -DDARWIN_macosx_OVERRIDE_SDK_VERSION=10.14
+}
+
 if {${os.major} <= 14} {
     # compiler-rt does a broad search for an SDK it likes, but this
     # search fails on older systems that don't have a MacOSX.sdk
