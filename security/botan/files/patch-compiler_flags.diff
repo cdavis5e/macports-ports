@@ -32,3 +32,23 @@
  x32     -> "-mx32"
  
  qnx     -> "-fexceptions"
+--- src/scripts/build_docs.py.orig	2022-11-16 04:19:19.000000000 -0700
++++ src/scripts/build_docs.py	2023-01-28 01:19:40.000000000 -0700
+@@ -34,6 +34,8 @@
+     """
+     Check if some named program exists in the path
+     """
++    if prog.startswith('/'):
++        return os.path.exists(prog) and os.access(prog, os.X_OK)
+     for path in os.environ['PATH'].split(os.pathsep):
+         exe_file = os.path.join(path, prog)
+         if os.path.exists(exe_file) and os.access(exe_file, os.X_OK):
+@@ -41,7 +43,7 @@
+     return False
+ 
+ def find_rst2man():
+-    possible_names = ['rst2man', 'rst2man.py']
++    possible_names = ['__MACPORTS_RST2MAN__']
+ 
+     for name in possible_names:
+         if have_prog(name):
