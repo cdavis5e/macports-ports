@@ -25,6 +25,10 @@ installs_libs           no
 
 depends_build-append    port:help2man
 
+if {![catch {registry_active ccache}]} {
+    configure.ccache        yes
+}
+
 depends_lib-append      port:perl5.36
 configure.perl          ${prefix}/bin/perl5.36
 
