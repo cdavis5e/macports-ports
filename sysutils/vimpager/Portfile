@@ -1,9 +1,9 @@
 PortSystem      1.0
 PortGroup       github 1.0
 
-github.setup    rkitover vimpager 2.06
-# Change github.tarball_from to 'releases' or 'archive' next update
-github.tarball_from tarball
+github.setup    rkitover vimpager 2d3af2bf3d09602d43cbfc294566869a89edfd46
+github.tarball_from archive
+version         2.07-20221001
 categories      sysutils
 platforms       any
 supported_archs noarch
@@ -14,8 +14,8 @@ description     Use vim as a pager
 long_description \
     Use vim as a pager, for example as a replacement for less.
 
-checksums       rmd160  fc6e37da8b053cd6195215960118f3c755c16f60 \
-                sha256  ae824388315a7decf4265a24560494eb38692aae08edf18d237d7ac347bc3f1d
+checksums       rmd160  f3d5a78098f0c4b286991ab2c932051ad7fed206 \
+                sha256  5f767b1aedfdd0f19369331c8b8afaeacc7c72323f075520589af2bed629e099
 
 depends_run     bin:vim:vim
 
