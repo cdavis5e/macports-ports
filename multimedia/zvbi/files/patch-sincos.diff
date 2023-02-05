@@ -1,0 +1,46 @@
+--- configure.in~	2022-01-26 18:33:58.000000000 -0600
++++ configure.in	2022-01-26 19:10:04.000000000 -0600
+@@ -51,6 +51,23 @@
+   AC_DEFINE(HAVE_SINCOS, 1, [Define if the sincos() function is available])
+ ],[
+   AC_MSG_RESULT([no])
++  AC_MSG_CHECKING([for __sincos])
++  AC_LINK_IFELSE([
++#include <stdio.h>
++#include <math.h>
++int main (void) {
++double s, c;
++scanf ("%f", &s);
++__sincos (s, &s, &c);
++printf ("%f %f", s, c);
++return 0;
++}
++  ],[
++    AC_MSG_RESULT([yes])
++    AC_DEFINE(HAVE___SINCOS, 1, [Define if the __sincos() function is available])
++  ],[
++    AC_MSG_RESULT([no])
++  ])
+ ])
+ 
+ dnl log2() is a GNU extension (a macro, not a function).
+--- src/io-sim.c~	2009-12-14 17:43:40.000000000 -0600
++++ src/io-sim.c	2022-01-26 19:11:35.000000000 -0600
+@@ -124,6 +124,9 @@
+ #ifndef HAVE_SINCOS
+ 
+ /* This is a GNU extension. */
++#ifdef HAVE___SINCOS
++#  define sincos(x, s, c) __sincos(x, s, c)
++#else
+ _vbi_inline void
+ sincos				(double			x,
+ 				 double *		sinx,
+@@ -132,6 +135,7 @@
+ 	*sinx = sin (x);
+ 	*cosx = cos (x);
+ }
++#endif
+ 
+ #endif
+ 
