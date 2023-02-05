@@ -37,7 +37,8 @@ depends_lib         port:bzip2 \
                     port:zlib
 
 # respect MacPorts configure values
-patchfiles-append   patch-compiler_flags.diff
+patchfiles-append   patch-compiler_flags.diff \
+                    patch-sphinx_doc_no_install_doctree_cache.diff
 
 post-patch {
     reinplace -W ${worksrcpath}/src/build-data/cc \

@@ -1,0 +1,10 @@
+--- src/scripts/install.py.orig	2022-11-16 04:19:19.000000000 -0700
++++ src/scripts/install.py	2023-01-28 01:27:58.000000000 -0700
+@@ -234,6 +234,7 @@
+ 
+         shutil.rmtree(prepend_destdir(target_doc_dir), True)
+         shutil.copytree(cfg['doc_output_dir'], prepend_destdir(target_doc_dir))
++        shutil.rmtree(prepend_destdir(os.path.join(target_doc_dir, 'handbook', '.doctrees')), True)
+ 
+         copy_file(os.path.join(cfg['base_dir'], 'license.txt'),
+                   prepend_destdir(os.path.join(target_doc_dir, 'license.txt')))
