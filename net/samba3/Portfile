@@ -32,7 +32,7 @@ checksums           rmd160  4df673ddac2a3fc8590820c8651e10f0dac90281 \
 
 depends_lib         port:popt port:zlib port:readline port:ncurses
 
-conflicts_build     samba4
+conflicts_build     samba4 libmd
 
 configure.ldflags-append -lintl
 configure.args      --libdir=${prefix}/lib/${name} \

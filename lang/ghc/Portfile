@@ -3,6 +3,7 @@
 PortSystem          1.0
 PortGroup           gpg_verify 1.0
 PortGroup           compiler_blacklist_versions 1.0
+PortGroup           conflicts_build 1.0
 PortGroup           legacysupport 1.1
 
 name                ghc
@@ -209,6 +210,8 @@ if {${name} eq ${subport}} {
     set python3_branch  [string index ${python3_version} 0].[string range ${python3_version} 1 end]
     set python3_prefix  ${frameworks_dir}/Python.framework/Versions/${python3_branch}
     set python3_bin     ${python3_prefix}/bin/python${python3_branch}
+
+    conflicts_build-append libmd
 
     depends_build-append \
                     port:alex \
