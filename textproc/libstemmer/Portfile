@@ -39,6 +39,7 @@ makefile.override   CC CFLAGS LDFLAGS
 build.post_args     -f GNUmakefile
 
 post-build {
+    system -W ${worksrcpath} "ranlib libstemmer.a"
     system -W ${worksrcpath} \
         "env MACOSX_DEPLOYMENT_TARGET=${macosx_deployment_target}\
         ${configure.cc} [get_canonical_archflags ld] ${configure.ldflags} -fpic\
