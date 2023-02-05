@@ -295,7 +295,6 @@ configure.args-append       \
     --without-qt            \
     --without-fltk          \
     --without-opengl        \
-    --disable-jit           \
     --without-sndfile       \
     --without-portaudio     \
     --without-magick        \
