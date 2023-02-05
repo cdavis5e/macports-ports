@@ -1,0 +1,24 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim: fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+PortGroup           stub 1.0
+PortGroup           select 1.0
+
+name                flang_select
+version             1.0
+revision            0
+categories          sysutils
+supported_archs     noarch
+maintainers         {jeremyhu @jeremyhu}
+description         common files for selecting default flang version
+long_description    flang_select installs files that allow 'port select' to \
+                    switch the default version of flang. \
+                    It symlinks the standard compiler executables \
+                    in the MacPorts prefix to the selected version.
+
+post-destroot {
+    select::install flang ${filespath}/base
+    select::install flang ${filespath}/none
+}
+
+livecheck.type    none

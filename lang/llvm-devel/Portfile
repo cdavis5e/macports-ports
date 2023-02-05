@@ -297,6 +297,10 @@ if { ${subport} eq "flang-${llvm_version}" } {
     description         LLVM Fortran compiler
     long_description    {*}${description}
 
+    depends_run-append  port:flang_select
+    select.group        flang
+    select.file         ${filespath}/mp-${subport}
+
     configure.args-append \
         -DLLVM_ENABLE_PROJECTS="clang\;flang\;compiler-rt\;mlir" \
         -DLIBCXX_ENABLE_SHARED=OFF          \
