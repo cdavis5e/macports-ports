@@ -62,7 +62,8 @@ configure.args-append --docdir=share/doc \
                       --with-bzip2 \
                       --with-lzma \
                       --with-sqlite3 \
-                      --with-zlib
+                      --with-zlib \
+                      --without-documentation
 
 # List of all intrinsics that can be disabled
 set intrinsics {
@@ -102,6 +103,12 @@ if {${os.major} <= 14} {
 configure.optflags  -O3
 
 platform darwin { configure.args-append --os=darwin }
+
+variant docs description {Build documentation} {
+    depends_build-append  port:py310-sphinx
+    configure.args-delete --without-documentation
+    configure.args-append --with-sphinx
+}
 
 # Variant to re-enable use of intrinsics
 variant native description {Enable all intrinsics} {
