@@ -2,6 +2,7 @@
 
 PortSystem          1.0
 PortGroup           github 1.0
+PortGroup           makefile 1.0
 
 github.setup        snowballstem snowball 2.2.0 v
 # Change github.tarball_from to 'releases' or 'archive' next update
@@ -29,15 +30,12 @@ checksums           rmd160  e0c24d1b915fe99c7e81f25610cdd605eafb57d9 \
                     sha256  69a6b91bea3e74096db21751946b7a711170a62d723117084c6c74d548a82d19 \
                     size    223943
 
-use_configure       no
-
-variant universal   {}
-
 patchfiles          patch-GNUmakefile.diff
 
-build.env           CC=${configure.cc} \
-                    "CFLAGS=${configure.cflags} [get_canonical_archflags cc]" \
-                    "LDFLAGS=${configure.ldflags} [get_canonical_archflags ld]"
+configure.cflags-append -W -Wall -Wmissing-prototypes -Wmissing-declarations
+
+makefile.override   CC CFLAGS LDFLAGS
+
 build.post_args     -f GNUmakefile
 
 post-build {
