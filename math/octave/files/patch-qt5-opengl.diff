@@ -1,0 +1,12 @@
+--- libgui/module.mk~	2020-11-26 12:20:44.000000000 -0600
++++ libgui/module.mk	2021-01-11 13:09:00.000000000 -0600
+@@ -73,7 +73,8 @@
+   $(NO_UNDEFINED_LDFLAG) \
+   -bindir $(bindir) \
+   $(LIBOCTGUI_LINK_OPTS) \
+-  $(WARN_LDFLAGS)
++  $(WARN_LDFLAGS) \
++  $(QT_LDFLAGS)
+ 
+ octetc_DATA += %reldir%/default-qt-settings
+ 

@@ -75,6 +75,9 @@ post-patch {
         ${worksrcpath}/Makefile.in
 }
 
+# fix LDFLAGS when linking to QtOpenGL
+patchfiles-append patch-qt5-opengl.diff
+
 # https://trac.macports.org/ticket/69575
 legacysupport.redirect_bins mkoctfile-${version} octave-${version} octave-cli-${version} octave-config-${version}
 
