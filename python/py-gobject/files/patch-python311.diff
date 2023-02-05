@@ -1,0 +1,144 @@
+--- gobject/pygboxed.c~	2017-10-13 04:01:53.000000000 -0600
++++ gobject/pygboxed.c	2024-01-21 19:35:55.000000000 -0700
+@@ -138,7 +138,7 @@
+ 
+     if (!type->tp_dealloc)  type->tp_dealloc  = (destructor)pyg_boxed_dealloc;
+ 
+-    Py_TYPE(type) = &PyType_Type;
++    Py_SET_TYPE(type, &PyType_Type);
+     type->tp_base = &PyGBoxed_Type;
+ 
+     if (PyType_Ready(type) < 0) {
+--- gobject/pyginterface.c~	2017-10-13 04:01:53.000000000 -0600
++++ gobject/pyginterface.c	2024-01-21 19:34:51.000000000 -0700
+@@ -70,7 +70,7 @@
+ {
+     PyObject *o;
+ 
+-    Py_TYPE(type) = &PyType_Type;
++    Py_SET_TYPE(type, &PyType_Type);
+     type->tp_base = &PyGInterface_Type;
+ 
+     if (PyType_Ready(type) < 0) {
+--- gobject/pygparamspec.c~	2017-10-13 04:01:53.000000000 -0600
++++ gobject/pygparamspec.c	2024-01-21 19:36:47.000000000 -0700
+@@ -389,7 +389,7 @@
+ void
+ pygobject_paramspec_register_types(PyObject *d)
+ {
+-    Py_TYPE(&PyGParamSpec_Type) = &PyType_Type;
++    Py_SET_TYPE(&PyGParamSpec_Type, &PyType_Type);
+     PyGParamSpec_Type.tp_dealloc = (destructor)pyg_param_spec_dealloc;
+     PyGParamSpec_Type.tp_getattr = (getattrfunc)pyg_param_spec_getattr;
+     PyGParamSpec_Type.tp_richcompare = pyg_param_spec_richcompare;
+--- gobject/pygtype.c~	2017-10-13 04:01:53.000000000 -0600
++++ gobject/pygtype.c	2024-01-21 19:49:49.000000000 -0700
+@@ -1618,7 +1618,7 @@
+     static PyObject *doc_descr = NULL;
+ 
+     if (!doc_descr) {
+-	Py_TYPE(&PyGObjectDoc_Type) = &PyType_Type;
++	Py_SET_TYPE(&PyGObjectDoc_Type, &PyType_Type);
+ 	if (PyType_Ready(&PyGObjectDoc_Type))
+ 	    return NULL;
+ 
+--- gobject/pygobject.c~	2024-01-21 19:29:33.000000000 -0700
++++ gobject/pygobject.c	2024-01-21 19:50:21.000000000 -0700
+@@ -541,7 +541,7 @@
+     } else
+         bases = runtime_bases;
+ 
+-    Py_TYPE(type) = PyGObject_MetaType;
++    Py_SET_TYPE(type, PyGObject_MetaType);
+     type->tp_bases = bases;
+     if (G_LIKELY(bases)) {
+         type->tp_base = (PyTypeObject *)PyTuple_GetItem(bases, 0);
+--- gobject/pygpointer.c~	2017-10-13 04:01:53.000000000 -0600
++++ gobject/pygpointer.c	2024-01-21 19:42:35.000000000 -0700
+@@ -116,7 +116,7 @@
+ 
+     if (!type->tp_dealloc) type->tp_dealloc = (destructor)pyg_pointer_dealloc;
+ 
+-    Py_TYPE(type) = &PyType_Type;
++    Py_SET_TYPE(type, &PyType_Type);
+     type->tp_base = &PyGPointer_Type;
+ 
+     if (PyType_Ready(type) < 0) {
+--- gobject/gobjectmodule.c~	2017-10-13 04:01:53.000000000 -0600
++++ gobject/gobjectmodule.c	2024-01-21 19:44:21.000000000 -0700
+@@ -1918,7 +1918,7 @@
+     PyGObject_MetaType = metaclass;
+     Py_INCREF(metaclass);
+ 
+-    Py_TYPE(&PyGObject_Type) = metaclass;
++    Py_SET_TYPE(&PyGObject_Type, metaclass);
+ 
+     Py_INCREF(Py_None);
+     return Py_None;
+--- gi/pygi-info.c~	2024-01-21 19:29:33.000000000 -0700
++++ gi/pygi-info.c	2024-01-21 19:49:15.000000000 -0700
+@@ -1538,7 +1538,7 @@
+ _pygi_info_register_types (PyObject *m)
+ {
+ #define _PyGI_REGISTER_TYPE(m, type, cname, base) \
+-    Py_TYPE(&type) = &PyType_Type; \
++    Py_SET_TYPE(&type, &PyType_Type); \
+     type.tp_flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE); \
+     type.tp_weaklistoffset = offsetof(PyGIBaseInfo, inst_weakreflist); \
+     type.tp_methods = _PyGI##cname##_methods; \
+@@ -1548,7 +1548,7 @@
+     if (PyModule_AddObject(m, #cname, (PyObject *)&type)) \
+         return
+ 
+-    Py_TYPE(&PyGIBaseInfo_Type) = &PyType_Type;
++    Py_SET_TYPE(&PyGIBaseInfo_Type, &PyType_Type);
+ 
+     PyGIBaseInfo_Type.tp_dealloc = (destructor) _base_info_dealloc;
+     PyGIBaseInfo_Type.tp_repr = (reprfunc) _base_info_repr;
+--- gi/pygi-struct.c~	2017-10-13 04:01:53.000000000 -0600
++++ gi/pygi-struct.c	2024-01-21 19:50:55.000000000 -0700
+@@ -132,7 +132,7 @@
+ void
+ _pygi_struct_register_types (PyObject *m)
+ {
+-    Py_TYPE(&PyGIStruct_Type) = &PyType_Type;
++    Py_SET_TYPE(&PyGIStruct_Type, &PyType_Type);
+     PyGIStruct_Type.tp_base = &PyGPointer_Type;
+     PyGIStruct_Type.tp_new = (newfunc) _struct_new;
+     PyGIStruct_Type.tp_init = (initproc) _struct_init;
+--- gi/pygi-repository.c~	2017-10-13 04:01:53.000000000 -0600
++++ gi/pygi-repository.c	2024-01-21 19:51:51.000000000 -0700
+@@ -271,7 +271,7 @@
+ void
+ _pygi_repository_register_types (PyObject *m)
+ {
+-    Py_TYPE(&PyGIRepository_Type) = &PyType_Type;
++    Py_SET_TYPE(&PyGIRepository_Type, &PyType_Type);
+ 
+     PyGIRepository_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+     PyGIRepository_Type.tp_methods = _PyGIRepository_methods;
+--- gi/pygi-boxed.c~	2017-10-13 04:01:53.000000000 -0600
++++ gi/pygi-boxed.c	2024-01-21 19:51:35.000000000 -0700
+@@ -168,7 +168,7 @@
+ void
+ _pygi_boxed_register_types (PyObject *m)
+ {
+-    Py_TYPE(&PyGIBoxed_Type) = &PyType_Type;
++    Py_SET_TYPE(&PyGIBoxed_Type, &PyType_Type);
+     PyGIBoxed_Type.tp_base = &PyGBoxed_Type;
+     PyGIBoxed_Type.tp_new = (newfunc) _boxed_new;
+     PyGIBoxed_Type.tp_init = (initproc) _boxed_init;
+--- glib/pyglib-python-compat.h~	2017-10-13 04:01:53.000000000 -0600
++++ glib/pyglib-python-compat.h	2024-01-21 19:47:07.000000000 -0700
+@@ -33,6 +33,11 @@
+         } while (0)
+ #endif
+ 
++/* Compilation on Python 3.8 */
++#if PY_VERSION_HEX < 0x03090000
++#define Py_SET_TYPE(o, t) (void)(Py_TYPE(o) = (t))
++#endif
++
+ /* Compilation on Python 2.4 */
+ #if PY_VERSION_HEX < 0x02050000
+ typedef int Py_ssize_t;
