@@ -39,10 +39,6 @@ checksums           rmd160  3f603e1ab3af6ff2e916c368647c8281eaed1150 \
                     sha256  8488fa620ff0333c16d437f2b890bba3b67f8745fdecb1472568a6114aad9741 \
                     size    20548416
 
-# Universal builds don't currently work, including via the approach used
-# in ruby30.
-universal_variant   no
-
 # ruby/openssl since ruby-3.2 supports openssl-3
 openssl.branch      3
 
@@ -124,8 +120,23 @@ configure.args-append   AR=${prefix}/bin/ar RANLIB=${prefix}/bin/ranlib
 patchfiles-append   patch-pkg-config-fdeclspec.diff
 
 # Add the architecture flag as required
-if {[info exists build_arch] && ${build_arch} != ""} {
-    configure.args-append "--with-arch=${build_arch}"
+if {[variant_isset universal]} {
+    # use ruby built-in universal mechanism.
+    configure.args-append --with-arch=[join ${configure.universal_archs} ","]
+    # clear macports' universal flags
+    configure.universal_cflags
+    configure.universal_cppflags
+    configure.universal_cxxflags
+    configure.universal_ldflags
+
+    if {"i386" in ${configure.universal_archs} && [vercmp ${xcodeversion} 10.0] >= 0} {
+        # Use -w on the linker so it doesn't complain about -arch i386
+        configure.ldflags-append "-Wl,-w"
+    }
+} else {
+    if {[info exists build_arch] && ${build_arch} != ""} {
+        configure.args-append "--with-arch=${build_arch}"
+    }
 }
 
 post-destroot {
