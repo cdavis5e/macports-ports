@@ -1,0 +1,57 @@
+--- src/bootstrap/configure.py	2022-05-17 20:29:36.000000000 -0500
++++ src/bootstrap/configure.py	2022-06-09 20:27:09.000000000 -0500
+@@ -447,18 +447,35 @@
+             arr = arr[part]
+ 
+ 
++def from_toml(value):
++    value = value.strip()
++    if value == "true":
++        return True
++    if value == "false":
++        return False
++    if value.startswith('"') and value.endswith('"'):
++        return value[1:-1]
++    if value.startswith("'") and value.endswith("'"):
++        return value[1:-1]
++    if value.startswith("[") and value.endswith("]"):
++        value = value[1:-1].split(",")
++        return list(map(from_toml, value))
++    if value.startswith("{") and value.endswith("}"):
++        value = value[1:-1].split(",")
++        return dict(map(lambda x: map(from_toml, x.split("=", 1)), value))
++    return value
++
++
+ def apply_args(known_args, option_checking, config):
+     for key in known_args:
+         # The `set` option is special and can be passed a bunch of times
+         if key == "set":
+             for _option, value in known_args[key]:
+                 keyval = value.split("=", 1)
+-                if len(keyval) == 1 or keyval[1] == "true":
++                if len(keyval) == 1:
+                     value = True
+-                elif keyval[1] == "false":
+-                    value = False
+                 else:
+-                    value = keyval[1]
++                    value = from_toml(keyval[1])
+                 set(keyval[0], value, config)
+             continue
+ 
+@@ -639,10 +656,14 @@
+             return "false"
+     elif isinstance(value, list):
+         return "[" + ", ".join(map(to_toml, value)) + "]"
++    elif isinstance(value, dict):
++        return "{" + ", ".join(map(lambda x: " = ".join(map(to_toml, x)), value.items())) + "}"
+     elif isinstance(value, str):
+         # Don't put quotes around numeric values
+         if is_number(value):
+             return value
++        elif "'" in value:
++            return '"' + value + '"'
+         else:
+             return "'" + value + "'"
+     else:

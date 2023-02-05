@@ -87,7 +87,12 @@ if {${os.platform} eq "darwin" && ${configure.sdkroot} eq "" && ${configure.sdk_
     # for versions 1.0.84+, if SDKROOT is *not* set, `xcrun --show-sdk-path` sets SDKROOT
     # for possible future directions, see https://github.com/rust-lang/cc-rs/pull/1009
     # for details, see code in https://github.com/rust-lang/cc-rs/blob/main/src/lib.rs
-    configure.sdkroot       [rust::get_sdkroot ${configure.sdk_version}]
+    if { ${os.major} == 18 && [variant_isset universal] } {
+        # MUST USE / or i386 can't build
+        configure.sdkroot       "/"
+    } else {
+        configure.sdkroot       [rust::get_sdkroot ${configure.sdk_version}]
+    }
 }
 
 foreach arch ${muniversal.architectures} {
@@ -128,6 +133,8 @@ if {${os.platform} eq "darwin" && ${os.major} > 16} {
 }
 
 patchfiles-append           patch-offline_bootstrap.diff
+
+patchfiles-append           patch-configure_accept_toml_dict.diff
 
 if { ${os.platform} eq "darwin" && ${os.major} < 16 } {
     # follow LLVM
@@ -190,6 +197,7 @@ configure.args-append       --disable-codegen-tests \
                             --llvm-cflags="${rust_build.llvm.cflags}" \
                             --llvm-cxxflags="${rust_build.llvm.cxxflags}" \
                             --llvm-ldflags="${rust_build.llvm.ldflags}" \
+                            --set=llvm.build-config="\{ CMAKE_OSX_SYSROOT = '${configure.sysroot}' }" \
                             --python=${configure.python}
 
 if { ${os.platform} eq "darwin" && ${os.major} < 9 } {
@@ -224,6 +232,8 @@ foreach arch ${muniversal.architectures} {
 }
 
 build.args                  BOOTSTRAP_ARGS="-j${build.jobs}"
+build.env-append            CFLAGS=${rust_build.llvm.cflags} \
+                            CXXFLAGS=${rust_build.llvm.cxxflags}
 
 test.run                    yes
 test.target                 check
@@ -233,6 +243,9 @@ rust::append_envs           RUST_BACKTRACE=1
 # lists of installed files, so they should include files from all architectures
 muniversal.combine          ${prefix}/lib/rustlib/components \
                             ${prefix}/lib/rustlib/manifest-rustc
+
+destroot.env-append         CFLAGS=${rust_build.llvm.cflags} \
+                            CXXFLAGS=${rust_build.llvm.cxxflags}
 
 post-destroot {
     if {${subport} eq "rust-src"} return
