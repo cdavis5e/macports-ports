@@ -1,13 +1,13 @@
---- configure.orig	2022-04-12 20:11:17.000000000 +0900
-+++ configure	2022-06-24 23:16:18.000000000 +0900
-@@ -31718,8 +31718,8 @@
- int
- main ()
- {
--static int test_array [1 - 2 * !(MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7 &&
--		 MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_10)];
-+static int test_array [1 - 2 * !(MAC_OS_X_VERSION_MIN_REQUIRED >= 1070 &&
-+		 MAC_OS_X_VERSION_MIN_REQUIRED < 101000)];
- test_array [0] = 0;
- return test_array [0];
- 
+--- configure.ac.orig	2022-04-12 20:11:17.000000000 +0900
++++ configure.ac	2022-06-24 23:16:18.000000000 +0900
+@@ -3751,8 +3751,8 @@
+ 	RUBY_APPEND_OPTION(CFLAGS, -pipe)
+ 	AC_COMPILE_IFELSE([
+ 	    AC_LANG_BOOL_COMPILE_TRY([@%:@include <AvailabilityMacros.h>],
+-		[MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7 &&
+-		 MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_10])],
++		[MAC_OS_X_VERSION_MIN_REQUIRED >= 1070 &&
++		 MAC_OS_X_VERSION_MIN_REQUIRED < 101000])],
+ 	    [dnl
+ 		RUBY_APPEND_OPTION(XLDFLAGS, [-framework Security])
+ 		RUBY_APPEND_OPTION(LIBRUBYARG_STATIC, [-framework Security])

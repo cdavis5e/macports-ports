@@ -81,6 +81,8 @@ compiler.blacklist-append \
 
 compiler.thread_local_storage yes
 
+use_autoreconf      yes
+
 # At least one version of clang doesn't offer cstdbool (introduced in C++11)
 # with -stdlib=libstc++ but still reports as C++14.  This causes an include
 # failure in include/ruby/internal/stdbool.h when built as C++.  Setting the
@@ -128,6 +130,9 @@ post-build {
             ${worksrcpath}/ruby-3.0.pc
     }
 }
+
+# Need this for building extensions with Clang
+patchfiles-append   patch-pkg-config-fdeclspec.diff
 
 # Add the architecture flag as required
 if {[info exists build_arch] && ${build_arch} != ""} {

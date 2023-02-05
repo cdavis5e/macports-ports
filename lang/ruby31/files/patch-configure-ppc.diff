@@ -1,61 +1,45 @@
---- configure.orig	2022-11-27 23:20:23.000000000 +0800
-+++ configure	2022-11-27 23:52:56.000000000 +0800
-@@ -9328,6 +9328,8 @@
-     ARCH_FLAG=-m64 ;; #(
-   i[3-6]86) :
-     ARCH_FLAG=-m32 ;; #(
-+  powerpc|ppc) :
-+    ARCH_FLAG=-m32 ;; #(
-   *) :
-     as_fn_error $? "unknown target architecture: $target_archs" "$LINENO" 5
- 	 ;;
-@@ -9428,6 +9430,8 @@
-     ARCH_FLAG=-m64 ;; #(
-   i[3-6]86) :
-     ARCH_FLAG=-m32 ;; #(
-+  powerpc|ppc) :
-+    ARCH_FLAG=-m32 ;; #(
-   *) :
-     as_fn_error $? "unknown target architecture: $target_archs" "$LINENO" 5
- 	 ;;
-@@ -25441,7 +25445,7 @@
- 
- 
- case "${target_cpu}-${target_os}:${target_archs}" in #(
--  powerpc-darwin*) :
-+  powerpc*-darwin*) :
- 
- 
-   ALLOCA=\${LIBOBJDIR}alloca.${ac_objext}
-@@ -25456,13 +25460,13 @@
- 
-   ALLOCA=\${LIBOBJDIR}alloca.${ac_objext}
- 
--      printf "#if %s\n" "defined __powerpc__" >>confdefs.h
-+      printf "#if %s\n" "defined __POWERPC__" >>confdefs.h
- printf "%s\n" "#define C_ALLOCA 1" >>confdefs.h
--    printf "#endif /* %s */\n" "defined __powerpc__" >>confdefs.h
-+    printf "#endif /* %s */\n" "defined __POWERPC__" >>confdefs.h
- 
-       printf "#if %s\n" "defined __powerpc__" >>confdefs.h
- printf "%s\n" "#define alloca alloca" >>confdefs.h
--    printf "#endif /* %s */\n" "defined __powerpc__" >>confdefs.h
-+    printf "#endif /* %s */\n" "defined __POWERPC__" >>confdefs.h
- 
-    ;; #(
-   *) :
-@@ -29462,6 +29466,14 @@
- 
+--- tool/m4/ruby_default_arch.m4.orig
++++ tool/m4/ruby_default_arch.m4
+@@ -5,6 +5,7 @@
+ 	[arm64],      [],
+ 	[*64],        [ARCH_FLAG=-m64],
+ 	[[i[3-6]86]], [ARCH_FLAG=-m32],
++	[powerpc|ppc],[ARCH_FLAG=-m32],
+ 	[AC_MSG_ERROR(unknown target architecture: $target_archs)]
+ 	)
+ AC_MSG_RESULT([$ARCH_FLAG])
+--- configure.ac.orig	2022-11-27 23:20:23.000000000 +0800
++++ configure.ac	2022-11-27 23:52:56.000000000 +0800
+@@ -1890,7 +1890,7 @@
+ dnl Checks for library functions.
+ AC_TYPE_GETGROUPS
+ AS_CASE(["${target_cpu}-${target_os}:${target_archs}"],
+-[powerpc-darwin*], [
++[powerpc*-darwin*], [
+   AC_LIBSOURCES(alloca.c)
+   AC_SUBST([ALLOCA], [\${LIBOBJDIR}alloca.${ac_objext}])
+   AC_DEFINE(C_ALLOCA)
+@@ -1899,13 +1899,13 @@
+ [universal-darwin*:*ppc*], [
+   AC_LIBSOURCES(alloca.c)
+   AC_SUBST([ALLOCA], [\${LIBOBJDIR}alloca.${ac_objext}])
+-  RUBY_DEFINE_IF([defined __powerpc__], C_ALLOCA, 1)
+-  RUBY_DEFINE_IF([defined __powerpc__], alloca, alloca)
++  RUBY_DEFINE_IF([defined __POWERPC__], C_ALLOCA, 1)
++  RUBY_DEFINE_IF([defined __POWERPC__], alloca, alloca)
+   ],
+ [
+    AC_FUNC_ALLOCA
+@@ -2550,6 +2550,12 @@
+         [arm64-darwin*], [
              coroutine_type=arm64
-          ;; #(
-+  powerpc-darwin*|ppc-darwin*) :
-+
+         ],
++        [powerpc-darwin*|ppc-darwin*], [
 +            coroutine_type=ppc
-+         ;; #(
-+  powerpc64-darwin*|ppc64-darwin*) :
-+
++        ],
++        [powerpc64-darwin*|ppc64-darwin*], [
 +            coroutine_type=ppc64
-+         ;; #(
-   x*64-linux*) :
- 
-             case "$ac_cv_sizeof_voidp" in #(
++        ],
+         [x*64-linux*], [
+             AS_CASE(["$ac_cv_sizeof_voidp"],
+                 [8], [ coroutine_type=amd64 ],

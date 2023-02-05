@@ -1,0 +1,36 @@
+--- configure.ac.orig	2022-11-24 03:20:31.000000000 -0700
++++ configure.ac	2023-02-01 03:22:58.000000000 -0700
+@@ -576,6 +576,7 @@
+ RUBY_TRY_CFLAGS(-fdeclspec, [
+   RUBY_APPEND_OPTIONS(CC, -fdeclspec)
+   RUBY_APPEND_OPTIONS(MJIT_CC, -fdeclspec)
++  RUBY_APPEND_OPTIONS(pkg_cflags, -fdeclspec)
+ ])
+ RUBY_TRY_CXXFLAGS(-fdeclspec, [RUBY_APPEND_OPTIONS(CXX, -fdeclspec)])
+ 
+@@ -3807,6 +3808,7 @@
+ warnflags="$rb_cv_warnflags"
+ AC_SUBST(cppflags)dnl
+ AC_SUBST(cflags, ["${orig_cflags:+$orig_cflags }"'${optflags} ${debugflags} ${warnflags}'])dnl
++AC_SUBST(pkg_cflags)dnl
+ AC_SUBST(cxxflags)dnl
+ AC_SUBST(optflags)dnl
+ AC_SUBST(debugflags)dnl
+--- template/ruby.pc.in.orig	2022-11-24 03:20:31.000000000 -0700
++++ template/ruby.pc.in	2023-02-01 03:23:47.000000000 -0700
+@@ -38,6 +38,7 @@
+ rubyarchhdrdir=@rubyarchhdrdir@
+ vendorarchhdrdir=@vendorarchhdrdir@
+ sitearchhdrdir=@sitearchhdrdir@
++pkg_cflags=@pkg_cflags@
+ MAINLIBS=@MAINLIBS@
+ SOEXT=@SOEXT@
+ LIBPATH=@LIBPATH@
+@@ -54,6 +55,6 @@
+ Description: Object Oriented Script Language
+ Version: ${ruby_version}
+ URL: https://www.ruby-lang.org
+-Cflags: -I${rubyarchhdrdir} -I${rubyhdrdir}
++Cflags: -I${rubyarchhdrdir} -I${rubyhdrdir} ${pkg_cflags}
+ Libs: ${DLDFLAGS} ${LIBRUBYARG_SHARED} ${LIBS}
+ Requires:

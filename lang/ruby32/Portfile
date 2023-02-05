@@ -102,6 +102,8 @@ if {[string match *clang* ${configure.compiler}] \
                     configure.cxxflags-append -std=c++03
 }
 
+use_autoreconf      yes
+
 configure.args      --enable-shared \
                     --enable-install-static-library \
                     --disable-install-doc \
@@ -117,6 +119,9 @@ configure.args      --enable-shared \
                     --without-baseruby
 # prefer Apple cctools to GNU binutils, build with binutils may fail.
 configure.args-append   AR=${prefix}/bin/ar RANLIB=${prefix}/bin/ranlib
+
+# Need this for building extensions with Clang
+patchfiles-append   patch-pkg-config-fdeclspec.diff
 
 # Add the architecture flag as required
 if {[info exists build_arch] && ${build_arch} != ""} {

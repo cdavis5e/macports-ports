@@ -68,6 +68,8 @@ if { [string match macports-clang-* ${configure.compiler}] } {
 
 compiler.thread_local_storage yes
 
+use_autoreconf      yes
+
 configure.args      --enable-shared \
                     --enable-install-static-library \
                     --disable-install-doc \
@@ -90,6 +92,9 @@ patchfiles          patch-configure.diff \
 
 # Backport of a fix from ruby32
 patchfiles-append   patch-thread_pthread.diff
+
+# Need this for building extensions with Clang
+patchfiles-append   patch-pkg-config-fdeclspec.diff
 
 # Add the architecture flag as required
 if {[info exists build_arch] && ${build_arch} != ""} {

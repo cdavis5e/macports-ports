@@ -126,6 +126,9 @@ configure.args      --enable-shared \
 # prefer Apple cctools to GNU binutils, build with binutils may fail.
 configure.args-append   AR=${prefix}/bin/ar RANLIB=${prefix}/bin/ranlib
 
+# Need this for building extensions with Clang
+patchfiles-append   patch-pkg-config-fdeclspec.diff
+
 # Add the architecture flag as required
 if {[info exists build_arch] && ${build_arch} != ""} {
     configure.args-append "--with-arch=${build_arch}"
