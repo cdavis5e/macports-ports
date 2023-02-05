@@ -163,6 +163,9 @@ if {${universal_possible} && [variant_isset universal]} {
         lappend merger_configure_env(${arch}) \
             "ac_cv_build=${cpu_type}-apple-darwin${os.major}"
     }
+
+    # Use -w on the linker so it doesn't complain about -arch i386
+    lappend merger_configure_ldflags(i386) -Wl,-w
 } elseif {[info exists build_arch] && ${build_arch} ne ""} {
     configure.env-append "ARCH_FLAG=-arch ${build_arch}"
 }

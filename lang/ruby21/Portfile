@@ -164,6 +164,11 @@ variant universal {
         configure.universal_cppflags
         configure.universal_cxxflags
         configure.universal_ldflags
+
+        if {i386 in ${universal_archs} && [vercmp ${xcodeversion} 10.0] >= 0} {
+            # Use -w on the linker so it doesn't complain about -arch i386
+            configure.ldflags-append -Wl,-w
+        }
 }
 
 variant relative description "Enable relative loading of libraries to allow for relocation of binaries." {
