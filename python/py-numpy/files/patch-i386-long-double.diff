@@ -1,0 +1,14 @@
+--- numpy/core/include/numpy/numpyconfig.h~	2022-12-25 20:52:52.000000000 -0700
++++ numpy/core/include/numpy/numpyconfig.h	2023-01-25 03:35:14.000000000 -0700
+@@ -46,9 +46,11 @@
+     #elif defined (__i386)
+         #define NPY_SIZEOF_LONGDOUBLE         12
+         #define NPY_SIZEOF_COMPLEX_LONGDOUBLE 24
++        #define HAVE_LDOUBLE_INTEL_EXTENDED_12_BYTES_LE 1
+     #elif defined(__ppc__) || defined (__ppc64__)
+         #define NPY_SIZEOF_LONGDOUBLE         16
+         #define NPY_SIZEOF_COMPLEX_LONGDOUBLE 32
++        #define HAVE_LDOUBLE_IBM_DOUBLE_DOUBLE_BE 1
+     #else
+         #error "unknown architecture"
+     #endif
