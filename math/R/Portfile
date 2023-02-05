@@ -47,8 +47,10 @@ compiler.blacklist-append   {clang}
 if { ${os.major} > 22 } {
     # https://trac.macports.org/ticket/70799
     compiler.blacklist-append   {macports-clang-19} {macports-clang-2[0-9]}
+    compiler.blacklist-append   {macports-flang-19} {macports-clang-2[0-9]}
 } else {
     compiler.blacklist-append   {macports-clang-1[7-9]} {macports-clang-2[0-9]}
+    compiler.blacklist-append   {macports-flang-1[8-9]} {macports-clang-2[0-9]}
 }
 # Similarly, for gcc select the gcc13 variant of the compilers PG.
 # This setting should also be kept in sync with that in the R Portgroup.

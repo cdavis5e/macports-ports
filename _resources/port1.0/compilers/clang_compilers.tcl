@@ -20,10 +20,12 @@ if {${os.major} >= 17 || ${os.platform} ne "darwin"} {
     if {${os.major} >= 22 || ${os.platform} ne "darwin"} {
         if { ${os.platform} ne "darwin" || ${compiler.cxx_standard} >= 2017 } {
             lappend compilers macports-clang-19
+            lappend compilers macports-flang-19
         }
         # Always allow clang-18 on macOS15+, otherwise if c++14 or newer is required
         if { ${os.platform} ne "darwin" || ${os.major} >= 24 || ${compiler.cxx_standard} >= 2014 } {
             lappend compilers macports-clang-18
+            lappend compilers macports-flang-18
         }
     }
     lappend compilers macports-clang-17

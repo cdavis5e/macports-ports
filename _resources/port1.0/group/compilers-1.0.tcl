@@ -19,7 +19,7 @@
 #   Useful if another compiler variant is created explicitly in the Portfile. Must come before compilers.setup.
 # compilers.setup {args}
 #   Possible arguments: any compiler variant name with a minus removes it from the list of variants, e.g. -clang.
-#   -gcc, -clang remove all compilers of that category. -fortran removes gfortran and g95.
+#   -gcc, -clang remove all compilers of that category. -fortran removes gfortran, g95, and flang.
 #   Blacklisted compilers are automatically removed, as are ones that do not support the compilers in compilers.choose:
 #   e.g. if choose is just f90, clang variants will not be added.
 #   List "default_fortran" to make a Fortran variant be selected by default.
@@ -64,6 +64,7 @@ default compilers.my_fortran_variants {}
 default compilers.all_fortran_variants {}
 default compilers.gcc_variants {}
 default compilers.clang_variants {}
+default compilers.flang_variants {}
 default compilers.require_fortran 0
 default compilers.default_fortran 0
 default compilers.setup_done 0
@@ -220,6 +221,40 @@ foreach ver ${clang_versions} {
     set cdb(clang$ver_nodot,cxx_stdlib) ""
 }
 
+# build database of flang compiler attributes
+# Should match those in compilers/clang_compilers.tcl
+set flang_versions {}
+if { ${os.major} >= 11 || ${os.platform} ne "darwin" } {
+    lappend flang_versions 18
+    lappend flang_versions 19
+}
+if { ${os.major} >= 14 || ${os.platform} ne "darwin" } {
+    lappend flang_versions devel
+}
+ui_debug "Flang versions for Darwin ${os.major} ${os.arch} - ${flang_versions}"
+foreach ver ${flang_versions} {
+    # Remove dot from version if present
+    set ver_nodot [string map {. {}} ${ver}]
+    lappend compilers.flang_variants    flang$ver_nodot
+    set cdb(flang$ver_nodot,variant)    flang$ver_nodot
+    set cdb(flang$ver_nodot,compiler)   macports-flang-$ver
+    set cdb(flang$ver_nodot,descrip)    "MacPorts flang $ver"
+    set cdb(flang$ver_nodot,depends)    port:flang-$ver
+    set cdb(flang$ver_nodot,dependsl)   ""
+    set cdb(flang$ver_nodot,libfortran) ${prefix}/libexec/flang-$ver/lib/libFortranRuntime.a
+    set cdb(flang$ver_nodot,dependsd)   ""
+    set cdb(flang$ver_nodot,dependsa)   flang-$ver
+    set cdb(flang$ver_nodot,conflict)   "gfortran g95"
+    set cdb(flang$ver_nodot,cc)         ""
+    set cdb(flang$ver_nodot,cxx)        ""
+    set cdb(flang$ver_nodot,cpp)        ""
+    set cdb(flang$ver_nodot,objc)       ""
+    set cdb(flang$ver_nodot,fc)         ${prefix}/bin/flang-mp-$ver
+    set cdb(flang$ver_nodot,f77)        ${prefix}/bin/flang-mp-$ver
+    set cdb(flang$ver_nodot,f90)        ${prefix}/bin/flang-mp-$ver
+    set cdb(flang$ver_nodot,cxx_stdlib) ""
+}
+
 # and lastly we add a gfortran and g95 variant for use with clang*; note that
 # we don't need gfortran when we are in an "only-fortran" mode
 set cdb(gfortran,variant)  gfortran
@@ -276,7 +311,7 @@ proc compilers.set_variants_conflict {args} {
 }
 
 proc compilers.setup_variants {variants} {
-    global cdb compilers.variants compilers.clang_variants compilers.gcc_variants
+    global cdb compilers.variants compilers.clang_variants compilers.flang_variants compilers.gcc_variants
     global compilers.my_fortran_variants compilers.list
     global compilers.variants_conflict
     global compilers.clear_archflags
@@ -295,8 +330,8 @@ proc compilers.setup_variants {variants} {
             set c [lreplace ${compilers.variants} $i $i]
 
             # Fortran compilers do not conflict with C compilers.
-            # thus clang does not conflict with g95 and gfortran
-            if {$variant eq "gfortran" || $variant eq "g95"} {
+            # thus clang does not conflict with g95, gfortran, or flang
+            if {$variant eq "gfortran" || $variant eq "g95" || [string match flang* $variant]} {
                 foreach clangcomp ${compilers.clang_variants} {
                     set i [lsearch -exact $c $clangcomp]
                     set c [lreplace $c $i $i]
@@ -306,6 +341,10 @@ proc compilers.setup_variants {variants} {
                 set c [lreplace $c $i $i]
                 set i [lsearch -exact $c g95]
                 set c [lreplace $c $i $i]
+                foreach flangcomp ${compilers.flang_variants} {
+                    set i [lsearch -exact $c $flangcomp]
+                    set c [lreplace $c $i $i]
+                }
             }
 
             # only add conflicts from the compiler database (set above) if we
@@ -390,8 +429,8 @@ foreach variant ${compilers.gcc_variants} {
 }
 
 proc c_active_variant_name {depspec} {
-    global compilers.variants
-    set c_list [remove_from_list ${compilers.variants} {gfortran g95}]
+    global compilers.variants compilers.flang_variants
+    set c_list [remove_from_list ${compilers.variants} [concat ${compilers.flang_variants} gfortran g95]]
 
     foreach c $c_list {
         if {![catch {set result [active_variants $depspec $c ""]}]} {
@@ -407,8 +446,8 @@ proc c_active_variant_name {depspec} {
 }
 
 proc c_variant_name {} {
-    global compilers.variants
-    set c_list [remove_from_list ${compilers.variants} {gfortran g95}]
+    global compilers.variants compilers.flang_variants
+    set c_list [remove_from_list ${compilers.variants} [concat ${compilers.flang_variants} gfortran g95]]
 
     foreach cc $c_list {
         if {[variant_isset $cc]} {
@@ -652,7 +691,7 @@ proc compilers.action_enforce_some_f {ports} {
     foreach portname $ports {
         if {![catch {set result [active_variants $portname "" ""]}]} {
             if {[fortran_active_variant_name $portname] eq ""} {
-                ui_error "Install $portname with a Fortran variant (e.g. +gfortran, +gccX, +g95)"
+                ui_error "Install $portname with a Fortran variant (e.g. +flangX, +gfortran, +gccX, +g95)"
                 return -code error "$portname not installed with a Fortran variant"
             }
         } else {
@@ -663,7 +702,7 @@ proc compilers.action_enforce_some_f {ports} {
 }
 
 proc compilers.setup {args} {
-    global cdb compilers.variants compilers.clang_variants compilers.gcc_variants \
+    global cdb compilers.variants compilers.clang_variants compilers.flang_variants compilers.gcc_variants \
         compilers.my_fortran_variants compilers.require_fortran compilers.default_fortran \
         compilers.setup_done compilers.list compilers.gcc_default compiler.blacklist \
         os.major os.arch
@@ -680,7 +719,9 @@ proc compilers.setup {args} {
             set remove_list [remove_from_list ${compilers.my_fortran_variants} gfortran]
         } elseif {[compilers.is_c_only]} {
             # remove gfortran and g95 since those are purely for fortran
-            set remove_list [remove_from_list ${compilers.variants} {gfortran g95}]
+            ui_debug "Removing fortran compiler variants [concat ${compilers.flang_variants}]"
+            set remove_list [remove_from_list ${compilers.variants} [concat ${compilers.flang_variants} gfortran g95]]
+            ui_debug "Variant list now ${compilers.variants}"
         }
 
         foreach v $args {
@@ -703,7 +744,7 @@ proc compilers.setup {args} {
                     # here we just check gfortran and g95, not every fortran
                     # compatible variant since it makes more sense to specify
                     # 'fortran' to mean add just the +gfortran and +g95 variants
-                    set ${mode}_list [${mode}_from_list [set ${mode}_list] {gfortran g95}]
+                    set ${mode}_list [${mode}_from_list [set ${mode}_list] [concat ${compilers.flang_variants} gfortran g95]]
 
                 }
                 clang {
