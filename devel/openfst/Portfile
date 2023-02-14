@@ -4,7 +4,7 @@ PortSystem          1.0
 PortGroup           compilers 1.0
 
 name                openfst
-version             1.7.2
+version             1.8.0
 categories          devel
 maintainers         nomaintainer
 
@@ -14,15 +14,15 @@ long_description    OpenFst is a library for constructing, combining, \
                     optimizing, and searching weighted finite-state \
                     transducers (FSTs).
 
-homepage            http://www.openfst.org/
+homepage            https://www.openfst.org/
 platforms           darwin
 license             Apache-2
 
-master_sites        ${homepage}twiki/pub/FST/FstDownload/
+master_sites        ${homepage}twiki/bin/view/FST/FstDownload/
 
-checksums           rmd160  bc5a3ccc1aaa97837d3e5753d88ee11707b487a8 \
-                    sha256  21c3758ff8574dedaf22b0a6b88c2829bbf3b2e59fbf04740ce2cf92029a0f3b \
-                    size    1269292
+checksums           rmd160  373fe3d6613f1309e8f2a8515375d2bd1ae21a84 \
+                    sha256  9730f1934f60f1320e46af44826e954bc6f7a695946548005ac33c1821745440 \
+                    size    1334197
 
 if {${os.platform} eq "darwin" && ${os.major} < 12} {
     version         1.3.4
