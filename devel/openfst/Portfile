@@ -30,7 +30,9 @@ if {${os.platform} eq "darwin" && ${os.major} < 12} {
     patchfiles      patch-c++11.diff patch-src-include-fst-config.h.in.diff
     # OpenFst doesn't like Xcode's compiler before Snow Leopard.
     # See http:/www.openfst.org/twiki/bin/view/FST/CompilingOnMacOSX
-    # TODO: Change this to compiler.blacklist
+    compiler.blacklist \
+                    gcc-3.* \
+                    gcc-4.0
     if {${os.major} < 10} {
         variant gcc43 conflicts gcc44 gcc45 description {Compile with gcc 4.3} {
             configure.compiler macports-gcc-4.3
@@ -42,10 +44,6 @@ if {${os.platform} eq "darwin" && ${os.major} < 12} {
         
         variant gcc45 conflicts gcc43 gcc44 description {Compile with gcc 4.5} {
             configure.compiler macports-gcc-4.5
-        }
-        
-        if {![variant_isset gcc43] && ![variant_isset gcc44] && ![variant_isset gcc45]} {
-            default_variants +gcc45
         }
     }
 }
