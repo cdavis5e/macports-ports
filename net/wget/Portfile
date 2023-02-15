@@ -21,6 +21,7 @@ platforms               darwin freebsd
 use_parallel_build      yes
 master_sites            gnu
 use_lzip                yes
+installs_libs           no
 
 description \
     internet file retriever
