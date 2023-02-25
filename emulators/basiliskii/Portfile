@@ -8,6 +8,7 @@ github.setup            cebix macemu 6393d14abf31b302d578d05da7e5ddbddd07ae45
 # Change github.tarball_from to 'releases' or 'archive' next update
 github.tarball_from     tarball
 version                 20220412
+revision                1
 checksums               rmd160  86371e3fb7ee297a516d2f194348b06c98857b6f \
                         sha256  9d37ea63ada5e28963d51b7bce6355ee28eb9263864581e75d8301a27aaff90b
 name                    basiliskii
@@ -29,6 +30,7 @@ configure.args          --disable-vosf \
                         --enable-sdl-audio \
                         --enable-standalone-gui \
                         --with-sdl2 \
+                        --with-bincue \
                         --with-gtk=no
 
 patch.dir               ${worksrcpath}/..
