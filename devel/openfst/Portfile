@@ -39,6 +39,13 @@ compiler.blacklist \
 compilers.choose    cc cxx cpp
 compilers.setup
 
+configure.args-append   \
+                    --enable-static \
+                    --enable-shared \
+                    --enable-far \
+                    --enable-ngram-fsts \
+                    --enable-lookahead-fsts
+
 post-destroot {
     set dest_doc ${destroot}${prefix}/share/doc/${name}
     xinstall -d ${dest_doc}
