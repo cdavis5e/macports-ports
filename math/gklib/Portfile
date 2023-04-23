@@ -32,6 +32,7 @@ if {${configure.build_arch} ni [list i386 x86_64]} {
 
 variant openmp description {Enable openmp support} {
     compiler.openmp_version 4.0
+    compiler.blacklist clang
     configure.args-append \
                     -DOPENMP=ON
 }
