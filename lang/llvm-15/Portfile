@@ -310,6 +310,11 @@ if { ${subport} eq "flang-${llvm_version}" } {
         -DCLANG_DIR="${sub_prefix}/lib/cmake/clang" \
         -DFLANG_INCLUDE_TESTS=OFF          \
         -DMLIR_DIR="${sub_prefix}/lib/cmake/mlir"
+
+    # Restrict parallel builds to prevent OOM problems
+    if {${build.jobs} > 2} {
+        build.jobs      2
+    }
 }
 
 if { ${subport} eq "clang-${llvm_version}" } {
