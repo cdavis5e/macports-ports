@@ -2,6 +2,7 @@
 
 PortSystem          1.0
 PortGroup           gitlab 1.0
+PortGroup           compiler_blacklist_versions 1.0
 PortGroup           legacysupport 1.1
 PortGroup           meson 1.0
 
@@ -64,12 +65,13 @@ depends_lib-append \
 depends_run-append \
                     port:adwaita-icon-theme
 
-# requires C++20
+# requires C++20 and C11
 compiler.cxx_standard 2020
+compiler.c_standard 2011
 
 # base does not yet know about c++20 so manually blacklist Xcode clangs for now
 compiler.blacklist-append \
-                    clang
+                    {clang < 1200.0.0}
 
 if {[vercmp $xcodeversion 4.3] < 0 && [string match "*macports*" ${configure.compiler}]} {
     # Xcode 4.2 fails with load commands in the newer toolchain
