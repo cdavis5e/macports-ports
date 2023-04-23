@@ -1,6 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
 PortSystem      1.0
+PortGroup       compiler_blacklist_versions 1.0
 
 name            ngspice
 version         44.2
@@ -101,6 +102,20 @@ if {${name} eq ${subport}} {
 
     variant lib description {Enable dynamic lib} {
         depends_run-append      port:ngspice-lib
+    }
+
+    variant openmp description {Add OpenMP support variant} {
+        # ngspice does not specify what openmp version they require
+        # version 2.5 is the least strict, and works
+        compiler.openmp_version  2.5
+        configure.args-replace   --disable-openmp --enable-openmp
+        compiler.blacklist-append   {clang < 1200.0.0}
+
+        # see https://trac.macports.org/ticket/64511
+        # not too much sure
+        #configure.cflags-append "-mcmodel=large"
+        #configure.cxxflags-append "-mcmodel=large"
+        #configure.ldflags-append "-mcmodel=large"
     }
 
     default_variants    +manual +lib
