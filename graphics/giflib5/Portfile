@@ -30,6 +30,8 @@ post-patch {
     reinplace "s|%PREFIX%|${prefix}|" ${worksrcpath}/Makefile
 }
 
+compiler.c_standard 1999
+
 use_configure       no
 
 use_parallel_build  no
