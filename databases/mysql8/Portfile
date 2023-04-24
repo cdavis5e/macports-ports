@@ -37,6 +37,7 @@ if {$subport eq $name} {
     PortGroup           select                      1.0
     PortGroup           compiler_blacklist_versions 1.0
     PortGroup           openssl                     1.0
+    PortGroup           conflicts_build             1.0
 
     description         Multithreaded SQL database server
     long_description    MySQL is an open-source, multi-threaded SQL database.
@@ -55,6 +56,9 @@ if {$subport eq $name} {
                         rmd160  151071c2dfa398ee5ef16cd60ee477eb8fc8d012 \
                         sha256  5657a78dc86bf0bf2227e0b05f8de5a2c447a816a112ffa26fa70083bcbe9814 \
                         size    425791134
+
+    conflicts_build     rapidjson \
+                        boost
 
     depends_build-append \
                         port:pkgconfig  \
