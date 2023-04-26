@@ -143,7 +143,7 @@ proc python_set_versions {option action args} {
             compiler.blacklist-append   {*gcc-4.[0-7]} {clang < 500}
         }
         pre-build {
-            foreach var {pycflags pycxxflags pyf77flags pyf90flags pyfcflags pyobjcflags pyldflags} {
+            foreach var {pycflags pycxxflags pyf77flags pyf90flags pyfcflags pyobjcflags pyobjcxxflags pyldflags} {
                 set $var [list]
             }
             if {${python.add_cflags}} {
@@ -152,6 +152,7 @@ proc python_set_versions {option action args} {
             }
             if {${python.add_cxxflags}} {
                 lappend pycxxflags {*}${configure.cxxflags}
+                lappend pyobjcxxflags {*}${configure.objcxxflags}
             }
             if {${python.add_fflags}} {
                 lappend pyf77flags {*}${configure.fflags}
@@ -166,7 +167,8 @@ proc python_set_versions {option action args} {
                     lappend pyldflags {*}${configure.universal_ldflags}
                     lappend pycflags {*}${configure.universal_cflags}
                     lappend pycxxflags {*}${configure.universal_cxxflags}
-                    lappend pyobjcflags {*}${configure.universal_cflags}
+                    lappend pyobjcflags {*}${configure.universal_objcflags}
+                    lappend pyobjcxxflags {*}${configure.universal_objcxxflags}
                 } else {
                     lappend pyf77flags {*}${configure.f77_archflags}
                     lappend pyf90flags {*}${configure.f90_archflags}
@@ -175,15 +177,18 @@ proc python_set_versions {option action args} {
                     lappend pycflags {*}${configure.cc_archflags}
                     lappend pycxxflags {*}${configure.cxx_archflags}
                     lappend pyobjcflags {*}${configure.objc_archflags}
+                    lappend pyobjcxxflags {*}${configure.objcxx_archflags}
                 }
             }
             if {${python.set_cxx_stdlib}} {
                 set pycxxflags [portconfigure::construct_cxxflags $pycxxflags]
+                set pyobjcxxflags [portconfigure::construct_cxxflags $pyobjcxxflags]
             }
             if {${python.set_sdkroot}} {
                 lappend pycflags -isysroot${configure.sysroot}
                 lappend pycxxflags -isysroot${configure.sysroot}
                 lappend pyobjcflags -isysroot${configure.sysroot}
+                lappend pyobjcxxflags -isysroot${configure.sysroot}
             }
             # Only needed for Python 3.12, since later require C11.
             if {${python.version} == 312} {
@@ -201,6 +206,9 @@ proc python_set_versions {option action args} {
             }
             if {$pyobjcflags ne ""} {
                 build.env-append        OBJCFLAGS=[join $pyobjcflags]
+            }
+            if {$pyobjcxxflags ne ""} {
+                build.env-append        OBJCXXFLAGS=[join $pyobjcxxflags]
             }
             if {$pyf77flags ne ""} {
                 build.env-append        FFLAGS=[join $pyf77flags]
@@ -233,7 +241,7 @@ proc python_set_versions {option action args} {
         }
         pre-destroot {
             if {!${python.pep517} && ${python.consistent_destroot}} {
-                foreach var {pycflags pycxxflags pyf77flags pyf90flags pyfcflags pyobjcflags pyldflags} {
+                foreach var {pycflags pycxxflags pyf77flags pyf90flags pyfcflags pyobjcflags pyobjcxxflags pyldflags} {
                     set $var [list]
                 }
                 if {${python.add_cflags}} {
@@ -242,6 +250,7 @@ proc python_set_versions {option action args} {
                 }
                 if {${python.add_cxxflags}} {
                     lappend pycxxflags {*}${configure.cxxflags}
+                    lappend pyobjcxxflags {*}${configure.cxxflags}
                 }
                 if {${python.add_fflags}} {
                     lappend pyf77flags {*}${configure.fflags}
@@ -257,6 +266,7 @@ proc python_set_versions {option action args} {
                         lappend pycflags {*}${configure.universal_cflags}
                         lappend pycxxflags {*}${configure.universal_cxxflags}
                         lappend pyobjcflags {*}${configure.universal_cflags}
+                        lappend pyobjcxxflags {*}${configure.universal_cxxflags}
                     } else {
                         lappend pyf77flags {*}${configure.f77_archflags}
                         lappend pyf90flags {*}${configure.f90_archflags}
@@ -265,15 +275,18 @@ proc python_set_versions {option action args} {
                         lappend pycflags {*}${configure.cc_archflags}
                         lappend pycxxflags {*}${configure.cxx_archflags}
                         lappend pyobjcflags {*}${configure.objc_archflags}
+                        lappend pyobjcxxflags {*}${configure.objcxx_archflags}
                     }
                 }
                 if {${python.set_cxx_stdlib}} {
                     set pycxxflags [portconfigure::construct_cxxflags $pycxxflags]
+                    set pyobjcxxflags [portconfigure::construct_cxxflags $pyobjcxxflags]
                 }
                 if {${python.set_sdkroot}} {
                     lappend pycflags -isysroot${configure.sysroot}
                     lappend pycxxflags -isysroot${configure.sysroot}
                     lappend pyobjcflags -isysroot${configure.sysroot}
+                    lappend pyobjcxxflags -isysroot${configure.sysroot}
                 }
                 if {$pycflags ne ""} {
                     destroot.env-append        CFLAGS=[join $pycflags]
@@ -283,6 +296,9 @@ proc python_set_versions {option action args} {
                 }
                 if {$pyobjcflags ne ""} {
                     destroot.env-append        OBJCFLAGS=[join $pyobjcflags]
+                }
+                if {$pyobjcxxflags ne ""} {
+                    destroot.env-append        OBJCXXFLAGS=[join $pyobjcxxflags]
                 }
                 if {$pyf77flags ne ""} {
                     destroot.env-append        FFLAGS=[join $pyf77flags]
