@@ -5,6 +5,14 @@ PortGroup           github 1.0
 PortGroup           cmake 1.1
 PortGroup           compiler_blacklist_versions 1.0
 
+# OneTBB's build uses CMAKE_OSX_ARCHITECTURES to add -arch flags which may lead
+# to missed symbols from exported symbol list on universal build like:
+# Undefined symbols for architecture i386:
+#  "tbb::detail::r1::wait_bounded_queue_monitor(tbb::detail::r1::concurrent_monitor*, unsigned long, long, tbb::detail::d1::delegate_base&)", referenced from:
+#     -exported_symbol[s_list] command line option
+# For this reason, OneTBB must be built muniversal-style.
+PortGroup           muniversal 1.1
+
 github.setup        oneapi-src oneTBB 2022.0.0 v
 github.tarball_from archive
 
@@ -40,16 +48,6 @@ compiler.cxx_standard   2011
 # Related info: https://github.com/iains/darwin-toolchains-start-here/discussions/41
 compiler.blacklist-append \
                     macports-gcc-12
-
-# OneTBB's build uses CMAKE_OSX_ARCHITECTURES to add -arch flags which may lead
-# to missed symbols from exported symbol list on universal build like:
-# Undefined symbols for architecture i386:
-#  "tbb::detail::r1::wait_bounded_queue_monitor(tbb::detail::r1::concurrent_monitor*, unsigned long, long, tbb::detail::d1::delegate_base&)", referenced from:
-#     -exported_symbol[s_list] command line option
-if {${os.arch} ne "powerpc"} {
-    # In Rosetta this setting breaks the build; restrict it to non-PPC:
-    cmake.set_osx_architectures no
-}
 
 configure.args-append  -DTBB_TEST=OFF
 
