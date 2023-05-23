@@ -1,0 +1,13 @@
+--- gdk/quartz/GdkQuartzView.c~	2023-05-18 17:27:39.000000000 -0600
++++ gdk/quartz/GdkQuartzView.c	2023-05-18 22:38:07.000000000 -0600
+@@ -405,8 +405,8 @@
+ {
+   GdkWindowImplQuartz *impl = GDK_WINDOW_IMPL_QUARTZ (gdk_window->impl);
+   cairo_rectangle_int_t impl_rect = {0, 0, 0, 0};
+-  CGRect layer_bounds = [self.layer bounds];
+-  CGRect backing_bounds = [self convertRectToBacking: layer_bounds];
++  NSRect layer_bounds = NSRectFromCGRect([self.layer bounds]);
++  NSRect backing_bounds = [self convertRectToBacking: layer_bounds];
+   cairo_rectangle_int_t bounds_rect;
+   cairo_region_t *bounds_region;
+   cairo_surface_t *cvpb_surface;

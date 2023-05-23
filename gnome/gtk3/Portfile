@@ -86,6 +86,12 @@ patchfiles-append   patch-tests-gdkgears.diff
 # https://github.com/mesonbuild/meson/issues/7652
 patchfiles-append   patch-sincos.diff
 
+# Quartz patch to use correct types for rectangles so that 32-bit builds work
+patchfiles-append   patch-gdk_quartz_GdkQuartzView.c-32bit.diff
+
+# Quartz patch to add back the macroman2ucs() utility function that was deleted
+patchfiles-append   patch-quartz-add-back-missing-macroman2ucs.diff
+
 post-patch {
     delete ${worksrcpath}/testsuite/gtk/gtkresources.c
 }
@@ -105,10 +111,8 @@ if {[variant_isset quartz]} {
 
 if {${universal_possible} && [variant_isset universal]} {
     foreach arch ${configure.universal_archs} {
-        lappend merger_build_args(${arch})  CC='${configure.cc} -arch ${arch}'
-        lappend merger_build_args(${arch})  CC_FOR_BUILD='${configure.cc} -arch ${arch}'
-        lappend merger_destroot_args(${arch})  CC='${configure.cc} -arch ${arch}'
-        lappend merger_destroot_args(${arch})  CC_FOR_BUILD='${configure.cc} -arch ${arch}'
+        lappend merger_build_env(${arch})  "CC=${configure.cc} -arch ${arch}"
+        lappend merger_destroot_env(${arch})  "CC=${configure.cc} -arch ${arch}"
     }
 }
 
