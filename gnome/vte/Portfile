@@ -5,6 +5,7 @@ PortGroup           gitlab 1.0
 PortGroup           compiler_blacklist_versions 1.0
 PortGroup           legacysupport 1.1
 PortGroup           meson 1.0
+PortGroup           muniversal 1.1
 
 gitlab.instance     https://gitlab.gnome.org
 gitlab.setup        GNOME vte 0.76.4
@@ -96,6 +97,15 @@ configure.args-append \
 
 configure.cflags-append \
                     -fstrict-aliasing
+
+# gobject-introspection uses g-ir-scanner, which uses $CC from env
+
+if {${universal_possible} && [variant_isset universal]} {
+    foreach arch ${muniversal.architectures} {
+        build.env.${arch}-append "CC=${configure.cc} -arch ${arch}"
+        destroot.env.${arch}-append "CC=${configure.cc} -arch ${arch}"
+    }
+}
 
 variant docs description {Enable docs} {
     depends_build-append \
