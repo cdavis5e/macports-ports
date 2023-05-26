@@ -1,0 +1,10 @@
+--- mesonbuild/envconfig.py~	2023-02-20 05:58:43.000000000 -0700
++++ mesonbuild/envconfig.py	2023-05-25 18:19:56.000000000 -0600
+@@ -138,6 +138,7 @@
+     'make': 'MAKE',
+     'vapigen': 'VAPIGEN',
+     'llvm-config': 'LLVM_CONFIG',
++    'cups-config': 'CUPS_CONFIG',
+ }
+ 
+ ENV_VAR_PROG_MAP = {**ENV_VAR_COMPILER_MAP, **ENV_VAR_TOOL_MAP}

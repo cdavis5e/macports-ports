@@ -76,6 +76,9 @@ if {${subport} ne ${name}} {
     patchfiles-append   patch-meson-osx-use-default-ar.diff \
                         patch-meson-strip-arch-flags.diff
 
+    # make specifying CUPS_CONFIG actually work
+    patchfiles-append   patch-meson-cups-config.diff
+
     platform darwin 8 {
 
         github.setup        mesonbuild meson 1.6.1
