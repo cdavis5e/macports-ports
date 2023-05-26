@@ -1,0 +1,16 @@
+--- src/3rdParty/salomesmesh/src/SMDS/SMDS_UnstructuredGrid.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/3rdParty/salomesmesh/src/SMDS/SMDS_UnstructuredGrid.cpp	2024-01-19 18:08:08.000000000 -0700
+@@ -1025,8 +1025,12 @@
+   this->Links = SMDS_CellLinks::New();
+   GetLinks()->Allocate(this->GetNumberOfPoints());
+   GetLinks()->Register(this);
+-//FIXME: vtk9
++#if VTK_MAJOR_VERSION > 9 || (VTK_MAJOR_VERSION == 9 && VTK_MINOR_VERSION >= 3)
++  GetLinks()->SetDataSet(this);
++  GetLinks()->BuildLinks();
++#else
+   GetLinks()->BuildLinks(this);
++#endif
+   GetLinks()->Delete();
+ #else
+   this->Links = SMDS_CellLinks::New();

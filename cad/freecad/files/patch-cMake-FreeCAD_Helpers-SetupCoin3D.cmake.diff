@@ -1,0 +1,11 @@
+--- cMake/FreeCAD_Helpers/SetupCoin3D.cmake~	2023-11-13 19:33:39.000000000 -0700
++++ cMake/FreeCAD_Helpers/SetupCoin3D.cmake	2024-01-19 13:10:41.000000000 -0700
+@@ -10,7 +10,7 @@
+     find_package(Coin3D)
+     if(NOT COIN3D_FOUND)
+         # Try CONFIG mode
+-        find_package(Coin CONFIG REQUIRED)
++        find_package(Coin CONFIG REQUIRED NAMES Coin Coin3D Inventor)
+         if (Coin_FOUND)
+             set (COIN3D_INCLUDE_DIRS ${Coin_INCLUDE_DIR})
+             set (COIN3D_LIBRARIES ${Coin_LIBRARIES})

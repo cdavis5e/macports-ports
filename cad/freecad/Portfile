@@ -2,16 +2,19 @@
 
 PortSystem              1.0
 PortGroup               cmake 1.1
-PortGroup               compilers 1.0
 PortGroup               github 1.0
-PortGroup               qt4 1.0
+PortGroup               mpi 1.0
+PortGroup               qt5 1.0
 PortGroup               boost 1.0
 PortGroup               active_variants 1.1
+PortGroup               legacysupport 1.1
 
-github.setup            FreeCAD FreeCAD 0.18.5
-# Change github.tarball_from to 'releases' or 'archive' next update
-github.tarball_from     tarball
-revision                4
+# std::filesystem
+legacysupport.newest_darwin_requires_legacy 18
+legacysupport.use_mp_libcxx yes
+
+github.setup            FreeCAD FreeCAD 0.21.2
+github.tarball_from     archive
 name                    freecad
 categories              cad
 maintainers             {gmail.com:mark.brethen @mbrethen} openmaintainer
@@ -28,17 +31,20 @@ long_description \
     Source (LGPL2+ license) and extremely modular, allowing for very \
     advanced extension and customization.
 
-homepage                https://www.freecadweb.org
+homepage                https://www.freecad.org
 
-checksums               rmd160  de9aac31ea36d8353715c72fa2be3512af71f265 \
-                        sha256  8a715318b395d47a882359c05ed0fa359773dd3d593c50ac773d728ca84aeeef \
-                        size    219760077
+checksums               rmd160  865c701eb49ac36c5f73cd2686a760968d39b1cb \
+                        sha256  ceaf77cd12e8ad533d1535cc27ae4ca2a6e80778502dc9cdec906415d674b674 \
+                        size    66124278
 
-boost.version           1.71
-set python_branch       3.10
+boost.version           1.76
+set python_branch       3.12
 set python_version      [string map {. ""} ${python_branch}]
 depends_lib-append      port:python${python_version}
 require_active_variants [boost::depends_portname] python${python_version}
+qt5.min_version         5.9
+qt5.depends_component   qttools qtsvg qtwebengine qtxmlpatterns qtmacextras
+require_active_variants vtk python${python_version}
 
 depends_build-append    path:bin/doxygen:doxygen \
                         path:bin/dot:graphviz
@@ -46,52 +52,64 @@ depends_build-append    path:bin/doxygen:doxygen \
 depends_lib-append      port:Coin \
                         path:share/pkgconfig/eigen3.pc:eigen3 \
                         port:freetype \
-                        port:oce \
+                        port:gts \
+                        port:hdf5 \
+                        port:jsoncpp \
+                        port:libfmt10 \
+                        port:med-file \
+                        port:onetbb \
+                        port:opencascade \
+                        port:orocos-kdl \
                         port:py${python_version}-matplotlib \
                         port:py${python_version}-pivy \
-                        port:py${python_version}-pyside \
-                        port:py${python_version}-pyside-tools \
-                        port:py${python_version}-shiboken \
-                        port:SoQt \
+                        port:py${python_version}-ply \
+                        port:py${python_version}-pybind11 \
+                        port:py${python_version}-pycxx \
+                        port:py${python_version}-pyside2 \
+                        port:py${python_version}-yaml \
+                        port:Quarter \
                         port:swig \
                         port:swig-python \
+                        port:vtk \
+                        port:webp \
                         port:xercesc3 \
                         port:zlib
 
 use_xcode               yes
 
-depends_run             port:qt4-mac-sqlite3-plugin
+depends_run             port:qt5-sqlite-plugin
 
-patchfiles              cMake-FindCoin3D.cmake.diff \
+patchfiles              patch-cMake-FreeCAD_Helpers-SetupCoin3D.cmake.diff \
+                        patch-cMake-FreeCAD_Helpers-SetupShibokenAndPyside.cmake.diff \
+                        patch-src-3rdParty-salomesmesh-src-SMDS-SMDS_UnstructuredGrid.cpp.diff \
+                        patch-src-App-FreeCADInit.py.diff \
                         patch-src-Main-MainPy.cpp.diff \
-                        patch-python38.patch \
-                        patch-python39.patch
-
-# disable FreeCAD FEM module, as it requires hdf5 1.8.x
-patchfiles-append       patch-CMakeLists.txt.diff
-
-patchfiles-append       FindPySideTools.cmake.patch
+                        patch-CMakeLists.txt.diff
 
 # see: https://trac.macports.org/ticket/60375
 patchfiles-append       patch-src-Mod-Drawing-App-DrawingExport.cpp.diff \
-                        patch-src-Mod-Part-App-Geometry2d.cpp.diff \
-                        patch-src-Mod-Raytracing-App-AppRaytracingPy.cpp.diff \
-                        patch-src-Mod-Raytracing-App-LuxFeature.cpp.diff \
-                        patch-src-Mod-Raytracing-App-RayFeature.cpp.diff
+                        patch-src-Mod-Part-App-Geometry2d.cpp.diff
+
+# Needed for post-7.8 OpenCASCADE versions
+patchfiles-append       patch-opencascade-new.diff
+                        
 
 post-patch {
-    reinplace "s|QLibraryInfo::location.*|QLatin1String\(\"${applications_dir}/Qt4/\"\);|" \
+    reinplace "s|QLibraryInfo::location.*|QLatin1String\(\"${applications_dir}/Qt5/\"\);|" \
         ${worksrcpath}/src/Gui/Assistant.cpp
 
     reinplace "s|/Applications|${applications_dir}|" \
         ${worksrcpath}/src/Mod/OpenSCAD/OpenSCADUtils.py
 }
 
-compilers.choose        fc
-compilers.setup         require_fortran -g95
+mpi.setup               require_fortran -g95
+mpi.enforce_variant     hdf5 med-file
+if {[mpi_variant_isset]} {
+    patchfiles-append   patch-cMake-FreeCAD_Helpers-SetupSalomeSMESH.cmake.diff
+}
 
 # error: a space is required between consecutive right angle brackets (use '> >'
-compiler.cxx_standard   2014
+compiler.cxx_standard   2017
 
 cmake.install_prefix    ${prefix}/libexec/${name}
 cmake.install_rpath     ${cmake.install_prefix}/lib
@@ -102,14 +120,29 @@ configure.pre_args-replace \
 
 configure.args-append   -DCMAKE_INSTALL_DATADIR=${prefix}/share/${name} \
                         -DCMAKE_INSTALL_DOCDIR=${prefix}/share/doc/${name} \
-                        -DCMAKE_FRAMEWORK_PATH=${frameworks_dir} \
                         -DMACPORTS_PREFIX=${prefix} \
-                        -DPYSIDEUIC4BINARY=${prefix}/bin/pyside-uic-${python_branch} \
-                        -DPYSIDERCC4BINARY=${prefix}/bin/pyside-rcc-${python_branch}
+                        -DPYSIDE2UICBINARY=${prefix}/bin/pyside2-uic-${python_branch} \
+                        -DPYSIDE2RCCBINARY=${prefix}/bin/pyside2-rcc-${python_branch} \
+                        -DFREECAD_USE_EXTERNAL_KDL=YES \
+                        -DFREECAD_USE_PYBIND11=YES \
+                        -Dfmt_DIR=${prefix}/lib/libfmt10/cmake/fmt \
+                        -DBUILD_SMESH=1 \
+                        -DBUILD_QT5=YES
 
 if {${configure.ccache} ne "yes"} {
     configure.args-append \
-                        -DCCACHE_PROGRAM=NO
+                        -DFREECAD_USE_CCACHE=NO
+}
+
+# PySide2 and Coin use @rpath-relative dylibs, but the CMake files don't add
+# the correct rpath (FIXME: Maybe this should be fixed in PySide2 and Coin??)
+configure.ldflags-append \
+                        "-Wl,-rpath,${prefix}/Library/Frameworks/Python.framework/Versions/${python_branch}/lib"
+pre-configure {
+    if {[active_variants Coin framework]} {
+        configure.ldflags-append \
+                        "-Wl,-rpath,${prefix}/Library/Frameworks"
+    }
 }
 
 pre-configure {
@@ -119,14 +152,36 @@ pre-configure {
     set libgfortran [exec ${configure.fc} --print-file-name libgfortran.a]
     configure.ldflags-append "-L[file dirname ${libgfortran}]"
 
+    if {[variant_isset oce]} {
+        if {[active_variants oce tbb]} {
+            configure.cxxflags-append "-I${prefix}/libexec/tbb/include"
+            configure.ldflags-append "-L${prefix}/libexec/tbb/lib"
+        }
+    } else {
+        configure.cxxflags-append "-I${prefix}/libexec/onetbb/include"
+        configure.ldflags-append "-L${prefix}/libexec/onetbb/lib"
+    }
+
     set python_prefix [exec ${prefix}/bin/python${python_branch}-config --prefix]
     configure.args-append -DBUILD_ROBOT=NO \
+        -DPython3_LIBRARIES=${python_prefix}/Python \
+        -DPython3_INCLUDE_DIRS=${python_prefix}/Headers \
+        -DPython3_EXECUTABLE=${python_prefix}/bin/python${python_branch} \
         -DPYTHON_LIBRARY=${python_prefix}/Python \
         -DPYTHON_INCLUDE_DIR=${python_prefix}/Headers \
         -DPYTHON_EXECUTABLE=${python_prefix}/bin/python${python_branch} \
-        -DShiboken_DIR=${python_prefix}/lib/cmake/Shiboken-1.2.4 \
-        -DPySide_DIR=${python_prefix}/lib/cmake/PySide-1.2.4 \
-        -DOCE_DIR=${prefix}/libexec/oce
+        -DShiboken2_ROOT=${python_prefix} \
+        -DPySide2_ROOT=${python_prefix} \
+        -DPYCXX_INCLUDE_DIR=${python_prefix}/Headers \
+        -DPYCXX_SOURCE_DIR=${python_prefix}/CXX \
+        -DCMAKE_POLICY_DEFAULT_CMP0074=NEW
+    if {![variant_isset oce]} {
+        configure.args-append -DOpenCASCADE_DIR=${prefix}/libexec/opencascade \
+                              -DFREECAD_USE_OCC_VARIANT="Official Version" \
+                              -DOCE_DIR="" \
+                              -DOCE_FOUND:BOOL=NO
+    }
+
 }
 
 post-destroot {
@@ -150,8 +205,43 @@ post-destroot {
     reinplace -W ${appdir}/Contents/MacOS "s,@@PREFIX@@,${prefix},g" FreeCAD
 }
 
-variant oce description {use Community Edition version of Open CASCADE} {
+variant oce conflicts netgen description {Use the Community Edition version of OpenCASCADE} {
      depends_lib-replace port:opencascade port:oce
+     depends_lib-delete  port:onetbb
+     if {![catch {set result [active_variants oce tbb]}] && $result} {
+         depends_lib-append  port:tbb
+     }
+     configure.args-append -DOCE_DIR=${prefix}/libexec/oce
+}
+
+variant netgen conflicts oce description {Use NETGEN with the FEM module} {
+    depends_lib-append  port:netgen
+    require_active_variants netgen "python${python_version} occ"
+    configure.args-append \
+                        -DBUILD_FEM_NETGEN=YES \
+                        -DNETGEN_DIR=${prefix}/lib/cmake/netgen
+}
+
+variant pcl description {Use the Point Cloud Library with the ReverseEngineering module} {
+    depends_lib-append  port:libpcl
+    configure.args-append \
+                        -DFREECAD_USE_PCL=YES \
+                        -DPCL_DIR=${prefix}/share/pcl-1.14
+}
+
+variant designer description {Build and install the QtDesigner plugin} {
+    configure.args-append \
+                        -DBUILD_DESIGNER_PLUGIN=YES
+}
+
+variant cloud description {Build and install the Cloud module} {
+    configure.args-append \
+                        -DBUILD_CLOUD=YES
+}
+
+variant cloud_self_signed requires cloud description {Allow self-signed certificates in the Cloud module (CAUTION: possible security risk!)} {
+    configure.args-append \
+                        -DALLOW_SELF_SIGNED_CERTIFICATE=YES
 }
 
 github.livecheck.regex  {(\d\.\d+(\.\d+)?(?!_pre))}

@@ -6,7 +6,7 @@
          }
 -        out << "\" />" << endl;
 +        out << "\" />" << std::endl;
-     } else if (c.GetType() == GeomAbs_Line) {
+     } else if (bac.GetType() == GeomAbs_Line) {
          //BRep_Tool::Polygon3D assumes the edge has polygon representation - ie already been "tessellated"
          //this is not true for all edges, especially "floating edges"
 @@ -447,7 +447,7 @@

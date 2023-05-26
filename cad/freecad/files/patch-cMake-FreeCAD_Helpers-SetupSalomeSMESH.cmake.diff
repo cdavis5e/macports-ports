@@ -1,0 +1,26 @@
+--- cMake/FreeCAD_Helpers/SetupSalomeSMESH.cmake~	2022-12-06 19:35:37.000000000 -0700
++++ cMake/FreeCAD_Helpers/SetupSalomeSMESH.cmake	2024-01-10 00:16:06.000000000 -0700
+@@ -108,11 +108,19 @@
+ 
+                 # Med Fichier can require MPI
+                 pkg_search_module(OPENMPI ompi-cxx)
+-                add_compile_options(${OPENMPI_CFLAGS})
+-                link_directories(${OPENMPI_LIBRARY_DIRS})
+-                link_libraries(${OPENMPI_LIBRARIES})
+                 if(NOT OPENMPI_FOUND)
+-                    message( WARNING "ompi-cxx was not found. Check for error above.")
++                    pkg_search_module(MPICH mpich)
++                    if(NOT MPICH_FOUND)
++                        message( WARNING "mpi was not found. Check for error above.")
++                    else()
++                        add_compile_options(${MPICH_CFLAGS})
++                        link_directories(${MPICH_LIBRARY_DIRS})
++                        link_libraries(${MPICH_LIBRARIES})
++                    endif()
++                else()
++                    add_compile_options(${OPENMPI_CFLAGS})
++                    link_directories(${OPENMPI_LIBRARY_DIRS})
++                    link_libraries(${OPENMPI_LIBRARIES})
+                 endif()
+             endif()
+             set(SMESH_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src/3rdParty/salomesmesh/inc)

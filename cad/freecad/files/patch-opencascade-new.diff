@@ -1,0 +1,1048 @@
+--- cMake/FindOCC.cmake~	2022-12-06 19:35:37.000000000 -0700
++++ cMake/FindOCC.cmake	2024-05-06 04:22:30.000000000 -0600
+@@ -127,8 +127,6 @@
+     TKG2d
+     TKG3d
+     TKMath
+-    TKIGES
+-    TKSTL
+     TKShHealing
+     TKXSBase
+     TKBool
+@@ -139,10 +137,6 @@
+     TKGeomBase
+     TKOffset
+     TKPrim
+-    TKSTEPBase
+-    TKSTEPAttr
+-    TKSTEP209
+-    TKSTEP
+     TKHLR
+     TKFeat
+   )
+@@ -154,8 +148,6 @@
+     TKLCAF
+     TKVCAF
+     TKCDF
+-    TKXDESTEP
+-    TKXDEIGES
+     TKMeshVS
+     TKService
+     TKV3d
+@@ -165,6 +157,25 @@
+   elseif(NOT OCC_VERSION_STRING VERSION_LESS 7.5.0)
+     list(APPEND OCC_OCAF_LIBRARIES TKRWMesh)
+   endif(OCC_VERSION_STRING VERSION_LESS 6.7.3)
++  if(OCC_VERSION_STRING VERSION_LESS 7.8.0)
++    list(APPEND OCC_LIBRARIES
++      TKIGES
++      TKSTL
++      TKSTEPBase
++      TKSTEPAttr
++      TKSTEP209
++      TKSTEP
++    )
++    list(APPEND OCC_OCAF_LIBRARIES
++      TKXDESTEP
++      TKXDEIGES
++    )
++  else()
++    list(APPEND OCC_OCAF_LIBRARIES
++      TKDESTEP
++      TKDEIGES
++    )
++  endif()
+   message(STATUS "-- Found OCE/OpenCASCADE version: ${OCC_VERSION_STRING}")
+   message(STATUS "-- OCE/OpenCASCADE include directory: ${OCC_INCLUDE_DIR}")
+   message(STATUS "-- OCE/OpenCASCADE shared libraries directory: ${OCC_LIBRARY_DIR}")
+--- src/3rdParty/salomesmesh/inc/SMESHDS_DataMapOfShape.hxx~	2022-12-06 19:35:37.000000000 -0700
++++ src/3rdParty/salomesmesh/inc/SMESHDS_DataMapOfShape.hxx	2024-05-07 13:06:49.000000000 -0600
+@@ -27,6 +27,7 @@
+ #ifndef SMESHDS_DataMapOfShape_HeaderFile
+ #define SMESHDS_DataMapOfShape_HeaderFile
+ 
++#include <Standard_Version.hxx>
+ #include <TopoDS_Shape.hxx>
+ 
+ /*
+@@ -34,6 +35,16 @@
+  */
+ struct SMESHDS_Hasher
+ {
++#if OCC_VERSION_HEX >= 0x070800
++  bool operator()(const TopoDS_Shape& S1, const TopoDS_Shape& S2) const noexcept
++  {
++    return S1.IsSame(S2);
++  }
++  size_t operator()(const TopoDS_Shape& S) const noexcept
++  {
++    return std::hash<TopoDS_Shape>{}( S );
++  }
++#else
+   static inline Standard_Boolean IsEqual(const TopoDS_Shape& S1,
+                                          const TopoDS_Shape& S2)
+   {
+@@ -44,6 +54,7 @@
+   {
+     return ::HashCode( S, Upper);
+   }
++#endif
+ };
+ 
+ 
+--- src/3rdParty/salomesmesh/inc/SMESH_DataMapOfElemPtrSequenceOfElemPtr.hxx~	2022-12-06 19:35:37.000000000 -0700
++++ src/3rdParty/salomesmesh/inc/SMESH_DataMapOfElemPtrSequenceOfElemPtr.hxx	2024-05-06 05:06:54.000000000 -0600
+@@ -30,6 +30,12 @@
+ 
+ #include <SMESH_SequenceOfElemPtr.hxx>
+ 
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX >= 0x060703
++#include <NCollection_DataMap.hxx>
++
++typedef NCollection_DataMap<SMDS_MeshElementPtr, SMESH_SequenceOfElemPtr> DataMapOfElemPtrSequenceOfElemPtr;
++#else
+ #include <NCollection_DefineDataMap.hxx>
+ 
+ SMESH_EXPORT 
+--- src/3rdParty/salomesmesh/inc/SMESH_DefineIndexedMap.hxx~	2023-11-13 19:33:39.000000000 -0700
++++ src/3rdParty/salomesmesh/inc/SMESH_DefineIndexedMap.hxx	2024-07-16 23:00:50.000000000 -0600
+@@ -16,7 +16,6 @@
+ #ifndef SMESH_DefineIndexedMap_HeaderFile
+ #define SMESH_DefineIndexedMap_HeaderFile
+ 
+-#include <NCollection_DefineBaseCollection.hxx>
+ #include <SMESH_IndexedMap.hxx>
+ 
+ #ifdef WNT
+--- src/3rdParty/salomesmesh/inc/SMESH_IndexedMap.hxx~	2022-12-06 19:35:37.000000000 -0700
++++ src/3rdParty/salomesmesh/inc/SMESH_IndexedMap.hxx	2024-05-08 15:28:09.000000000 -0600
+@@ -6,7 +6,12 @@
+ #ifndef SMESH_IndexedMap_HeaderFile
+ #define SMESH_IndexedMap_HeaderFile
+ 
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x060703
+ #include <NCollection_BaseCollection.hxx>
++#else
++#include <NCollection_IndexedMap.hxx>
++#endif
+ #include <NCollection_BaseMap.hxx>
+ #include <NCollection_TListNode.hxx>
+ #include <Standard_NoSuchObject.hxx>
+@@ -22,6 +27,7 @@
+ #pragma warning (disable:4291)
+ #endif
+ 
++#if OCC_VERSION_HEX < 0x060703
+ /**
+  * Purpose:     An indexed map is used to  store  keys and to bind
+  *              an index to them.  Each new key stored in  the map
+@@ -411,6 +417,10 @@
+   { return *(new (this->IterAllocator()) Iterator(*this)); }
+ 
+ };
++#else
++template <class TheKeyType>
++using SMESH_IndexedMap = NCollection_IndexedMap<TheKeyType>;
++#endif
+ 
+ #ifdef WNT
+ #pragma warning (pop)
+--- src/3rdParty/salomesmesh/inc/SMESH_MeshVSLink.hxx~	2023-11-13 19:33:39.000000000 -0700
++++ src/3rdParty/salomesmesh/inc/SMESH_MeshVSLink.hxx	2024-07-17 15:04:50.000000000 -0600
+@@ -27,12 +27,22 @@
+ #ifndef _SMESH_MeshVSLink_HeaderFile
+ #define _SMESH_MeshVSLink_HeaderFile
+ 
++#ifndef _Standard_Version_HeaderFile
++#include <Standard_Version.hxx>
++#endif
++
+ #if OCC_VERSION_HEX < 0x070000
+ #ifndef _Handle_SMESH_MeshVSLink_HeaderFile
+ #include <Handle_SMESH_MeshVSLink.hxx>
+ #endif
+ #endif
+ 
++#if OCC_VERSION_HEX < 0x070800
++#ifndef _Standard_Address_HeaderFile
++#include <Standard_Address.hxx>
++#endif
++#endif
++
+ #ifndef _Standard_HeaderFile
+ #include <Standard.hxx>
+ #endif
+@@ -57,9 +67,6 @@
+ #ifndef _MeshVS_EntityType_HeaderFile
+ #include <MeshVS_EntityType.hxx>
+ #endif
+-#ifndef _Standard_Address_HeaderFile
+-#include <Standard_Address.hxx>
+-#endif
+ #ifndef _TColStd_HArray1OfInteger_HeaderFile
+ #include <TColStd_HArray1OfInteger.hxx>
+ #endif
+@@ -69,9 +76,6 @@
+ #ifndef _SMESH_Mesh_HeaderFile
+ #include <SMESH_Mesh.hxx>
+ #endif
+-#ifndef _Standard_Version_HeaderFile
+-#include <Standard_Version.hxx>
+-#endif
+ 
+ #if OCC_VERSION_HEX >= 0x070000
+ DEFINE_STANDARD_HANDLE(SMESH_MeshVSLink, MeshVS_DataSource3D)
+--- src/3rdParty/salomesmesh/inc/SMESH_SequenceOfNode.hxx~	2023-11-13 19:33:39.000000000 -0700
++++ src/3rdParty/salomesmesh/inc/SMESH_SequenceOfNode.hxx	2024-07-16 22:59:03.000000000 -0600
+@@ -28,7 +28,10 @@
+ 
+ #include "SMESH_SMESH.hxx"
+ 
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x060703
+ #include <NCollection_DefineSequence.hxx>
++#endif
+ #if OCC_VERSION_HEX >= 0x060703
+ #include <NCollection_IncAllocator.hxx>
+ #include <NCollection_Sequence.hxx>
+--- src/3rdParty/salomesmesh/inc/SMESH_TypeDefs.hxx~	2023-11-13 19:33:39.000000000 -0700
++++ src/3rdParty/salomesmesh/inc/SMESH_TypeDefs.hxx	2024-07-16 22:03:59.000000000 -0600
+@@ -185,6 +185,15 @@
+ 
+ // --------------------------------------------------------------------------------
+ // class SMESH_SequenceOfElemPtr
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX >= 0x060703
++#include <NCollection_Sequence.hxx>
++
++class SMDS_MeshElement;
++
++typedef const SMDS_MeshElement* SMDS_MeshElementPtr;
++typedef NCollection_Sequence<SMDS_MeshElementPtr> SMESH_SequenceOfElemPtr;
++#else
+ #include <NCollection_DefineSequence.hxx>
+ 
+ class SMDS_MeshElement;
+@@ -192,6 +201,7 @@
+ typedef const SMDS_MeshElement* SMDS_MeshElementPtr;
+ 
+ DEFINE_SEQUENCE (SMESH_SequenceOfElemPtr, SMESH_BaseCollectionElemPtr, SMDS_MeshElementPtr)
++#endif
+ 
+ 
+ // --------------------------------------------------------------------------------
+@@ -198,7 +208,11 @@
+ // class SMESH_SequenceOfNode
+ typedef const SMDS_MeshNode* SMDS_MeshNodePtr;
+ 
++#if OCC_VERSION_HEX >= 0x060703
++typedef NCollection_Sequence<SMDS_MeshNodePtr> SMESH_SequenceOfNode;
++#else
+ DEFINE_SEQUENCE(SMESH_SequenceOfNode,
+                 SMESH_BaseCollectionNodePtr, SMDS_MeshNodePtr)
++#endif
+ 
+ #endif
++++ src/3rdParty/salomesmesh/src/DriverSTL/DriverSTL_R_SMDS_Mesh.cpp~	2022-12-06 19:35:37.000000000 -0700
+--- src/3rdParty/salomesmesh/src/DriverSTL/DriverSTL_R_SMDS_Mesh.cpp	2024-05-08 19:39:23.000000000 -0600
+@@ -27,6 +27,7 @@
+ #include <gp_Pnt.hxx>
+ #include <NCollection_DataMap.hxx>
+ #include <Standard_NoMoreObject.hxx>
++#include <Standard_Version.hxx>
+ 
+ #include "SMDS_Mesh.hxx"
+ #include "SMDS_MeshElement.hxx"
+@@ -37,6 +38,7 @@
+ {
+   struct Hasher
+   {
++#if OCC_VERSION_HEX < 0x070800
+     //=======================================================================
+     //function : HashCode
+     //purpose  :
+@@ -66,6 +68,35 @@
+       point2.Coord(tab2[0],tab2[1],tab2[2]);
+       return (memcmp(tab1,tab2,sizeof(tab1)) == 0);
+     }
++#else
++    //=======================================================================
++    //function : operator()
++    //purpose  : hash functor
++    //=======================================================================
++    size_t operator()(const gp_Pnt& point) const noexcept
++    {
++      union
++      {
++        Standard_Real    R[3];
++        Standard_Integer I[6];
++      } U;
++
++      point.Coord( U.R[0], U.R[1], U.R[2] );
++
++      return std::hash<Standard_Integer>{}(U.I[0]/23+U.I[1]/19+U.I[2]/17+U.I[3]/13+U.I[4]/11+U.I[5]/7);
++    }
++    //=======================================================================
++    //function : operator()
++    //purpose  : equality comparison functor
++    //=======================================================================
++    bool operator()(const gp_Pnt& point1, const gp_Pnt& point2) const noexcept
++    {
++      static Standard_Real tab1[3], tab2[3];
++      point1.Coord(tab1[0],tab1[1],tab1[2]);
++      point2.Coord(tab2[0],tab2[1],tab2[2]);
++      return (memcmp(tab1,tab2,sizeof(tab1)) == 0);
++    }
++#endif
+   };
+   typedef NCollection_DataMap<gp_Pnt,SMDS_MeshNode*,Hasher> TDataMapOfPntNodePtr;
+ 
+--- src/3rdParty/salomesmesh/src/NETGENPlugin/NETGENPlugin_Mesher.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/3rdParty/salomesmesh/src/NETGENPlugin/NETGENPlugin_Mesher.cpp	2024-07-17 16:21:38.000000000 -0600
+@@ -369,6 +369,7 @@
+   }
+ };
+ 
++#if OCC_VERSION_HEX < 0x070800
+ int HashCode(const Link& aLink, int aLimit)
+ {
+   return HashCode(aLink.n1 + aLink.n2, aLimit);
+@@ -379,6 +380,22 @@
+   return ((aLink1.n1 == aLink2.n1 && aLink1.n2 == aLink2.n2) ||
+           (aLink1.n1 == aLink2.n2 && aLink1.n2 == aLink2.n1));
+ }
++#else
++template<>
++struct std::hash<Link>
++{
++  std::size_t operator()(const Link& aLink)
++  {
++    return std::hash<int>{}(aLink.n1 + aLink.n2);
++  }
++};
++
++bool operator==(const Link& aLink1, const Link& aLink2)
++{
++  return ((aLink1.n1 == aLink2.n1 && aLink1.n2 == aLink2.n2) ||
++          (aLink1.n1 == aLink2.n2 && aLink1.n2 == aLink2.n1));
++}
++#endif
+ 
+ namespace
+ {
+--- src/3rdParty/salomesmesh/src/StdMeshers/StdMeshers_Quadrangle_2D.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/3rdParty/salomesmesh/src/StdMeshers/StdMeshers_Quadrangle_2D.cpp	2024-07-17 15:47:14.000000000 -0600
+@@ -42,13 +42,19 @@
+ #include "StdMeshers_QuadrangleParams.hxx"
+ #include "StdMeshers_ViscousLayers2D.hxx"
+ 
++#include <Standard_Version.hxx>
++
+ #include <BRepBndLib.hxx>
+ #include <BRepClass_FaceClassifier.hxx>
+ #include <BRep_Tool.hxx>
+ #include <Bnd_Box.hxx>
+ #include <GeomAPI_ProjectPointOnSurf.hxx>
+ #include <Geom_Surface.hxx>
++#if OCC_VERSION_HEX >= 0x060703
++#include <NCollection_Array2.hxx>
++#else
+ #include <NCollection_DefineArray2.hxx>
++#endif
+ #include <Precision.hxx>
+ #include <Standard_Real.hxx>
+ #include <TColStd_SequenceOfInteger.hxx>
+--- src/Mod/Fem/Gui/PreCompiled.h~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Fem/Gui/PreCompiled.h	2024-07-17 19:56:03.000000000 -0600
+@@ -61,9 +61,12 @@
+ #endif
+ 
+ // OCC
++#include <Standard_Version.hxx>
+ #include <BRepAdaptor_Surface.hxx>
+ #include <Precision.hxx>
+-#include <Standard_math.hxx>
++#if OCC_VERSION_HEX < 0x070800
++# include <Standard_math.hxx>
++#endif
+ #include <TopoDS.hxx>
+ #include <TopoDS_Shape.hxx>
+ 
+--- src/Mod/Fem/Gui/TaskCreateNodeSet.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Fem/Gui/TaskCreateNodeSet.cpp	2024-07-17 19:56:56.000000000 -0600
+@@ -28,7 +28,10 @@
+ 
+ # include <SMESH_Mesh.hxx>
+ # include <SMESHDS_Mesh.hxx>
+-# include <Standard_math.hxx>
++# include <Standard_Version.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ #endif
+ 
+ #include <Base/Console.h>
+--- src/Mod/Import/App/ImportOCAF.cpp~	2022-12-06 19:35:37.000000000 -0700
++++ src/Mod/Import/App/ImportOCAF.cpp	2024-06-03 17:59:22.000000000 -0600
+@@ -155,7 +155,11 @@
+                             const std::string& defaultname, const std::string& assembly, bool isRef,
+                             std::vector<App::DocumentObject*>& lValue)
+ {
++#if OCC_VERSION_HEX >= 0x070800
++    size_t hash = 0;
++#else
+     int hash = 0;
++#endif
+ #ifdef HAVE_TBB
+     using namespace tbb;
+     task_group g;
+@@ -165,7 +169,11 @@
+     std::vector<App::DocumentObject *> localValue;
+ 
+     if (aShapeTool->GetShape(label,aShape)) {
++#if OCC_VERSION_HEX >= 0x070800
++        hash = std::hash<TopoDS_Shape>{}(aShape) % HashUpper;
++#else
+         hash = aShape.HashCode(HashUpper);
++#endif
+     }
+ 
+     Handle(TDataStd_Name) name;
+@@ -235,7 +243,11 @@
+     if (isRef || myRefShapes.find(hash) == myRefShapes.end()) {
+         TopoDS_Shape aShape;
+         if (isRef && aShapeTool->GetShape(label, aShape))
++#if OCC_VERSION_HEX >= 0x070800
++            myRefShapes.insert(std::hash<TopoDS_Shape>{}(aShape) % HashUpper);
++#else
+             myRefShapes.insert(aShape.HashCode(HashUpper));
++#endif
+ 
+         if (aShapeTool->IsSimpleShape(label) && (isRef || aShapeTool->IsFree(label))) {
+             if (!asm_name.empty())
+@@ -512,7 +512,11 @@
+         const TDF_Label& label = shapeLabels.Value(i);
+         loadShapes(label);
+     }
++#if OCC_VERSION_HEX >= 0x070800
++    std::map<std::size_t, TopoDS_Shape>::iterator it;
++#else
+     std::map<Standard_Integer, TopoDS_Shape>::iterator it;
++#endif
+     // go through solids
+     for (it = mySolids.begin(); it != mySolids.end(); ++it) {
+         createShape(it->second, true, true);
+@@ -564,8 +580,13 @@
+     part = static_cast<Part::Feature*>(doc->addObject("Part::Feature", default_name.c_str()));
+     part->Label.setValue(default_name);
+     part->Shape.setValue(shape);
++#if OCC_VERSION_HEX >= 0x070800
++    std::map<std::size_t, Quantity_ColorRGBA>::const_iterator jt;
++    jt = myColorMap.find(std::hash<TopoDS_Shape>{}(shape));
++#else
+     std::map<Standard_Integer, Quantity_ColorRGBA>::const_iterator jt;
+     jt = myColorMap.find(shape.HashCode(INT_MAX));
++#endif
+ 
+     App::Color partColor(0.8f,0.8f,0.8f);
+ #if 0//TODO
+@@ -586,8 +606,13 @@
+ 
+     // set label name if defined
+     if (setname && !myNameMap.empty()) {
++#if OCC_VERSION_HEX >= 0x070800
++        std::map<std::size_t, std::string>::const_iterator jt;
++        jt = myNameMap.find(std::hash<TopoDS_Shape>{}(shape));
++#else
+         std::map<Standard_Integer, std::string>::const_iterator jt;
+         jt = myNameMap.find(shape.HashCode(INT_MAX));
++#endif
+         if (jt != myNameMap.end()) {
+             part->Label.setValue(jt->second);
+         }
+@@ -606,7 +630,11 @@
+         faceColors.resize(faces.Extent(), partColor);
+         xp.Init(shape,TopAbs_FACE);
+         while (xp.More()) {
++#if OCC_VERSION_HEX >= 0x070800
++            jt = myColorMap.find(std::hash<TopoDS_Shape>{}(xp.Current()));
++#else
+             jt = myColorMap.find(xp.Current().HashCode(INT_MAX));
++#endif
+             if (jt != myColorMap.end()) {
+                 int index = faces.FindIndex(xp.Current());
+                 faceColors[index-1] = convertColor(jt->second);
+@@ -640,6 +668,27 @@
+             int ctSolids = 0, ctShells = 0, ctComps = 0;
+             // add the shapes
+             TopExp_Explorer xp;
++#if OCC_VERSION_HEX >= 0x070800
++            for (xp.Init(aShape, TopAbs_SOLID); xp.More(); xp.Next(), ctSolids++)
++                this->mySolids[std::hash<TopoDS_Shape>{}(xp.Current())] = (xp.Current());
++            for (xp.Init(aShape, TopAbs_SHELL, TopAbs_SOLID); xp.More(); xp.Next(), ctShells++)
++                this->myShells[std::hash<TopoDS_Shape>{}(xp.Current())] = (xp.Current());
++            // if no solids and no shells were found then go for compounds
++            if (ctSolids == 0 && ctShells == 0) {
++                for (xp.Init(aShape, TopAbs_COMPOUND); xp.More(); xp.Next(), ctComps++)
++                    this->myCompds[std::hash<TopoDS_Shape>{}(xp.Current())] = (xp.Current());
++            }
++            if (ctComps == 0) {
++                for (xp.Init(aShape, TopAbs_FACE, TopAbs_SHELL); xp.More(); xp.Next())
++                    this->myShapes[std::hash<TopoDS_Shape>{}(xp.Current())] = (xp.Current());
++                for (xp.Init(aShape, TopAbs_WIRE, TopAbs_FACE); xp.More(); xp.Next())
++                    this->myShapes[std::hash<TopoDS_Shape>{}(xp.Current())] = (xp.Current());
++                for (xp.Init(aShape, TopAbs_EDGE, TopAbs_WIRE); xp.More(); xp.Next())
++                    this->myShapes[std::hash<TopoDS_Shape>{}(xp.Current())] = (xp.Current());
++                for (xp.Init(aShape, TopAbs_VERTEX, TopAbs_EDGE); xp.More(); xp.Next())
++                    this->myShapes[std::hash<TopoDS_Shape>{}(xp.Current())] = (xp.Current());
++            }
++#else
+             for (xp.Init(aShape, TopAbs_SOLID); xp.More(); xp.Next(), ctSolids++)
+                 this->mySolids[xp.Current().HashCode(INT_MAX)] = (xp.Current());
+             for (xp.Init(aShape, TopAbs_SHELL, TopAbs_SOLID); xp.More(); xp.Next(), ctShells++)
+@@ -659,6 +708,7 @@
+                 for (xp.Init(aShape, TopAbs_VERTEX, TopAbs_EDGE); xp.More(); xp.Next())
+                     this->myShapes[xp.Current().HashCode(INT_MAX)] = (xp.Current());
+             }
++#endif
+         }
+ 
+         // getting color
+@@ -667,7 +717,11 @@
+             hColors->GetColor(label, XCAFDoc_ColorSurf, col) ||
+             hColors->GetColor(label, XCAFDoc_ColorCurv, col)) {
+             // add defined color
++#ifdef OCC_VERSION_HEX >= 0x070800
++            myColorMap[std::hash<TopoDS_Shape>{}(aShape)] = col;
++#else
+             myColorMap[aShape.HashCode(INT_MAX)] = col;
++#endif
+         }
+         else {
+             // http://www.opencascade.org/org/forum/thread_17107/
+@@ -677,7 +731,11 @@
+                     hColors->GetColor(it.Value(), XCAFDoc_ColorSurf, col) ||
+                     hColors->GetColor(it.Value(), XCAFDoc_ColorCurv, col)) {
+                     // add defined color
++#ifdef OCC_VERSION_HEX >= 0x070800
++                    myColorMap[std::hash<TopoDS_Shape>{}(it.Value())] = col;
++#else
+                     myColorMap[it.Value().HashCode(INT_MAX)] = col;
++#endif
+                 }
+             }
+         }
+@@ -690,7 +748,11 @@
+             extstr.ToUTF8CString(str);
+             std::string labelName(str);
+             if (!labelName.empty())
++#ifdef OCC_VERSION_HEX >= 0x070800
++                myNameMap[std::hash<TopoDS_Shape>{}(aShape)] = labelName;
++#else
+                 myNameMap[aShape.HashCode(INT_MAX)] = labelName;
++#endif
+             delete [] str;
+         }
+ 
+--- src/Mod/Import/App/ImportOCAF.h~	2022-12-06 19:35:37.000000000 -0700
++++ src/Mod/Import/App/ImportOCAF.h	2024-06-03 18:01:10.000000000 -0600
+@@ -31,6 +31,7 @@
+ #include <vector>
+ 
+ #include <Quantity_ColorRGBA.hxx>
++#include <Standard_Version.hxx>
+ #include <TDocStd_Document.hxx>
+ #include <TopoDS_Shape.hxx>
+ #include <XCAFDoc_ColorTool.hxx>
+@@ -76,7 +77,11 @@
+     Handle(XCAFDoc_ColorTool) aColorTool;
+     bool merge;
+     std::string default_name;
++#if OCC_VERSION_HEX >= 0x070800
++    std::set<size_t> myRefShapes;
++#else
+     std::set<int> myRefShapes;
++#endif
+     static const int HashUpper = INT_MAX;
+ };
+ 
+@@ -113,12 +118,21 @@
+     Handle(XCAFDoc_ShapeTool) aShapeTool;
+     Handle(XCAFDoc_ColorTool) hColors;
+     std::string default_name;
++#if OCC_VERSION_HEX >= 0x070800
++    std::map<size_t, TopoDS_Shape> mySolids;
++    std::map<size_t, TopoDS_Shape> myShells;
++    std::map<size_t, TopoDS_Shape> myCompds;
++    std::map<size_t, TopoDS_Shape> myShapes;
++    std::map<size_t, Quantity_ColorRGBA> myColorMap;
++    std::map<size_t, std::string> myNameMap;
++#else
+     std::map<Standard_Integer, TopoDS_Shape> mySolids;
+     std::map<Standard_Integer, TopoDS_Shape> myShells;
+     std::map<Standard_Integer, TopoDS_Shape> myCompds;
+     std::map<Standard_Integer, TopoDS_Shape> myShapes;
+     std::map<Standard_Integer, Quantity_ColorRGBA> myColorMap;
+     std::map<Standard_Integer, std::string> myNameMap;
++#endif
+ };
+ 
+ }
+--- src/Mod/Import/App/ImportOCAF2.h~	2022-12-06 19:35:37.000000000 -0700
++++ src/Mod/Import/App/ImportOCAF2.h	2024-05-09 23:57:16.000000000 -0600
+@@ -30,7 +30,10 @@
+ #include <unordered_map>
+ #include <vector>
+ 
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x070800
+ #include <TDF_LabelMapHasher.hxx>
++#endif
+ #include <TDocStd_Document.hxx>
+ #include <TopoDS_Shape.hxx>
+ #include <XCAFDoc_ColorTool.hxx>
+@@ -56,6 +59,7 @@
+ 
+ namespace Import {
+ 
++#if OCC_VERSION_HEX < 0x070800
+ struct ShapeHasher {
+     std::size_t operator()(const TopoDS_Shape &s) const {
+         return s.HashCode(INT_MAX);
+@@ -66,6 +70,10 @@
+         return TDF_LabelMapHasher::HashCode(l,INT_MAX);
+     }
+ };
++#else
++using ShapeHasher = std::hash<TopoDS_Shape>;
++using LabelHasher = std::hash<TDF_Label>;
++#endif
+ 
+ struct ImportExport ImportOCAFOptions
+ {
+--- src/Mod/Import/App/ImportOCAFAssembly.cpp~	2022-12-06 19:35:37.000000000 -0700
++++ src/Mod/Import/App/ImportOCAFAssembly.cpp	2024-06-03 15:15:23.000000000 -0600
+@@ -140,10 +140,18 @@
+ 
+ void ImportOCAFAssembly::loadShapes(const TDF_Label& label, const TopLoc_Location& loc, const std::string& defaultname, const std::string& assembly, bool isRef, int dep)
+ {
++#if OCC_VERSION_HEX >= 0x070800
++	size_t hash = 0;
++#else
+     int hash = 0;
++#endif
+     TopoDS_Shape aShape;
+     if (aShapeTool->GetShape(label,aShape)) {
++#if OCC_VERSION_HEX >= 0x070800
++		hash = std::hash<TopoDS_Shape>{}(aShape) % HashUpper;
++#else
+         hash = aShape.HashCode(HashUpper);
++#endif
+     }
+ 
+     Handle(TDataStd_Name) name;
+@@ -221,7 +229,11 @@
+     if (isRef || myRefShapes.find(hash) == myRefShapes.end()) {
+         TopoDS_Shape aShape;
+         if (isRef && aShapeTool->GetShape(label, aShape))
++#if OCC_VERSION_HEX >= 0x070800
++			myRefShapes.insert(std::hash<TopoDS_Shape>{}(aShape) % HashUpper);
++#else
+             myRefShapes.insert(aShape.HashCode(HashUpper));
++#endif
+ 
+         if (aShapeTool->IsSimpleShape(label) && (isRef || aShapeTool->IsFree(label))) {
+             if (!asm_name.empty())
+--- src/Mod/Import/App/ImportOCAFAssembly.h~	2022-12-06 19:35:37.000000000 -0700
++++ src/Mod/Import/App/ImportOCAFAssembly.h	2024-06-03 15:15:53.000000000 -0600
+@@ -29,6 +29,7 @@
+ #include <string>
+ #include <vector>
+ 
++#include <Standard_Version.hxx>
+ #include <TopoDS_Shape.hxx>
+ 
+ #include <App/Material.h>
+@@ -71,7 +72,11 @@
+     Handle(XCAFDoc_ShapeTool) aShapeTool;
+     Handle(XCAFDoc_ColorTool) aColorTool;
+     std::string default_name;
++#if OCC_VERSION_HEX >= 0x070800
++	std::set<size_t> myRefShapes;
++#else
+     std::set<int> myRefShapes;
++#endif
+     static const int HashUpper = INT_MAX;
+ };
+ 
++++ src/Mod/MeshPart/App/CurveProjector.h~	2022-12-06 19:35:37.000000000 -0700
+--- src/Mod/MeshPart/App/CurveProjector.h	2024-05-08 19:42:31.000000000 -0600
+@@ -27,6 +27,7 @@
+ # include <gts.h>
+ #endif
+ 
++#include <Standard_Version.hxx>
+ #include <TopoDS_Edge.hxx>
+ 
+ #include <Mod/Mesh/App/Mesh.h>
+@@ -62,7 +63,11 @@
+   template<class T>
+     struct TopoDSLess {
+     bool operator()(const T& x, const T& y) const {
++#if OCC_VERSION_HEX < 0x070800
+       return x.HashCode(INT_MAX-1) < y.HashCode(INT_MAX-1);
++#else
++	  return std::hash<T>{}(x) < std::hash<T>{}(y);
++#endif
+     }
+   };
+ 
+--- src/Mod/Part/App/ImportStep.cpp~	2022-12-06 19:35:37.000000000 -0700
++++ src/Mod/Part/App/ImportStep.cpp	2024-05-09 05:10:13.000000000 -0600
+@@ -139,7 +139,11 @@
+         //Handle(XSControl_WorkSession) ws = aReader.WS();
+         //Handle(XSControl_TransferReader) tr = ws->TransferReader();
+ 
++#if OCC_VERSION_HEX < 0x070800
+         std::map<int, Quantity_Color> hash_col;
++#else
++        std::map<size_t, Quantity_Color> hash_col;
++#endif
+         //ReadColors(aReader.WS(), hash_col);
+         //ReadNames(aReader.WS());
+ 
+@@ -167,7 +171,11 @@
+                 // This is a trick to access the GUI via Python and set the color property
+                 // of the associated view provider. If no GUI is up an exception is thrown
+                 // and cleared immediately
++#if OCC_VERSION_HEX < 0x070800
+                 std::map<int, Quantity_Color>::iterator it = hash_col.find(aSolid.HashCode(INT_MAX));
++#else
++                std::map<size_t, Quantity_Color>::iterator it = hash_col.find(std::hash<TopoDS_Solid>{}(aSolid));
++#endif
+                 if (it != hash_col.end()) {
+                     try {
+                         Py::Object obj(pcFeature->getPyObject(), true);
+--- src/Mod/Part/App/OpenCascadeAll.h~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/App/OpenCascadeAll.h	2024-07-17 15:07:02.000000000 -0600
+@@ -26,8 +26,12 @@
+ // OpenCASCADE
+ 
+ // Standard*
++#include <Standard_Version.hxx>
++
+ #include <Standard_AbortiveTransaction.hxx>
+-#include <Standard_Address.hxx>
++#if OCC_VERSION_HEX < 0x070800
++# include <Standard_Address.hxx>
++#endif
+ #include <Standard_Boolean.hxx>
+ #include <Standard_Byte.hxx>
+ #include <Standard_Character.hxx>
+@@ -54,7 +54,9 @@
+ #include <Standard_LicenseError.hxx>
+ #include <Standard_LicenseNotFound.hxx>
+ #include <Standard_Macro.hxx>
+-#include <Standard_math.hxx>
++#if OCC_VERSION_HEX < 0x070800
++# include <Standard_math.hxx>
++#endif
+ #include <Standard_MultiplyDefined.hxx>
+ #include <Standard_NegativeValue.hxx>
+ #include <Standard_NoMoreObject.hxx>
+@@ -78,7 +84,6 @@
+ #include <Standard_TypeMismatch.hxx>
+ #include <Standard_Underflow.hxx>
+ #include <Standard_UUID.hxx>
+-#include <Standard_Version.hxx>
+ 
+ // now in alphabetical order
+ #if OCC_VERSION_HEX < 0x070600
+--- src/Mod/Part/App/TopoShapePyImp.cpp~	2022-12-06 19:35:37.000000000 -0700
++++ src/Mod/Part/App/TopoShapePyImp.cpp	2024-05-08 19:56:41.000000000 -0600
+@@ -1317,11 +1317,19 @@
+         const TopTools_ListOfShape& ancestors = mapOfShapeShape.FindFromKey(shape);
+ 
+         Py::List list;
++#if OCC_VERSION_HEX < 0x070800
+         std::set<Standard_Integer> hashes;
++#else
++		std::set<size_t> hashes;
++#endif
+         TopTools_ListIteratorOfListOfShape it(ancestors);
+         for (; it.More(); it.Next()) {
+             // make sure to avoid duplicates
++#if OCC_VERSION_HEX < 0x070800
+             Standard_Integer code = it.Value().HashCode(INT_MAX);
++#else
++            size_t code = std::hash<TopoDS_Shape>{}(it.Value());
++#endif
+             if (hashes.find(code) == hashes.end()) {
+                 list.append(shape2pyshape(it.Value()));
+                 hashes.insert(code);
+@@ -1943,8 +1951,17 @@
+     if (!PyArg_ParseTuple(args, "|i",&upper))
+         return nullptr;
+ 
++#if OCC_VERSION_HEX < 0x070800
+     int hc = getTopoShapePtr()->getShape().HashCode(upper);
+     return Py_BuildValue("i", hc);
++#else
++    size_t hc = std::hash<TopoDS_Shape>{}(getTopoShapePtr()->getShape()) % upper;
++#ifdef _WIN64
++    return Py_BuildValue("K", hc);
++#else
++    return Py_BuildValue("k", hc);
++#endif
++#endif
+ }
+ 
+ PyObject* TopoShapePy::tessellate(PyObject *args)
+--- src/Mod/Part/Gui/AppPartGui.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/AppPartGui.cpp	2024-07-17 19:47:55.000000000 -0600
+@@ -24,7 +24,10 @@
+ 
+ #include "PreCompiled.h"
+ #ifndef _PreComp_
+-# include <Standard_math.hxx>
++# include <Standard_Version.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ #endif
+ 
+ #include <Base/Console.h>
+--- src/Mod/Part/Gui/Command.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/Command.cpp	2024-07-17 19:28:53.000000000 -0600
+@@ -26,8 +26,10 @@
+ # include <QFileInfo>
+ # include <QPointer>
+ # include <QString>
+-# include <Standard_math.hxx>
+ # include <Standard_Version.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ # include <TopExp_Explorer.hxx>
+ # include <TopoDS_Shape.hxx>
+ #endif
+--- src/Mod/Part/Gui/CommandSimple.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/CommandSimple.cpp	2024-07-17 19:32:22.000000000 -0600
+@@ -23,7 +23,10 @@
+ 
+ #include "PreCompiled.h"
+ #ifndef _PreComp_
+-# include <Standard_math.hxx>
++# include <Standard_Version.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ # include <QInputDialog>
+ #endif
+ 
+--- src/Mod/Part/Gui/CrossSections.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/CrossSections.cpp	2024-07-17 19:30:00.000000000 -0600
+@@ -27,8 +27,11 @@
+ # include <QFuture>
+ # include <QKeyEvent>
+ 
++# include <Standard_Version.hxx>
+ # include <BRep_Builder.hxx>
+-# include <Standard_math.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ # include <TopoDS.hxx>
+ # include <TopoDS_Compound.hxx>
+ 
+--- src/Mod/Part/Gui/ViewProvider2DObject.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/ViewProvider2DObject.cpp	2024-07-17 19:39:10.000000000 -0600
+@@ -25,7 +25,10 @@
+ #ifndef _PreComp_
+ # include <cfloat>
+ 
+-# include <Standard_math.hxx>
++# include <Standard_Version.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ 
+ # include <Inventor/nodes/SoAnnotation.h>
+ # include <Inventor/nodes/SoBaseColor.h>
+--- src/Mod/Part/Gui/ViewProviderExt.cpp~	2022-12-06 19:35:37.000000000 -0700
++++ src/Mod/Part/Gui/ViewProviderExt.cpp	2024-05-09 16:17:01.000000000 -0600
+@@ -933,7 +933,11 @@
+     // time measurement and book keeping
+     Base::TimeInfo start_time;
+     int numTriangles=0,numNodes=0,numNorms=0,numFaces=0,numEdges=0,numLines=0;
++#if OCC_VERSION_HEX < 0x070800
+     std::set<int> faceEdges;
++#else
++    std::set<size_t> faceEdges;
++#endif
+ 
+     try {
+         // calculating the deflection value
+@@ -978,7 +982,11 @@
+ 
+             TopExp_Explorer xp;
+             for (xp.Init(faceMap(i),TopAbs_EDGE);xp.More();xp.Next())
++#if OCC_VERSION_HEX < 0x070800
+                 faceEdges.insert(xp.Current().HashCode(INT_MAX));
++#else
++                faceEdges.insert(std::hash<TopoDS_Shape>{}(xp.Current()));
++#endif
+             numFaces++;
+         }
+ 
+@@ -1006,7 +1014,11 @@
+             // So, we have to store the hashes of the edges associated to a face.
+             // If the hash of a given edge is not in this list we know it's really
+             // a free edge.
++#if OCC_VERSION_HEX < 0x070800
+             int hash = aEdge.HashCode(INT_MAX);
++#else
++            size_t hash = std::hash<TopoDS_Edge>{}(aEdge);
++#endif
+             if (faceEdges.find(hash) == faceEdges.end()) {
+                 Handle(Poly_Polygon3D) aPoly = Part::Tools::polygonOfEdge(aEdge, aLoc);
+                 if (!aPoly.IsNull()) {
+@@ -1205,7 +1217,11 @@
+             TopLoc_Location aLoc;
+ 
+             // handling of the free edge that are not associated to a face
++#if OCC_VERSION_HEX < 0x070800
+             int hash = aEdge.HashCode(INT_MAX);
++#else
++            size_t hash = std::hash<TopoDS_Edge>{}(aEdge);
++#endif
+             if (faceEdges.find(hash) == faceEdges.end()) {
+                 Handle(Poly_Polygon3D) aPoly = Part::Tools::polygonOfEdge(aEdge, aLoc);
+                 if (!aPoly.IsNull()) {
+--- src/Mod/Part/Gui/ViewProviderExt.h~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/ViewProviderExt.h	2024-07-17 19:30:54.000000000 -0600
+@@ -24,7 +24,10 @@
+ #define PARTGUI_VIEWPROVIDERPARTEXT_H
+ 
+ #include <map>
+-#include <Standard_math.hxx>
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x070800
++# include <Standard_math.hxx>
++#endif
+ 
+ #include <App/PropertyUnits.h>
+ #include <Gui/ViewProviderGeometryObject.h>
+--- src/Mod/Part/Gui/ViewProviderMirror.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/ViewProviderMirror.cpp	2024-07-17 19:34:37.000000000 -0600
+@@ -27,7 +27,10 @@
+ # include <QMenu>
+ # include <QTimer>
+ 
+-# include <Standard_math.hxx>
++# include <Standard_Version.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ # include <TopExp.hxx>
+ # include <TopTools_IndexedMapOfShape.hxx>
+ 
+--- src/Mod/Part/Gui/ViewProviderPython.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/ViewProviderPython.cpp	2024-07-17 19:47:04.000000000 -0600
+@@ -22,7 +22,10 @@
+ 
+ #include "PreCompiled.h"
+ 
+-#include <Standard_math.hxx>
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x070800
++# include <Standard_math.hxx>
++#endif
+ #ifndef _PreComp_
+ # include <Inventor/nodes/SoSeparator.h>
+ #endif
+--- src/Mod/Part/Gui/ViewProviderReference.h~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Part/Gui/ViewProviderReference.h	2024-07-17 19:40:09.000000000 -0600
+@@ -24,7 +24,10 @@
+ #ifndef PARTGUI_ViewProviderPartReference_H
+ #define PARTGUI_ViewProviderPartReference_H
+ 
+-#include <Standard_math.hxx>
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x070800
++# include <Standard_math.hxx>
++#endif
+ #include <Standard_Boolean.hxx>
+ #include <TopoDS_Shape.hxx>
+ #include <Gui/ViewProviderGeometryObject.h>
+--- src/Mod/Path/App/Voronoi.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Path/App/Voronoi.cpp	2024-07-17 19:21:56.000000000 -0600
+@@ -22,7 +22,10 @@
+ 
+ #include "PreCompiled.h"
+ #ifndef _PreComp_
+-# include <Standard_math.hxx>
++# include <Standard_Version.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ #endif
+ 
+ #include <Base/Vector3D.h>
+--- src/Mod/Path/Gui/PreCompiled.h~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Path/Gui/PreCompiled.h	2024-07-17 19:55:17.000000000 -0600
+@@ -38,7 +38,10 @@
+ # define PathGuiExport
+ #endif
+ 
+-#include <Standard_math.hxx>
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x070800
++# include <Standard_math.hxx>
++#endif
+ 
+ #ifdef _MSC_VER
+ # pragma warning( disable : 4273 )
+--- src/Mod/Robot/Gui/PreCompiled.h~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Robot/Gui/PreCompiled.h	2024-07-17 19:52:46.000000000 -0600
+@@ -38,7 +38,10 @@
+ # define RobotGuiExport
+ #endif
+ 
+-#include <Standard_math.hxx>
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x070800
++# include <Standard_math.hxx>
++#endif
+ 
+ #ifdef _MSC_VER
+ # pragma warning(disable : 4005)
+--- src/Mod/Sandbox/Gui/AppSandboxGui.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Sandbox/Gui/AppSandboxGui.cpp	2024-07-17 19:51:47.000000000 -0600
+@@ -24,7 +24,10 @@
+ #include "PreCompiled.h"
+ #ifndef _PreComp_
+ # include <Python.h>
+-# include <Standard_math.hxx>
++# include <Standard_Version.hxx>
++# if OCC_VERSION_HEX < 0x070800
++#  include <Standard_math.hxx>
++# endif
+ # include <Inventor/nodes/SoLineSet.h>
+ # include <Inventor/nodes/SoBaseColor.h>
+ # include <Inventor/nodes/SoSeparator.h>
+--- src/Mod/Sketcher/Gui/EditDatumDialog.cpp~	2023-11-13 19:33:39.000000000 -0700
++++ src/Mod/Sketcher/Gui/EditDatumDialog.cpp	2024-07-17 19:54:19.000000000 -0600
+@@ -23,7 +23,10 @@
+ #include "PreCompiled.h"
+ 
+ #ifndef _PreComp_
++#include <Standard_Version.hxx>
++#if OCC_VERSION_HEX < 0x070800
+ #include <Standard_math.hxx>
++#endif
+ /// Qt Include Files
+ #include <Inventor/sensors/SoSensor.h>
+ #include <QApplication>
