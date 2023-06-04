@@ -14,7 +14,6 @@ long_description    Coin is a high-level 3D graphics library with a   \
                     structures to render real-time graphics suitable for mostly all   \
                     kinds of scientific and engineering visualization applications.
 
-conflicts           Coin-framework
 categories          graphics devel
 platforms           darwin
 maintainers         nomaintainer
@@ -52,27 +51,27 @@ post-build {
         ${worksrcpath}/coin-default.cfg
 }
 
-if {${name} eq ${subport}} {
-
-    variant manpages description {Include API documentation in manpages.} {
-        depends_build-append    path:bin/doxygen:doxygen
-        configure.args-append   --enable-man --mandir=${prefix}/share/man
-        post-destroot {
-            file rename ${destroot}${prefix}/share/man/man3/threads.3 \
-                ${destroot}${prefix}/share/man/man3/threads-coin.3
-            file rename ${destroot}${prefix}/share/man/man3/manips.3 \
-                ${destroot}${prefix}/share/man/man3/manips-coin.3
-        }
+variant manpages description {Include API documentation in manpages.} {
+    depends_build-append    path:bin/doxygen:doxygen
+    configure.args-append   --enable-man --mandir=${prefix}/share/man
+    post-destroot {
+        file rename ${destroot}${prefix}/share/man/man3/threads.3 \
+            ${destroot}${prefix}/share/man/man3/threads-coin.3
+        file rename ${destroot}${prefix}/share/man/man3/manips.3 \
+            ${destroot}${prefix}/share/man/man3/manips-coin.3
     }
 }
 
-subport Coin-framework {
-    conflicts               Coin
-    revision            6
-
+variant framework description {Install Coin as a framework bundle.} {
     patchfiles-append       framework-prefix.patch
     configure.args-replace  --without-framework \
                             --with-framework-prefix=${frameworks_dir}
+}
+
+subport Coin-framework {
+    PortGroup           obsolete 1.0
+    replaced_by         Coin
+    revision            7
 }
 
 livecheck.type      regex

@@ -23,7 +23,7 @@ worksrcdir          FreeCAD-${real_name}-02c4723
 
 if {${name} ne ${subport}} {
     depends_lib-append \
-                    port:Coin-framework \
+                    port:Coin \
                     port:swig-python
 
     patchfiles      patch-setup.py.diff \

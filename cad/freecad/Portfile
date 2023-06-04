@@ -43,7 +43,7 @@ require_active_variants [boost::depends_portname] python${python_version}
 depends_build-append    path:bin/doxygen:doxygen \
                         path:bin/dot:graphviz
 
-depends_lib-append      port:Coin-framework \
+depends_lib-append      port:Coin \
                         path:share/pkgconfig/eigen3.pc:eigen3 \
                         port:freetype \
                         port:oce \
