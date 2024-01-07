@@ -73,8 +73,7 @@ if {${name} ne ${subport}} {
         port:py${python.version}-numpy
 
     # only find the llvm-config from the version we intend to
-    patchfiles-append   patch-find-llvm-config.diff
-    build.env-append    PATH=${prefix}/libexec/llvm-${llvm_version}/bin:$env(PATH)
+    build.env-append    CLANG_INSTALL_DIR=${prefix}/libexec/llvm-${llvm_version}
 
     qt5.depends_component \
         qtxmlpatterns \
