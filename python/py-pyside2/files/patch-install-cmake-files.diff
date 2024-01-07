@@ -1,0 +1,277 @@
+--- build_scripts/config.py~	2024-01-06 03:52:32.000000000 -0700
++++ build_scripts/config.py	2024-01-06 05:36:04.000000000 -0700
+@@ -102,7 +102,7 @@
+     def init_config(self, build_type=None, internal_build_type=None,
+                     cmd_class_dict=None, package_version=None,
+                     ext_modules=None, setup_script_dir=None,
+-                    quiet=False):
++                    dist_class=None, quiet=False):
+         """
+         Sets up the global singleton config which is used in many parts
+         of the setup process.
+@@ -136,6 +136,7 @@
+         setup_kwargs['license'] = 'LGPL'
+         setup_kwargs['zip_safe'] = False
+         setup_kwargs['cmdclass'] = cmd_class_dict
++        setup_kwargs['distclass'] = dist_class
+         setup_kwargs['version'] = package_version
+         setup_kwargs['python_requires'] = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <3.11"
+ 
+--- build_scripts/main.py~	2023-06-06 12:53:10.000000000 -0600
++++ build_scripts/main.py	2024-01-05 20:40:44.000000000 -0700
+@@ -227,6 +227,30 @@
+     return py_library
+ 
+ 
++def get_build_type():
++    """Return the CMake build type"""
++    build_type = "Debug" if OPTION["DEBUG"] else "Release"
++    if OPTION["RELWITHDEBINFO"]:
++        build_type = 'RelWithDebInfo'
++    return build_type
++
++
++def get_build_name(py_version, qt_version, arch, build_type):
++    """Get the name of the directory where the package is built"""
++    build_spec = "py{}-qt{}-{}-{}".format(py_version, qt_version,
++                                          arch, build_type.lower())
++    if OPTION["SHORTER_PATHS"]:
++        build_name = "p" + py_version
++    else:
++        build_name = build_spec
++    return (build_name, build_spec)
++
++
++def get_cmake_dir(script_dir, suffix, build_name):
++    """Get the name of a directory used with CMake"""
++    return os.path.join(script_dir, prefix() + suffix, build_name)
++
++
+ # Git submodules: ["submodule_name", "location_relative_to_sources_folder"]
+ submodules = [["pyside2-tools"]]
+ 
+@@ -236,7 +260,7 @@
+     from ez_setup import use_setuptools
+     use_setuptools()
+ 
+-from setuptools import Extension
++from setuptools import Extension, Distribution as _Distribution
+ from setuptools.command.install import install as _install
+ from setuptools.command.install_lib import install_lib as _install_lib
+ from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
+@@ -250,6 +274,7 @@
+ from distutils.spawn import find_executable
+ from distutils.command.build import build as _build
+ from distutils.command.build_ext import build_ext as _build_ext
++from distutils.command.install_data import install_data as _install_data
+ from distutils.util import get_platform
+ from distutils.cmd import Command
+ 
+@@ -255,7 +280,7 @@
+ from distutils.cmd import Command
+ 
+ from .qtinfo import QtInfo
+-from .utils import rmtree, detect_clang, copyfile, copydir, run_process_output, run_process
++from .utils import rmtree, rmtreeorlink, detect_clang, copyfile, copydir, run_process_output, run_process
+ from .utils import update_env_path, init_msvc_env, filter_match
+ from .utils import macos_fix_rpaths_for_library
+ from .utils import linux_fix_rpaths_for_library
+@@ -442,6 +467,94 @@
+         _build_py.__init__(self, *args, **kwargs)
+ 
+ 
++# _install_data is reimplemented to add the CMake files and put them in the
++# right place so CMake can find us.
++class PysideInstallData(_install_data):
++
++    def __init__(self, *args, **kwargs):
++        _install_data.__init__(self, *args, **kwargs)
++
++    def run(self):
++        self.run_command("build")
++        py_version = '{}.{}'.format(*sys.version_info[0:2])
++        qt_version = get_qt_version()
++        build_name = get_build_name(py_version, qt_version, platform.architecture()[0], get_build_type())[0]
++        cm_install_dir = get_cmake_dir(setup_script_dir, "_install", build_name)
++        copydir("{cm_install_dir}/lib/cmake", "{install_dir}/lib/cmake",
++                vars={"cm_install_dir": cm_install_dir,
++                      "install_dir": self.install_dir})
++        # Put header and library symlinks in the expected place so CMake can
++        # find our headers and libraries.
++        py_version = '{}{}'.format(*sys.version_info[0:2])
++        short_qt_version = '.'.join(qt_version.split('.')[0:2])
++        lib_basename = "lib{}.{}-{}-{}".format(config.package_name().lower(),
++                                               sys.implementation.name,
++                                               py_version, sys.platform)
++        lib_ext = '.dll' if sys.platform == "win32" else '.dylib' if sys.platform == "darwin" else '.so'
++        if sys.platform == "darwin" or sys.platform == "win32":
++            lib_name1 = lib_basename + '.' + qt_version + lib_ext
++            lib_name2 = lib_basename + '.' + short_qt_version + lib_ext
++        else:
++            lib_name1 = lib_basename + lib_ext + '.' + qt_version
++            lib_name2 = lib_basename + lib_ext + '.' + short_qt_version
++        lib_name3 = lib_basename + lib_ext
++        dest_dir = os.path.abspath(os.path.join(self.install_dir, "lib"))
++        lib_path = os.path.abspath(os.path.join(self.get_finalized_command("install").install_lib, config.package_name(), lib_name2))
++        if os.path.exists(lib_path):
++            try:
++                os.remove(os.path.join(dest_dir, lib_name1))
++                os.remove(os.path.join(dest_dir, lib_name2))
++                os.remove(os.path.join(dest_dir, lib_name3))
++            except FileNotFoundError:
++                pass
++            try:
++                src_lib = os.path.relpath(lib_path, dest_dir)
++                os.symlink(src_lib, os.path.join(dest_dir, lib_name1))
++                os.symlink(src_lib, os.path.join(dest_dir, lib_name2))
++                os.symlink(src_lib, os.path.join(dest_dir, lib_name3))
++            except NotImplementedError:
++                try:
++                    os.link(lib_path, os.path.join(dest_dir, lib_name1))
++                    os.link(lib_path, os.path.join(dest_dir, lib_name2))
++                    os.link(lib_path, os.path.join(dest_dir, lib_name3))
++                except:
++                    copyfile(lib_path, os.path.join(dest_dir, lib_name1))
++                    copyfile(lib_path, os.path.join(dest_dir, lib_name2))
++                    copyfile(lib_path, os.path.join(dest_dir, lib_name3))
++        if config.package_name() == 'shiboken2_generator':
++            dest_dir = os.path.abspath(os.path.join(self.install_dir, "include"))
++            include_path = os.path.abspath(os.path.join(self.get_finalized_command("install").install_lib, config.package_name(), "include"))
++            self.mkpath(dest_dir)
++            dest_path = os.path.join(dest_dir, "shiboken2")
++            rmtreeorlink(dest_path, ignore=True)
++            try:
++                os.symlink(os.path.relpath(include_path, dest_dir), dest_path, target_is_directory=True)
++            except NotImplementedError:
++                copydir(include_path, dest_path)
++        if config.package_name() == 'PySide2':
++            dest_dir = os.path.abspath(os.path.join(self.install_dir, "include"))
++            include_path = os.path.abspath(os.path.join(self.get_finalized_command("install").install_lib, config.package_name(), "include"))
++            self.mkpath(dest_dir)
++            dest_path = os.path.join(dest_dir, config.package_name())
++            rmtreeorlink(dest_path, ignore=True)
++            try:
++                os.symlink(os.path.relpath(include_path, dest_dir), dest_path, target_is_directory=True)
++            except NotImplementedError:
++                copydir(include_path, dest_path)
++            dest_dir = os.path.abspath(os.path.join(self.install_dir, "share", config.package_name()))
++            typesystem_path = os.path.abspath(os.path.join(self.get_finalized_command("install").install_lib, config.package_name(), "typesystems"))
++            glue_path = os.path.abspath(os.path.join(self.get_finalized_command("install").install_lib, config.package_name(), "glue"))
++            self.mkpath(dest_dir)
++            rmtreeorlink(os.path.join(dest_dir, "typesystems"), ignore=True)
++            rmtreeorlink(os.path.join(dest_dir, "glue"), ignore=True)
++            try:
++                os.symlink(os.path.relpath(typesystem_path, dest_dir), os.path.join(dest_dir, "typesystems"), target_is_directory=True)
++                os.symlink(os.path.relpath(glue_path, dest_dir), os.path.join(dest_dir, "glue"), target_is_directory=True)
++            except NotImplementedError:
++                copydir(typesystem_path, os.path.join(dest_dir, "typesystems"))
++                copydir(glue_path, os.path.join(dest_dir, "glue"))
++
++
+ # _install_lib is reimplemented to preserve
+ # symlinks when distutils / setuptools copy files to various
+ # directories from the setup tools build dir to the install dir.
+@@ -515,9 +628,7 @@
+         log.info("Python architecture is {}".format(platform_arch))
+         self.py_arch = platform_arch[:-3]
+ 
+-        build_type = "Debug" if OPTION["DEBUG"] else "Release"
+-        if OPTION["RELWITHDEBINFO"]:
+-            build_type = 'RelWithDebInfo'
++        build_type = get_build_type()
+ 
+         # Check env
+         make_path = None
+@@ -565,18 +676,12 @@
+         update_env_path(additional_paths)
+ 
+         # Used for test blacklists and registry test.
+-        self.build_classifiers = "py{}-qt{}-{}-{}".format(py_version, qt_version,
+-                                                          platform.architecture()[0],
+-                                                          build_type.lower())
+-        if OPTION["SHORTER_PATHS"]:
+-            build_name = "p{}".format(py_version)
+-        else:
+-            build_name = self.build_classifiers
++        build_name, self.build_classifiers = get_build_name(py_version, qt_version, platform.architecture()[0], build_type)
+ 
+         script_dir = setup_script_dir
+         sources_dir = os.path.join(script_dir, "sources")
+-        build_dir = os.path.join(script_dir, prefix() + "_build", "{}".format(build_name))
+-        install_dir = os.path.join(script_dir, prefix() + "_install", "{}".format(build_name))
++        build_dir = get_cmake_dir(script_dir, "_build", build_name)
++        install_dir = get_cmake_dir(script_dir, "_install", build_name)
+ 
+         self.make_path = make_path
+         self.make_generator = make_generator
+@@ -1253,6 +1361,12 @@
+         DistUtilsCommandMixin.mixin_finalize_options(self)
+ 
+ 
++class Distribution(_Distribution):
++
++    def has_data_files(self):
++        return True
++
++
+ cmd_class_dict = {
+     'build': PysideBuild,
+     'build_py': PysideBuildPy,
+@@ -1263,6 +1374,7 @@
+     'bdist_egg': PysideBdistEgg,
+     'develop': PysideDevelop,
+     'install': PysideInstall,
++    'install_data': PysideInstallData,
+     'install_lib': PysideInstallLib,
+     'build_rst_docs': PysideRstDocs,
+ }
+--- build_scripts/setup_runner.py~	2023-06-06 12:53:10.000000000 -0600
++++ build_scripts/setup_runner.py	2024-01-06 05:37:02.000000000 -0700
+@@ -46,7 +46,7 @@
+ 
+ from build_scripts.config import config
+ from build_scripts.main import get_package_version, get_setuptools_extension_modules
+-from build_scripts.main import cmd_class_dict
++from build_scripts.main import cmd_class_dict, Distribution
+ from build_scripts.options import ADDITIONAL_OPTIONS, OPTION
+ from build_scripts.utils import run_process
+ 
+@@ -111,6 +111,7 @@
+         config.init_config(build_type=OPTION["BUILD_TYPE"],
+                            internal_build_type=OPTION["INTERNAL_BUILD_TYPE"],
+                            cmd_class_dict=cmd_class_dict,
++                           dist_class=Distribution,
+                            package_version=get_package_version(),
+                            ext_modules=get_setuptools_extension_modules(),
+                            setup_script_dir=self.setup_script_dir,
+--- build_scripts/utils.py~	2023-06-06 12:53:10.000000000 -0600
++++ build_scripts/utils.py	2024-01-10 17:13:35.000000000 -0700
+@@ -370,6 +370,17 @@
+     shutil.rmtree(dirname, ignore_errors=ignore, onerror=handle_remove_readonly)
+ 
+ 
++def rmtreeorlink(name, ignore=False):
++    if os.path.islink(name):
++        try:
++            os.remove(name)
++        except:
++            if not ignore:
++                raise
++    else:
++        rmtree(name, ignore)
++
++
+ def run_process_output(args, initial_env=None):
+     if initial_env is None:
+         initial_env = os.environ
+--- sources/shiboken2/generator/CMakeLists.txt~	2023-06-06 12:53:10.000000000 -0600
++++ sources/shiboken2/generator/CMakeLists.txt	2024-01-10 04:15:51.000000000 -0700
+@@ -30,7 +30,7 @@
+ 
+ install(TARGETS shiboken2
+         EXPORT Shiboken2Targets
+-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
++        DESTINATION "bin")
+ 
+ set(shiboken_generator_package_name "shiboken2_generator")
+ 
