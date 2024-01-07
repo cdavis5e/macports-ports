@@ -21,7 +21,7 @@ checksums               rmd160  e656c4ea71d2bc4b5702af0c76ebcfacdb4dc65f \
                         sha256  21d6818b064834b08501180e48890e5fd87df2fb3769f80c58143457f548c408 \
                         size    3586600
 
-python.versions         39 310 311
+python.versions         39 310 311 312
 python.pep517           no
 
 set llvm_version        18
@@ -37,6 +37,11 @@ if {${name} ne ${subport}} {
 
     # Needed for generating shiboken2 documentation
     qt5.depends_build_component sqlite-plugin
+
+    # Unsupported python version
+    if {${python.version} >= 311} {
+        patchfiles-append   patch-python311.diff
+    }
 
     depends_build-append \
         path:bin/cmake:cmake \

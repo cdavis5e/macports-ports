@@ -136,10 +136,8 @@ if {${name} ne ${subport}} {
         depends_lib-append  port:py${python.version}-cairo
     }
 
-    if {${python.version} < 312} {
-        variant pyside2 description "Enable PySide2 backend" {
-            depends_lib-append  port:py${python.version}-pyside2
-        }
+    variant pyside2 description "Enable PySide2 backend" {
+        depends_lib-append  port:py${python.version}-pyside2
     }
 
     variant dvipng description "Enable dvipng support" {
@@ -159,13 +157,13 @@ if {${name} ne ${subport}} {
     }
 
     if {![variant_isset tkinter] && ![variant_isset qt5] &&
-        ![variant_isset qt4] && ![variant_isset pyside] && ![variant_isset pyside2]} {
+        ![variant_isset pyside2]} {
             default_variants-append +cairo
     }
 
     notes "The default backend is the interactive Mac OS X backend. Different\
         backends can be specified using the ~/.matplotlib/matplotlibrc file.\
-        More details regarding backends can be found in the matplotlib FAQ:
-
+        More details regarding backends can be found in the matplotlib FAQ:\
+        \
         https://matplotlib.org/stable/users/explain/backends.html"
 }
