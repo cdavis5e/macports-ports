@@ -1,12 +1,12 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
 PortSystem          1.0
-PortGroup           qt4 1.0
-PortGroup           bitbucket 1.0
+PortGroup           boost 1.0
+PortGroup           cmake 1.1
+PortGroup           github 1.0
 
-bitbucket.setup     Coin3D coin 3.1.3 Coin-
+github.setup        coin3d coin 4.0.0 Coin-
 name                Coin
-revision            7
 license             BSD
 description         cross platform C++ OpenGL scene graph library
 long_description    Coin is a high-level 3D graphics library with a   \
@@ -18,13 +18,18 @@ categories          graphics devel
 platforms           darwin
 maintainers         nomaintainer
 
-homepage            https://bitbucket.org/Coin3D/coin/wiki/Home
+homepage            https://github.com/coin3d/coin/wiki
 
-bitbucket.tarball_from downloads
-distname            ${name}-${version}
+github.tarball_from releases
+distname            coin-${version}-src
+worksrcdir          coin
 
-checksums           rmd160  e57fd6a4876a06874429f9ad6b96f166f5609362 \
-                    sha256  583478c581317862aa03a19f14c527c3888478a06284b9a46a0155fa5886d417
+checksums           rmd160  29466d5cb52cf3d2cbff500d01891c9513c794c3 \
+                    sha256  e4f4bd57804b8ed0e017424ad2e45c112912a928b83f86c89963df9015251476 \
+                    size    6824162
+
+boost.version       1.76
+boost.depends_type  build
 
 depends_lib-append  port:simage \
                     port:fontconfig \
@@ -32,28 +37,29 @@ depends_lib-append  port:simage \
                     port:zlib \
                     port:bzip2
 
-patchfiles          configure.patch \
-                    for.patch \
-                    clang-name-lookup.diff \
-                    fix-weird-error.diff \
-                    patch-include-Inventor-C-base-math-undefs.h.diff \
-                    patch-Info.plist.in.diff
+# n.b. framework-pkgconfig must come after cmake-coin-config-file!
+patchfiles          clang-name-lookup.diff \
+                    cmake-coin-config-file.patch \
+                    framework-pkgconfig.patch
 
+cmake.out_of_source yes
 configure.args-append \
-                    --disable-debug \
-                    --disable-symbols \
-                    --disable-dependency-tracking \
-                    --without-framework
+                    -DCOIN_BUILD_MAC_FRAMEWORK=OFF
+# Must not use CMAKE_FIND_FRAMEWORK=LAST, or GLX will be preferred to CGL!
+configure.pre_args-delete \
+                    -DCMAKE_FIND_FRAMEWORK=LAST
 
-post-build {
-    reinplace -E {s|-arch [a-z0-9_]+||g} \
-        ${worksrcpath}/Coin.pc \
-        ${worksrcpath}/coin-default.cfg
+post-destroot {
+    ln -s coin-${cmake.build_type}.cfg ${destroot}${prefix}/share/Coin/conf/coin-default.cfg
 }
 
 variant manpages description {Include API documentation in manpages.} {
     depends_build-append    path:bin/doxygen:doxygen
-    configure.args-append   --enable-man --mandir=${prefix}/share/man
+    configure.args-append   -DCOIN_BUILD_DOCUMENTATION=ON \
+                            -DCOIN_BUILD_DOCUMENTATION_MAN=ON
+    if {[variant_isset framework]} {
+        patchfiles-append   framework-doc.patch
+    }
     post-destroot {
         file rename ${destroot}${prefix}/share/man/man3/threads.3 \
             ${destroot}${prefix}/share/man/man3/threads-coin.3
@@ -63,17 +69,15 @@ variant manpages description {Include API documentation in manpages.} {
 }
 
 variant framework description {Install Coin as a framework bundle.} {
-    patchfiles-append       framework-prefix.patch
-    configure.args-replace  --without-framework \
-                            --with-framework-prefix=${frameworks_dir}
+    configure.args-replace  -DCOIN_BUILD_MAC_FRAMEWORK=OFF -DCOIN_BUILD_MAC_FRAMEWORK=ON
+    configure.args-append   -DCOIN_INSTALL_FRAMEWORKDIR:PATH=Library/Frameworks
 }
 
 subport Coin-framework {
     PortGroup           obsolete 1.0
     replaced_by         Coin
-    revision            7
 }
 
 livecheck.type      regex
-livecheck.url       https://bitbucket.org/Coin3D/coin/downloads/?tab=downloads
+livecheck.url       https://github.com/coin3d/coin/releases
 livecheck.regex     ${name}-(\[0-9.\]+)${extract.suffix}

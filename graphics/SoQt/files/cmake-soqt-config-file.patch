@@ -1,0 +1,89 @@
+--- SoQt.pc.cmake.in~	2019-12-23 17:35:10.000000000 -0700
++++ SoQt.pc.cmake.in	2023-06-03 19:56:11.000000000 -0600
+@@ -1,22 +1,26 @@
+ prefix=@CMAKE_INSTALL_PREFIX@
+ exec_prefix=${prefix}
+-bindir=${exec_prefix}/bin
+-libdir=${exec_prefix}/lib
+-includedir=${prefix}/include
+-datarootdir=${prefix}/share
+-datadir=${datarootdir}
+-docdir=${datarootdir}/doc/@PROJECT_NAME_LOWER@
+-infodir=${datarootdir}/info
+-mandir=${datarootdir}/man
++bindir=@CMAKE_INSTALL_FULL_BINDIR@
++libdir=@CMAKE_INSTALL_FULL_LIBDIR@
++includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
++datarootdir=@CMAKE_INSTALL_FULL_DATAROOTDIR@
++datadir=@CMAKE_INSTALL_FULL_DATADIR@
++docdir=@CMAKE_INSTALL_FULL_DOCDIR@
++infodir=@CMAKE_INSTALL_FULL_INFODIR@
++mandir=@CMAKE_INSTALL_FULL_MANDIR@
+ htmldir=${docdir}/html
+ 
+ Name: @PROJECT_NAME@
+-Description: A Qt Gui-toolkit binding for Coin
++Description: @PROJECT_DESCRIPTION@
+ Version: @PROJECT_VERSION@
+ Requires: Coin, @PACKAGE_ADDITIONAL_REQUIREMENTS@
+ Conflicts:
+ Libs: -L${libdir} @SOQT_EXTRA_LDFLAGS@ @SOQT_EXTRA_LIBS@
+ Cflags: -I${includedir} @SOQT_EXTRA_CFLAGS@ @SOQT_EXTRA_CPPFLAGS@
+ 
++soqt_host=@SOQT_HOST_TRIPLE@
++compiler=@CMAKE_CXX_COMPILER@
++compiler_is_gcc=@SOQT_COMPILER_GCC@
+ frameworkdir=@frameworkdir@
++msvcrt=@CMAKE_MSVC_RUNTIME_LIBRARY@
+ qt_version=@QT_VERSION_MAJOR@.@QT_VERSION_MINOR@.@QT_VERSION_PATCH@
+--- src/CMakeLists.txt.orig	2020-04-19 14:57:44.000000000 -0600
++++ src/CMakeLists.txt	2023-05-31 02:50:48.000000000 -0600
+@@ -443,8 +443,22 @@
+   set(SO${GUI}_CONFIG_PACKAGE_LOCATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION})
+   string(TOLOWER ${PROJECT_NAME} SO${GUI}_CONFIG_PACKAGE_BASENAME)
+   if(UNIX OR MINGW)
++    execute_process(COMMAND sh ${PROJECT_SOURCE_DIR}/cfg/config.guess
++      RESULT_VARIABLE CONFIG_GUESS_RESULT
++      OUTPUT_VARIABLE SO${GUI}_HOST_TRIPLE
++      OUTPUT_STRIP_TRAILING_WHITESPACE)
++    if(CMAKE_CXX_COMPILER_ID MATCHES "GCC|Clang|AppleClang")
++      set(SO${GUI}_COMPILER_GCC yes)
++    else()
++      set(SO${GUI}_COMPILER_GCC no)
++    endif()
+     configure_file("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.pc.cmake.in" ${PROJECT_NAME}.pc @ONLY)
+     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc" DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
++    install(FILES ${CMAKE_SOURCE_DIR}/cfg/so${gui}.m4 DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/aclocal)
++    configure_file(${CMAKE_SOURCE_DIR}/src/Inventor/${Gui}/common/sogui.cfg.cmake.in ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-${CMAKE_BUILD_TYPE}.cfg)
++    install(FILES ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-${CMAKE_BUILD_TYPE}.cfg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/Coin/conf)
++    configure_file(${CMAKE_SOURCE_DIR}/src/Inventor/${Gui}/common/sogui-config.in ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-config @ONLY)
++    install(FILES ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-config DESTINATION ${CMAKE_INSTALL_BINDIR})
+   endif()
+ endif()
+ 
+--- /dev/null	2023-05-31 14:03:26.000000000 -0600
++++ src/Inventor/Qt/common/sogui.cfg.cmake.in	2023-05-31 02:46:29.000000000 -0600
+@@ -0,0 +1,23 @@
++# prefix is determined in so@gui@-config, making the package "movable"
++# prefix="@CMAKE_INSTALL_PREFIX@"
++host="${SO${GUI}_HOST_TRIPLE}"
++exec_prefix="@CMAKE_INSTALL_PREFIX@"
++version="@PROJECT_VERSION@"
++cppflags="${SO${GUI}_EXTRA_CPPFLAGS}"
++cflags="${SO${GUI}_EXTRA_CFLAGS}"
++cxxflags="${SO${GUI}_EXTRA_CXXFLAGS}"
++ldflags="${SO${GUI}_EXTRA_LDFLAGS}"
++libs="${SO${GUI}_EXTRA_LIBS}"
++msvcrt="@CMAKE_MSVC_RUNTIME_LIBRARY@"
++datadir="@CMAKE_INSTALL_FULL_DATAROOTDIR@"
++includedir="@CMAKE_INSTALL_FULL_INCLUDEDIR@"
++frameworkdir="@frameworkdir@"
++compiler="@CMAKE_CXX_COMPILER@"
++AC_SUBST_GUI="@GUI@"
++AC_SUBST_Gui="@Gui@"
++AC_SUBST_gui="@gui@"
++AC_SUBST_WIDGET="@WIDGET@"
++AC_SUBST_EVENT="@EVENT@"
++AC_SUBST_COMPONENTHEADER="@COMPONENTHEADER@"
++compiler_is_gcc=${SO${GUI}_COMPILER_GCC}
++

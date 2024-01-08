@@ -1,0 +1,65 @@
+--- Coin.pc.cmake.in~	2019-12-23 12:47:43.000000000 -0700
++++ Coin.pc.cmake.in	2023-05-28 19:03:31.000000000 -0600
+@@ -18,6 +18,12 @@
+ Libs: -L${libdir} -lCoin @COIN_EXTRA_LDFLAGS@ @COIN_EXTRA_LIBS@
+ Cflags: -I${includedir} @COIN_EXTRA_CFLAGS@ @COIN_EXTRA_CPPFLAGS@
+ 
++coin_host=@COIN_HOST_TRIPLE@
++compiler=@CMAKE_CXX_COMPILER@
++compiler_is_gcc=@COIN_COMPILER_GCC@
++msvcrt=@CMAKE_MSVC_RUNTIME_LIBRARY@
++objext=@CMAKE_CXX_OUTPUT_EXTENSION@
++
+ have_3ds_import=@FEAT_HAVE_3DS@
+ have_vrml97=@FEAT_HAVE_VRML97@
+ have_sound=@FEAT_HAVE_SOUND@
+--- /dev/null	2023-05-29 01:47:48.000000000 -0600
++++ coin.cfg.cmake.in	2023-05-28 19:03:37.000000000 -0600
+@@ -0,0 +1,24 @@
++# prefix is determined in coin-config, making the package "movable"
++# prefix="@CMAKE_INSTALL_PREFIX@"
++host="@COIN_HOST_TRIPLE@"
++exec_prefix="@CMAKE_INSTALL_PREFIX@"
++version="@COIN_VERSION@"
++cflags="@COIN_EXTRA_CFLAGS@"
++cppflags="@COIN_EXTRA_CPPFLAGS@"
++cxxflags="@COIN_EXTRA_CXXFLAGS@"
++ldflags="@COIN_EXTRA_LDFLAGS@"
++libs="@COIN_EXTRA_LIBS@"
++msvcrt="@CMAKE_MSVC_RUNTIME_LIBRARY@"
++datadir="@CMAKE_INSTALL_FULL_DATAROOTDIR@"
++includedir="@CMAKE_INSTALL_FULL_INCLUDEDIR@"
++frameworkdir="@COIN_PKGCFG_FRAMEWORK_DIR@"
++htmldir="@CMAKE_INSTALL_FULL_DOCDIR@/html"
++compiler="@CMAKE_CXX_COMPILER@"
++objext="@CMAKE_CXX_OUTPUT_EXTENSION@"
++have_3ds_import=@FEAT_HAVE_3DS@
++have_vrml97=@FEAT_HAVE_VRML97@
++have_sound=@FEAT_HAVE_SOUND@
++have_superglu=@FEAT_HAVE_SUPERGLU@
++have_threads=@FEAT_HAVE_THREADS@
++have_threadsafe=@FEAT_HAVE_SAFETHREAD@
++compiler_is_gcc=@COIN_COMPILER_GCC@
+--- src/CMakeLists.txt~	2019-12-23 12:47:44.000000000 -0700
++++ src/CMakeLists.txt	2023-05-28 19:03:31.000000000 -0600
+@@ -388,8 +388,20 @@
+   set(COIN_CONFIG_PACKAGE_LOCATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION})
+   string(TOLOWER ${PROJECT_NAME} COIN_CONFIG_PACKAGE_BASENAME)
+   if(UNIX OR MINGW)
++    execute_process(COMMAND sh ${CMAKE_SOURCE_DIR}/cfg/config.guess
++      RESULT_VARIABLE CONFIG_GUESS_RESULT
++      OUTPUT_VARIABLE COIN_HOST_TRIPLE
++      OUTPUT_STRIP_TRAILING_WHITESPACE)
++    if(CMAKE_CXX_COMPILER_ID MATCHES "GCC|Clang|AppleClang")
++      set(COIN_COMPILER_GCC yes)
++    else()
++      set(COIN_COMPILER_GCC no)
++    endif()
+     configure_file(${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.pc.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
+     install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
++    install(FILES ${CMAKE_SOURCE_DIR}/cfg/${PROJECT_NAME_LOWER}.m4 DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/aclocal)
++    configure_file(${CMAKE_SOURCE_DIR}/${PROJECT_NAME_LOWER}.cfg.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME_LOWER}-${CMAKE_BUILD_TYPE}.cfg @ONLY)
++    install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME_LOWER}-${CMAKE_BUILD_TYPE}.cfg DESTINATION ${CMAKE_INSTALL_DATADIR}/conf)
+     install(FILES ${CMAKE_SOURCE_DIR}/bin/coin-config DESTINATION ${CMAKE_INSTALL_BINDIR})
+   endif()
+ endif()

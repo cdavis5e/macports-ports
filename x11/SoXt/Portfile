@@ -1,7 +1,9 @@
 PortSystem		1.0
+PortGroup		boost 1.0
+PortGroup		cmake 1.1
+PortGroup		github 1.0
+github.setup		coin3d soxt 1.4.0 SoXt-
 name			SoXt
-version			1.2.2
-revision                2
 description		Xt/Motif glue library for Coin
 long_description	SoXt provides the programmer with a high-level \
 	application programmer's interface (API) in C++. The library   \
@@ -10,11 +12,19 @@ long_description	SoXt provides the programmer with a high-level \
 	the end-user to control the 3D-scene camera interaction.
 
 categories		x11 graphics devel
-homepage		http://www.coin3d.org/lib/soxt/
 platforms		darwin
 maintainers		nomaintainer
-master_sites		http://ftp.coin3d.org/coin/src/all/
-checksums		md5 25f7d18998e6cc1403e0f3ae0c235500
+github.tarball_from	releases
+distname		soxt-${version}-src
+worksrcdir		soxt
+checksums		md5 566b79a9b8d88014726ad8054cd03698 \
+			rmd160 36a0030c7672fbc20e94fd0aca4fb35be4170305 \
+			sha256 b587d1a0035808d346501cf5eed553d611ce0f9a2b84d25e4f60f962ac3f847a \
+			size 1369725
+
+# Keep in sync with Coin
+boost.version		1.76
+boost.depends_type	build
 
 depends_build \
 	path:bin/doxygen:doxygen
@@ -29,10 +39,16 @@ depends_lib \
 	lib:libXm:openmotif \
 	port:Coin
 
-configure.args		--enable-man --mandir=${prefix}/share/man \
-			--with-coin=${prefix} \
-			--x-include=${prefix}/include --x-lib=${prefix}/lib
+patchfiles-append	cmake-soxt-config-file.patch \
+			framework-pkgconfig.patch
 
-platform darwin {
-	configure.args-append	--enable-darwin-x11
+configure.args-append	-DSOXT_BUILD_DOCUMENTATION=ON \
+			-DSOXT_BUILD_DOC_MAN=ON -DCMAKE_INSTALL_MANDIR=share/man \
+			-DCoin_ROOT=${prefix} \
+			-DMotif_ROOT=${prefix} \
+			-DX11_ROOT=${prefix}
+
+post-destroot {
+    ln -s soxt-${cmake.build_type}.cfg ${destroot}${prefix}/share/Coin/conf/soxt-default.cfg
 }
+

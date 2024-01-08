@@ -2,13 +2,12 @@
 
 PortSystem              1.0
 PortGroup               active_variants 1.1
-PortGroup               bitbucket 1.0
-PortGroup               qt4 1.0
+PortGroup               cmake 1.1
+PortGroup               github 1.0
 
-bitbucket.setup         Coin3D coin 1.5.0 SoQt-
-bitbucket.tarball_from  downloads
+github.setup            coin3d soqt 1.6.0 SoQt-
+github.tarball_from     releases
 name                    SoQt
-revision                2
 categories              graphics devel
 platforms               darwin
 maintainers             {gmail.com:mark.brethen @mbrethen} openmaintainer
@@ -18,25 +17,51 @@ description             SoQt is a Qt GUI component toolkit library for Coin.
 
 long_description        ${description}
 
-distname                ${name}-${version}
+distname                soqt-${version}-src
+worksrcdir              soqt
 
-checksums               rmd160  04e9179954f7e3bfb5d1c595ad6c62215bc24ad2 \
-                        sha256  f6a34b4c19e536c00f21aead298cdd274a7a0b03a31826fbe38fc96f3d82ab91
+checksums               md5     724996aedad2a33760dc36f08ceeda22 \
+                        rmd160  7d70c8de03f94bdf26f861f92ec3e8017bec25e3 \
+                        sha256  9f535af59f07c907022815679681bd345c9dec2f408c74833f6b1b24bca40e1f \
+                        size    1675532
 
 depends_lib-append      port:Coin
 
 depends_build-append    port:pkgconfig \
                         path:bin/doxygen:doxygen
 
-patchfiles              patch-configure.diff \
-                        patch-src-Inventor-Qt-Makefile.in.diff
-
-configure.args-append   --disable-debug \
-                        --disable-symbols \
-                        --disable-dependency-tracking
-
-post-build {
-    reinplace -E {s|-arch [a-z0-9_]+||g} \
-        ${worksrcpath}/SoQt.pc \
-        ${worksrcpath}/soqt-default.cfg
+variant qt5 description {use Qt5 instead of Qt4} {
+    PortGroup           qt5 1.0
 }
+
+if {![variant_isset qt5]} {
+    PortGroup           qt4 1.0
+    configure.args-append \
+                        -DSOQT_USE_QT5=OFF
+}
+
+patchfiles              cmake-soqt-config-file.patch \
+                        framework-pkgconfig.patch
+
+configure.args-append   -DSOQT_BUILD_MAC_FRAMEWORK=ON \
+                        -DSOQT_INSTALL_FRAMEWORKDIR:PATH=Library/Frameworks
+
+pre-configure {
+    if {[active_variants Coin framework]} {
+        configure.args-append \
+                        -DCoin_ROOT=${prefix}/Library/Frameworks
+    } else {
+        configure.args-append \
+                        -DCoin_ROOT=${prefix}
+    }
+}
+
+post-destroot {
+    ln -s soqt-${cmake.build_type}.cfg ${destroot}${prefix}/share/Coin/conf/soqt-default.cfg
+}
+
+notes {
+    SoQt is in maintenance mode. Before using, consider whether
+    Quarter is a better match for your application.
+}
+

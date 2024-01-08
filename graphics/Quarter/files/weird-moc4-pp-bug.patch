@@ -1,0 +1,20 @@
+--- src/plugins/QuarterWidgetPlugin.h~	2019-12-25 11:44:39.000000000 -0700
++++ src/plugins/QuarterWidgetPlugin.h	2023-06-04 15:51:47.000000000 -0600
+@@ -35,7 +35,7 @@
+ 
+ #include <QtCore/qglobal.h>
+ 
+-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
++#if QT_VERSION >= 0x050000
+ #  include <QtUiPlugin/QDesignerCustomWidgetInterface>
+ #else
+ #  include <QDesignerCustomWidgetInterface>
+@@ -46,7 +46,7 @@
+ class QuarterWidgetPlugin : public QObject,
+                             public QDesignerCustomWidgetInterface {
+   Q_OBJECT
+-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
++#if QT_VERSION >= 0x050000
+   Q_PLUGIN_METADATA(IID "org.coin3d.Qt.QDesignerCustomWidgetInterface")
+ #endif
+   Q_INTERFACES(QDesignerCustomWidgetInterface)

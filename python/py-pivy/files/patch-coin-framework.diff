@@ -1,0 +1,133 @@
+--- distutils_cmake/CMakeLists.txt~	2022-08-25 05:29:33.000000000 -0600
++++ distutils_cmake/CMakeLists.txt	2023-06-10 15:54:23.000000000 -0600
+@@ -1,14 +1,16 @@
+ cmake_minimum_required(VERSION 3.5)
+-project(pivy_cmake_setup NONE)
++project(pivy_cmake_setup CXX)
+ 
+ 
+-find_package(Coin CONFIG REQUIRED)
++find_package(Coin CONFIG NAMES Inventor Coin REQUIRED)
+ 
+ if (Coin_FOUND)
+ 	MESSAGE(STATUS "COIN_FOUND: TRUE")
+ 	MESSAGE(STATUS "COIN_INCLUDE_DIR: ${Coin_INCLUDE_DIR}")
+ 	MESSAGE(STATUS "COIN_LIB_DIR: ${Coin_LIB_DIR}")
++	MESSAGE(STATUS "COIN_FRAMEWORK_DIR: ${Coin_FRAMEWORK_DIR}")
+ 	MESSAGE(STATUS "COIN_VERSION: ${Coin_VERSION}")
++	MESSAGE(STATUS "COIN_BUILD_MAC_FRAMEWORK: ${COIN_BUILD_MAC_FRAMEWORK}")
+ endif()
+ 
+ 
+@@ -16,7 +18,9 @@
+ 
+ if (SoQt_FOUND)
+ 	MESSAGE(STATUS "SOQT_FOUND: True")
+-	MESSAGE(STATUS "SOQT_INCLUDE_DIR: ${SoQt_INCLUDE_DIRS}")
++	MESSAGE(STATUS "SOQT_INCLUDE_DIR: ${SoQt_INCLUDE_DIR}")
+ 	MESSAGE(STATUS "SOQT_LIB_DIR: ${SoQt_LIBRARY_DIRS}")
++	MESSAGE(STATUS "SOQT_FRAMEWORK_DIR: ${SoQt_FRAMEWORK_DIR}")
+ 	MESSAGE(STATUS "SOQT_VERSION: ${SoQt_VERSION}")
++	MESSAGE(STATUS "SOQT_BUILD_MAC_FRAMEWORK: ${SoQt_BUILD_MAC_FRAMEWORK}")
+ endif()
+--- setup.py~	2022-08-25 05:29:33.000000000 -0600
++++ setup.py	2023-06-25 19:28:08.000000000 -0600
+@@ -201,8 +201,8 @@
+         print(yellow('calling: ' + cmake_command[0] + ' ' + cmake_command[1]))
+         cmake = subprocess.Popen(cmake_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+         cmake_out, cmake_err = cmake.communicate()
+-        coin_vars = ['COIN_FOUND', 'COIN_VERSION', 'COIN_INCLUDE_DIR', 'COIN_LIB_DIR']
+-        soqt_vars = ['SOQT_FOUND', 'SOQT_VERSION', 'SOQT_INCLUDE_DIR', 'SOQT_LIB_DIR']
++        coin_vars = ['COIN_FOUND', 'COIN_VERSION', 'COIN_INCLUDE_DIR', 'COIN_LIB_DIR', 'COIN_BUILD_MAC_FRAMEWORK', 'COIN_FRAMEWORK_DIR']
++        soqt_vars = ['SOQT_FOUND', 'SOQT_VERSION', 'SOQT_INCLUDE_DIR', 'SOQT_LIB_DIR', 'SOQT_BUILD_MAC_FRAMEWORK', 'SOQT_FRAMEWORK_DIR']
+         config_dict = {}
+         print(yellow(cmake_out.decode("utf-8")))
+         print(red(cmake_err.decode("utf-8")))
+@@ -216,17 +216,22 @@
+                                 .replace('\n', ''))
+                         if "INCLUDE" in var:
+                             line = line.replace(';', '\" -I\"')
++                        if "BUILD_MAC_FRAMEWORK" in var:
++                            line = line in ['YES', 'ON', 'TRUE', '1']
++                        if "FRAMEWORK_DIR" in var:
++                            line = os.path.dirname(line)
+                         config_dict[var] = line
++                        break
+ 
+         print(yellow('\nchecking for COIN via cmake'))
+         for key in coin_vars:
+             if key in config_dict:
+-                print(blue(key + ': ' + config_dict[key]))
++                print(blue(key + ': ' + str(config_dict[key])))
+ 
+         print(yellow('\nchecking for SOQT via cmake'))
+         for key in soqt_vars:
+             if key in config_dict:
+-                print(blue(key + ': ' + config_dict[key]))
++                print(blue(key + ': ' + str(config_dict[key])))
+ 
+         if config_dict.get('SOQT_FOUND', 'false') == 'false':
+             pivy_build.MODULES.pop('soqt')
+@@ -544,19 +549,27 @@
+             else:
+                 INCLUDE_DIR = self.cmake_config_dict[config_cmd + '_INCLUDE_DIR']
+                 LIB_DIR = self.cmake_config_dict[config_cmd + '_LIB_DIR']
++                FRAMEWORK_DIR = self.cmake_config_dict[config_cmd + '_FRAMEWORK_DIR']
++                MAC_FRAMEWORK = self.cmake_config_dict[config_cmd + '_BUILD_MAC_FRAMEWORK']
++                EXTRA_SWIG_DIRS = ''
+                 if sys.platform == 'win32':
+                     _INCLUDE_DIR = INCLUDE_DIR
+                 else:
+                     # replace all quotes from INCLUDE_DIR
+                     _INCLUDE_DIR = INCLUDE_DIR.replace('"', "")
+-                CPP_FLAGS += ' -I' + _INCLUDE_DIR
+-                CPP_FLAGS += ' -I' + os.path.join(_INCLUDE_DIR, 'Inventor', 'annex')
++                if not MAC_FRAMEWORK:
++                    CPP_FLAGS += ' -I' + _INCLUDE_DIR
++                    CPP_FLAGS += ' -I' + os.path.join(_INCLUDE_DIR, 'Inventor', 'annex')
+                 if sys.platform == 'win32': 
+                     CPP_FLAGS += " /DCOIN_DLL /wd4244 /wd4049"
+                     LDFLAGS_LIBS = quote(max(glob.glob(os.path.join(LIB_DIR, "Coin?.lib")))) + " "
+                 else:
+                     CPP_FLAGS += " -Wno-unused -Wno-maybe-uninitialized"
+-                    LDFLAGS_LIBS = ' -L' + self.cmake_config_dict[config_cmd + '_LIB_DIR']
++                    if MAC_FRAMEWORK:
++                        CPP_FLAGS += ' -F' + FRAMEWORK_DIR
++                        LDFLAGS_LIBS = ' -F' + FRAMEWORK_DIR
++                    else:
++                        LDFLAGS_LIBS = ' -L' + LIB_DIR
+ 
+                 if module == "soqt":
+                     CPP_FLAGS += ' -I' + win_quote(self.QTINFO.getHeadersPath())
+@@ -567,12 +580,17 @@
+                     if sys.platform == 'win32':
+                         LDFLAGS_LIBS += " " + quote(max(glob.glob(os.path.join(LIB_DIR, "SoQt?.lib")))) + " "
+                         CPP_FLAGS += " /DSOQT_DLL"
++                    elif MAC_FRAMEWORK:
++                        EXTRA_SWIG_DIRS += ' -I' + self.cmake_config_dict['COIN_INCLUDE_DIR']
++                        LDFLAGS_LIBS += ' -framework SoQt'
+                     else:
+                         LDFLAGS_LIBS += ' -lSoQt'
+                 
+                 if module == "coin":
+                     if sys.platform == 'win32':
+                         pass
++                    elif MAC_FRAMEWORK:
++                        LDFLAGS_LIBS += ' -framework Inventor'
+                     else:
+                         LDFLAGS_LIBS += ' -lCoin'
+ 
+@@ -581,11 +599,11 @@
+                           (mod_out_prefix, module)))
+                 print(blue(self.SWIG + " " + self.SWIG_SUPPRESS_WARNINGS + " " + self.SWIG_PARAMS %
+                            (INCLUDE_DIR,
+-                            self.CXX_INCS,
++                            self.CXX_INCS + EXTRA_SWIG_DIRS,
+                             mod_out_prefix, module)))
+                 if os.system(self.SWIG + " " + self.SWIG_SUPPRESS_WARNINGS + " " + self.SWIG_PARAMS %
+                              (INCLUDE_DIR,
+-                              self.CXX_INCS,
++                              self.CXX_INCS + EXTRA_SWIG_DIRS,
+                               mod_out_prefix, mod_hack_name)):
+                     print(red("SWIG did not generate wrappers successfully! ** Aborting **"))
+                     sys.exit(1)

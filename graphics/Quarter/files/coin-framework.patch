@@ -1,0 +1,22 @@
+--- CMakeLists.txt~	2019-12-25 11:44:38.000000000 -0700
++++ CMakeLists.txt	2023-06-04 14:56:29.000000000 -0600
+@@ -86,7 +86,7 @@
+ # Fail early if one of the required packages cannot be found
+ 
+ find_package(OpenGL REQUIRED)
+-find_package(Coin REQUIRED)
++find_package(Coin NAMES Coin Inventor REQUIRED)
+ find_package(Spacenav)
+ 
+ if(QUARTER_USE_QT5)
+--- quarter-config.cmake.in~	2019-12-25 11:44:39.000000000 -0700
++++ quarter-config.cmake.in	2023-06-10 19:32:09.000000000 -0600
+@@ -26,7 +26,7 @@
+ 
+ include(CMakeFindDependencyMacro)
+ 
+-find_dependency(Coin REQUIRED)
++find_dependency(Coin NAMES Inventor Coin REQUIRED)
+ 
+ set(_have_qt5 @Qt5_FOUND@)
+ set(_have_qt4 @Qt4_FOUND@)

@@ -1,35 +1,72 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
 PortSystem          1.0
+PortGroup           active_variants 1.1
 PortGroup           github 1.0
 PortGroup           python 1.0
-PortGroup           qt4 1.0
+PortGroup           conflicts_build 1.0
 
 set real_name       pivy
-github.setup        FreeCAD ${real_name} 0.6.2
-github.tarball_from releases
+github.setup        coin3d ${real_name} 0.6.8
+github.tarball_from archive
 name                py-${real_name}
-license             Permissive
+license             ISC
 maintainers         nomaintainer
 description         Pivy is a Coin binding for Python.
 long_description    {*}${description}
 
-python.versions     39 310
+python.versions     39 310 311 312
 
-checksums           rmd160  01b0a53134a678665067f146927cfae1b16f526c \
-                    sha256  3685a40c99bce54ce39b08ebe2d577536c3f8321a79ff961ec1ca035852ebfaa \
-                    size    6607183
-worksrcdir          FreeCAD-${real_name}-02c4723
+checksums           rmd160  617f0139cce187bfb9ec80b9f8a197661f438bef \
+                    sha256  c443dd7dd724b0bfa06427478b9d24d31e0c3b5138ac5741a2917a443b28f346 \
+                    size    6618458
 
 if {${name} ne ${subport}} {
+
+    depends_build-append \
+                    path:bin/cmake:cmake
     depends_lib-append \
                     port:Coin \
                     port:swig-python
 
-    patchfiles      patch-setup.py.diff \
-                    patch-char-to-const-char.diff
+    if {[variant_isset SoQt] || [variant_isset Quarter]} {
+        PortGroup    qt5 1.0
+        depends_lib-append \
+                     port:py${python.version}-pyside2
+        build.env-append \
+                    "PATH=${prefix}/libexec/qt5/bin:$env(PATH)" \
+                    "PIVY_CPP_FLAGS=-std=c++11"
+        compiler.cxx_standard 2011
+    }
 
-    post-patch {
-        reinplace "s|%PREFIX%|${prefix}|g" ${worksrcpath}/setup.py
+    if {![variant_isset SoQt]} {
+        conflicts_build \
+                    SoQt
+    }
+
+    patchfiles-append \
+                    patch-coin-framework.diff \
+                    patch-python312.diff
+
+    # setup.py nonetheless uses CMake to find Coin.
+    # There is no way to pass CMake arguments to setup.py, so use environment variables.
+    build.env-append \
+                    "CMAKE_SYSTEM_PREFIX_PATH=${prefix}:/usr" \
+                    "CMAKE_FRAMEWORK_PATH=${prefix}/Library/Frameworks:/System/Library/Frameworks" \
+                    "CMAKE_MODULE_PATH=${prefix}/share/cmake/Modules" \
+                    "CMAKE_PREFIX_PATH=${prefix}/share/cmake/Modules"
+
+    variant SoQt description {Support the SoQt component toolkit} {
+        depends_lib-append \
+                    port:SoQt
+        require_active_variants \
+                    SoQt qt5
+    }
+
+    variant Quarter description {Support the Quarter component toolkit} {
+        depends_lib-append \
+                    port:Quarter
+        require_active_variants \
+                    Quarter qt5
     }
 }

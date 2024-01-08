@@ -1,0 +1,27 @@
+--- Inventor/SoInput.i~	2022-08-25 05:29:33.000000000 -0600
++++ Inventor/SoInput.i	2024-07-15 21:46:36.000000000 -0600
+@@ -1,3 +1,15 @@
++#ifndef PY_2
++%{
++Py_ssize_t _pivy_unicode_length(PyObject *obj) {
++# if PY_VERSION_HEX >= 0x03030000
++    return PyUnicode_GET_LENGTH(obj);
++# else
++    return PyUnicode_GET_SIZE(obj);
++# endif
++}
++%}
++#endif
++
+ %typemap(in) (const void * bufpointer, size_t bufsize) {
+ 
+ #ifdef PY_2
+@@ -10,7 +22,7 @@
+   if (PyUnicode_Check($input))
+   {
+     $1 = (void *) PyUnicode_AsUTF8($input);
+-    $2 = PyUnicode_GET_SIZE($input);
++    $2 = _pivy_unicode_length($input);
+   }
+   else if (PyBytes_Check($input))
+   { 

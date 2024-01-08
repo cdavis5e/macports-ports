@@ -1,0 +1,158 @@
+--- CMakeLists.txt.orig	2020-04-19 14:57:43.000000000 -0600
++++ CMakeLists.txt	2023-06-02 01:38:39.000000000 -0600
+@@ -196,6 +196,8 @@
+   set(CMAKE_MINSIZEREL_POSTFIX ${SO${GUI}_DEFAULT_POSTFIX})
+   set(CMAKE_RELWITHDEBINFO_POSTFIX ${SO${GUI}_DEFAULT_POSTFIX})
+   set(CMAKE_DEBUG_POSTFIX ${SO${GUI}_DEFAULT_POSTFIX}d)
++  set(includedir "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
++  set(SO${GUI}_EXTRA_LDFLAGS "-l${PROJECT_NAME}")
+ elseif(APPLE)
+   if(POLICY CMP0042)
+     # get rid of MACOSX_RPATH warning on Mac OS X from CMake 3.12.2
+@@ -218,7 +220,8 @@
+ 
+   set(SO${GUI}_MAC_FRAMEWORK ${SO${GUI}_BUILD_MAC_FRAMEWORK})
+   set(SO${GUI}_MAC_FRAMEWORK_NAME "SoQt")
+-  set(SO${GUI}_MAC_FRAMEWORK_PREFIX "${CMAKE_INSTALL_PREFIX}")
++  set(SO${GUI}_INSTALL_FRAMEWORKDIR "." CACHE PATH "Directory where ${SO${GUI}_MAC_FRAMEWORK_NAME}.framework will be installed.")
++  set(SO${GUI}_MAC_FRAMEWORK_PREFIX "${CMAKE_INSTALL_PREFIX}/${SO${GUI}_INSTALL_FRAMEWORKDIR}")
+   set(SO${GUI}_MAC_FRAMEWORK_VERSION "A") # SoQt2 will be "B", to allow parallel installations of SoQt1
+   set(PACKAGING_FRAMEWORK_NAME "${SO${GUI}_MAC_FRAMEWORK_NAME}")
+ 
+@@ -236,6 +239,8 @@
+   set(SO${GUI}_MACOS_10_3 1)
+ else()
+   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
++  set(includedir "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
++  set(SO${GUI}_EXTRA_LDFLAGS "-l${PROJECT_NAME}")
+ endif()
+ 
+ check_symbol_exists(__func__ "" FUNC)
+--- SoQt.pc.cmake.in~	2023-06-01 14:13:25.000000000 -0600
++++ SoQt.pc.cmake.in	2023-06-02 01:36:09.000000000 -0600
+@@ -2,7 +2,7 @@
+ exec_prefix=${prefix}
+ bindir=@CMAKE_INSTALL_FULL_BINDIR@
+ libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+-includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
++includedir=@includedir@
+ datarootdir=@CMAKE_INSTALL_FULL_DATAROOTDIR@
+ datadir=@CMAKE_INSTALL_FULL_DATADIR@
+ docdir=@CMAKE_INSTALL_FULL_DOCDIR@
+--- src/CMakeLists.txt~	2023-05-31 02:50:48.000000000 -0600
++++ src/CMakeLists.txt	2023-06-02 21:16:08.000000000 -0600
+@@ -389,7 +389,7 @@
+ # ############################################################################
+ 
+   install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
+-    FRAMEWORK DESTINATION . COMPONENT development
++    FRAMEWORK DESTINATION ${SO${GUI}_INSTALL_FRAMEWORKDIR} COMPONENT development
+   )
+ 
+ else()
+@@ -437,29 +437,30 @@
+ # ############################################################################
+ 
+ if(SO${GUI}_BUILD_MAC_FRAMEWORK)
+-  set(SO${GUI}_CONFIG_PACKAGE_LOCATION ${SO${GUI}_MAC_FRAMEWORK_NAME}.framework/Resources/CMake)
++  set(SO${GUI}_CONFIG_PACKAGE_LOCATION ${SO${GUI}_INSTALL_FRAMEWORKDIR}/${SO${GUI}_MAC_FRAMEWORK_NAME}.framework/Resources/CMake)
+   string(TOLOWER ${SO${GUI}_MAC_FRAMEWORK_NAME} SO${GUI}_CONFIG_PACKAGE_BASENAME)
+ else()
+   set(SO${GUI}_CONFIG_PACKAGE_LOCATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION})
+   string(TOLOWER ${PROJECT_NAME} SO${GUI}_CONFIG_PACKAGE_BASENAME)
+-  if(UNIX OR MINGW)
+-    execute_process(COMMAND sh ${PROJECT_SOURCE_DIR}/cfg/config.guess
+-      RESULT_VARIABLE CONFIG_GUESS_RESULT
+-      OUTPUT_VARIABLE SO${GUI}_HOST_TRIPLE
+-      OUTPUT_STRIP_TRAILING_WHITESPACE)
+-    if(CMAKE_CXX_COMPILER_ID MATCHES "GCC|Clang|AppleClang")
+-      set(SO${GUI}_COMPILER_GCC yes)
+-    else()
+-      set(SO${GUI}_COMPILER_GCC no)
+-    endif()
+-    configure_file("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.pc.cmake.in" ${PROJECT_NAME}.pc @ONLY)
+-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc" DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+-    install(FILES ${CMAKE_SOURCE_DIR}/cfg/so${gui}.m4 DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/aclocal)
+-    configure_file(${CMAKE_SOURCE_DIR}/src/Inventor/${Gui}/common/sogui.cfg.cmake.in ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-${CMAKE_BUILD_TYPE}.cfg)
+-    install(FILES ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-${CMAKE_BUILD_TYPE}.cfg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/Coin/conf)
+-    configure_file(${CMAKE_SOURCE_DIR}/src/Inventor/${Gui}/common/sogui-config.in ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-config @ONLY)
+-    install(FILES ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-config DESTINATION ${CMAKE_INSTALL_BINDIR})
++endif()
++
++if(UNIX OR MINGW)
++  execute_process(COMMAND sh ${PROJECT_SOURCE_DIR}/cfg/config.guess
++    RESULT_VARIABLE CONFIG_GUESS_RESULT
++    OUTPUT_VARIABLE SO${GUI}_HOST_TRIPLE
++    OUTPUT_STRIP_TRAILING_WHITESPACE)
++  if(CMAKE_CXX_COMPILER_ID MATCHES "GCC|Clang|AppleClang")
++    set(SO${GUI}_COMPILER_GCC yes)
++  else()
++    set(SO${GUI}_COMPILER_GCC no)
+   endif()
++  configure_file("${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.pc.cmake.in" ${PROJECT_NAME}.pc @ONLY)
++  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc" DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
++  install(FILES ${CMAKE_SOURCE_DIR}/cfg/so${gui}.m4 DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/aclocal)
++  configure_file(${CMAKE_SOURCE_DIR}/src/Inventor/${Gui}/common/sogui.cfg.cmake.in ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-${CMAKE_BUILD_TYPE}.cfg)
++  install(FILES ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-${CMAKE_BUILD_TYPE}.cfg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/Coin/conf)
++  configure_file(${CMAKE_SOURCE_DIR}/src/Inventor/${Gui}/common/sogui-config.in ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-config @ONLY)
++  install(FILES ${CMAKE_BINARY_DIR}/src/Inventor/${Gui}/common/so${gui}-config DESTINATION ${CMAKE_INSTALL_BINDIR})
+ endif()
+ 
+ include(CMakePackageConfigHelpers)
+@@ -434,7 +435,7 @@
+   "${CMAKE_SOURCE_DIR}/${PROJECT_NAME_LOWER}-config.cmake.in"
+   ${SO${GUI}_CONFIG_PACKAGE_BASENAME}-config.cmake
+   INSTALL_DESTINATION ${SO${GUI}_CONFIG_PACKAGE_LOCATION}
+-  PATH_VARS CMAKE_INSTALL_LIBDIR
++  PATH_VARS CMAKE_INSTALL_LIBDIR includedir frameworkdir
+ )
+ 
+ write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/${SO${GUI}_CONFIG_PACKAGE_BASENAME}-config-version.cmake"
+--- src/Inventor/Qt/common/sogui.cfg.cmake.in~	2023-06-01 14:19:56.000000000 -0600
++++ src/Inventor/Qt/common/sogui.cfg.cmake.in	2023-06-02 01:39:17.000000000 -0600
+@@ -10,7 +10,7 @@
+ libs="${SO${GUI}_EXTRA_LIBS}"
+ msvcrt="@CMAKE_MSVC_RUNTIME_LIBRARY@"
+ datadir="@CMAKE_INSTALL_FULL_DATAROOTDIR@"
+-includedir="@CMAKE_INSTALL_FULL_INCLUDEDIR@"
++includedir="@includedir@"
+ frameworkdir="@frameworkdir@"
+ compiler="@CMAKE_CXX_COMPILER@"
+ AC_SUBST_GUI="@GUI@"
+--- soqt-config.cmake.in~	2019-12-23 17:35:10.000000000 -0700
++++ soqt-config.cmake.in	2023-06-10 19:17:54.000000000 -0600
+@@ -26,7 +26,7 @@
+ 
+ include(CMakeFindDependencyMacro)
+ 
+-find_dependency(Coin REQUIRED)
++find_dependency(Coin NAMES Inventor Coin REQUIRED)
+ 
+ set(_have_qt5 @Qt5_FOUND@)
+ set(_have_qt4 @Qt4_FOUND@)
+@@ -41,6 +41,11 @@
+ 
+ include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME_LOWER@-export.cmake")
+ 
++get_property(@PROJECT_NAME@_BUILD_MAC_FRAMEWORK TARGET @PROJECT_NAME@::@PROJECT_NAME@ PROPERTY FRAMEWORK)
++if(@PROJECT_NAME@_BUILD_MAC_FRAMEWORK)
++  set(@PROJECT_NAME@_FRAMEWORK_DIR @PACKAGE_frameworkdir@)
++endif()
++
+ get_property(@PROJECT_NAME@_COMPILE_DEFINITIONS TARGET @PROJECT_NAME@::@PROJECT_NAME@ PROPERTY INTERFACE_COMPILE_DEFINITIONS)
+ foreach(_def ${@PROJECT_NAME@_COMPILE_DEFINITIONS})
+   list(APPEND @PROJECT_NAME@_DEFINITIONS -D${_def})
+@@ -49,7 +54,12 @@
+ set(@PROJECT_NAME@_VERSION @VERSION@)
+ 
+ get_property(@PROJECT_NAME@_INCLUDE_DIRS TARGET @PROJECT_NAME@::@PROJECT_NAME@ PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+-set(@PROJECT_NAME@_INCLUDE_DIR ${@PROJECT_NAME@_INCLUDE_DIRS})
++if(@PROJECT_NAME@_BUILD_MAC_FRAMEWORK)
++  set(@PROJECT_NAME@_INCLUDE_DIR "@PACKAGE_includedir@")
++  set(@PROJECT_NAME@_INCLUDE_DIRS ${@PROJECT_NAME@_INCLUDE_DIR} ${@PROJECT_NAME@_INCLUDE_DIRS})
++else()
++  set(@PROJECT_NAME@_INCLUDE_DIR ${@PROJECT_NAME@_INCLUDE_DIRS})
++endif()
+ 
+ set(@PROJECT_NAME@_LIBRARY @PROJECT_NAME@::@PROJECT_NAME@)
+ get_property(@PROJECT_NAME@_LIBRARIES TARGET @PROJECT_NAME@::@PROJECT_NAME@ PROPERTY INTERFACE_LINK_LIBRARIES)
