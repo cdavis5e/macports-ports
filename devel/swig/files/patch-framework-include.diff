@@ -1,0 +1,202 @@
+--- Source/Swig/include.c.orig	2024-01-07 19:23:24.000000000 -0700
++++ Source/Swig/include.c	2024-01-07 20:00:23.000000000 -0700
+@@ -16,6 +16,9 @@
+ #include "swig.h"
+ 
+ static List   *directories = 0;	        /* List of include directories */
++#ifdef __APPLE__
++static List   *frameworks = 0;	        /* List of framework directories */
++#endif
+ static String *lastpath = 0;	        /* Last file that was included */
+ static List   *pdirectories = 0;        /* List of pushed directories  */
+ static int     dopush = 1;		/* Whether to push directories */
+@@ -49,6 +52,27 @@
+   return directories;
+ }
+ 
++#ifdef __APPLE__
++/* -----------------------------------------------------------------------------
++ * Swig_add_framework_directory()
++ *
++ * Adds a directory to the SWIG framework search path.
++ * ----------------------------------------------------------------------------- */
++
++List *Swig_add_framework_directory(const_String_or_char_ptr dirname) {
++  String *adirname;
++  if (!frameworks)
++    frameworks = NewList();
++  assert(frameworks);
++  if (dirname) {
++    adirname = NewString(dirname);
++    Append(frameworks,adirname);
++    Delete(adirname);
++  }
++  return frameworks;
++}
++#endif
++
+ /* -----------------------------------------------------------------------------
+  * Swig_push_directory()
+  *
+@@ -145,8 +169,71 @@
+   return Swig_search_path_any(0);
+ }
+ 
++#ifdef __APPLE__
++/* -----------------------------------------------------------------------------
++ * Swig_framework_search_path_any() 
++ * 
++ * Returns a list of the current framework search paths.
++ * ----------------------------------------------------------------------------- */
++
++static List *Swig_framework_search_path_any(int syspath) {
++  String *filename;
++  List   *slist;
++  int     i, ilen;
++
++  slist = NewList();
++  assert(slist);
++  filename = NewStringEmpty();
++  assert(filename);
++  Printf(filename, ".%s", SWIG_FILE_DELIMITER);
++  Append(slist, filename);
++  Delete(filename);
++  
++  /* Add system directories next */
++  ilen = Len(frameworks);
++  for (i = 0; i < ilen; i++) {
++    filename = NewString(Getitem(frameworks,i));
++    Append(filename,SWIG_FILE_DELIMITER);
++    if (syspath) {
++      /* If doing a system include, put the system directories first */
++      Insert(slist,i,filename);
++    } else {
++      /* Otherwise, just put the system directories after the pushed directories (if any) */
++      Append(slist,filename);
++    }
++    Delete(filename);
++  }
++  return slist;
++}
++
++List *Swig_framework_search_path(void) {
++  return Swig_framework_search_path_any(0);
++}
++
+ 
+ 
++/* -----------------------------------------------------------------------------
++ * Swig_get_framework_name()
++ *
++ * return the name of the framework if any in which a file may be contained,
++ * or NULL if the file does not contain a directory reference.
++ * ----------------------------------------------------------------------------- */
++
++static String *Swig_get_framework_name(char *cname, String **bname) {
++  char *delim;
++  String *fname;
++
++  delim = strchr(cname, *SWIG_FILE_DELIMITER);
++  if (!delim)
++    return 0;
++  fname = NewStringWithSize(cname, delim - cname);
++  while (delim == *SWIG_FILE_DELIMITER)
++    ++delim;
++  *bname = NewString(delim + 1);
++  return fname;
++}
++#endif
++
+ /* -----------------------------------------------------------------------------
+  * Swig_open()
+  *
+@@ -158,6 +245,10 @@
+   FILE *f;
+   String *filename;
+   List *spath = 0;
++#ifdef __APPLE__
++  String *fname, *bname;
++  List *fpath = 0;
++#endif
+   char *cname;
+   int i, ilen, nbytes;
+   char bom[3];
+@@ -176,13 +267,29 @@
+   if (!f && use_include_path) {
+     spath = Swig_search_path_any(sysfile);
+     ilen = Len(spath);
+-    for (i = 0; i < ilen; i++) {
++    for (i = 0; !f && i < ilen; i++) {
+       Clear(filename);
+       Printf(filename, "%s%s", Getitem(spath, i), cname);
+       f = fopen(Char(filename), "r");
+-      if (f)
+-	break;
++    }
++#ifdef __APPLE__
++    /* Frameworks are trickier, because an include of the form <a/b.h> needs
++     * to be expanded to e.g. /System/Library/Frameworks/a.framework/Headers/b.h
++     */
++    fpath = Swig_framework_search_path_any(sysfile);
++    fname = Swig_get_framework_name(cname, &bname);
++    if (fname) {
++      ilen = Len(fpath);
++      for (i = 0; !f && i < ilen; i++) {
++	Clear(filename);
++	Printf(filename, "%s%s.framework" SWIG_FILE_DELIMITER "Headers" SWIG_FILE_DELIMITER "%s", Getitem(fpath,i), Char(fname), Char(bname));
++	f = fopen(Char(filename), "r");
++      }
++      Delete(fname);
++      Delete(bname);
+     }
++    Delete(fpath);
++#endif
+     Delete(spath);
+   }
+   if (f) {
+--- Source/Swig/swigfile.h.orig	2022-11-30 00:35:05.000000000 -0700
++++ Source/Swig/swigfile.h	2024-01-07 19:34:20.000000000 -0700
+@@ -12,10 +12,16 @@
+  * ----------------------------------------------------------------------------- */
+ 
+ extern List   *Swig_add_directory(const_String_or_char_ptr dirname);
++#ifdef __APPLE__
++extern List   *Swig_add_framework_directory(const_String_or_char_ptr dirname);
++#endif
+ extern void    Swig_push_directory(const_String_or_char_ptr dirname);
+ extern void    Swig_pop_directory(void);
+ extern String *Swig_last_file(void);
+ extern List   *Swig_search_path(void);
++#ifdef __APPLE__
++extern List   *Swig_framework_search_path(void);
++#endif
+ extern FILE   *Swig_include_open(const_String_or_char_ptr name);
+ extern FILE   *Swig_open(const_String_or_char_ptr name);
+ extern String *Swig_read_file(FILE *f); 
+--- Source/Modules/main.cxx~	2022-11-30 00:35:05.000000000 -0700
++++ Source/Modules/main.cxx	2024-01-07 19:12:10.000000000 -0700
+@@ -106,6 +106,9 @@
+      -help           - Display help\n\
+      -I-             - Don't search the current directory\n\
+-     -I<dir>         - Look for SWIG files in directory <dir>\n\
+-     -ignoremissing  - Ignore missing include files\n\
++     -I<dir>         - Look for SWIG files in directory <dir>\n"
++#ifdef __APPLE__
++"     -F<dir>         - Look for SWIG files in frameworks in directory<dir>\n"
++#endif
++"     -ignoremissing  - Ignore missing include files\n\
+      -importall      - Follow all #include statements as imports\n\
+      -includeall     - Follow all #include statements\n\
+@@ -477,6 +480,12 @@
+ 	// Add a new directory search path
+ 	Swig_add_directory((String_or_char*)(argv[i] + 2));
+ 	Swig_mark_arg(i);
++#ifdef __APPLE__
++      } else if (strncmp(argv[i], "-F", 2) == 0) {
++	// Add a new framework search path
++	Swig_add_framework_directory((String_or_char*)(argv[i] + 2));
++	Swig_mark_arg(i);
++#endif
+       } else if (strncmp(argv[i], "-D", 2) == 0) {
+ 	String *d = NewString(argv[i] + 2);
+ 	if (Replace(d, "=", " ", DOH_REPLACE_FIRST) == 0) {

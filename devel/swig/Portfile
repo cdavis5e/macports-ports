@@ -34,6 +34,9 @@ master_sites    sourceforge:project/swig/swig/swig-${version}
 depends_build   port:bison \
                 port:gsed
 
+patchfiles-append \
+                patch-framework-include.diff
+
 post-patch {
     # The configure script should use GNU sed
     reinplace "s/\[\[:<:\]\]sed\[\[:>:\]\]/gsed/g" ${worksrcpath}/configure
