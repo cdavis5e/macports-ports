@@ -22,7 +22,6 @@ long_description \
     interpolation.
 
 homepage        http://www.orocos.org/kdl
-worksrcdir      kdl-${version}
 cmake.source_dir ${worksrcpath}/orocos_kdl
 platforms       darwin
 checksums       rmd160  104ec8b519c658470be3b2f5da16ee96e0c52721 \
