@@ -1,0 +1,85 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+PortGroup           cmake 1.1
+PortGroup           github 1.0
+PortGroup           mpi 1.0
+PortGroup           muniversal 1.1
+
+github.setup        chennes med 4.1.1 v
+github.tarball_from archive
+name                med-file
+categories          science cad graphics
+platforms           darwin
+maintainers         openmaintainer
+license             LGPL-3+
+
+description         Modeling and Data Exchange standardized format library
+long_description    MED is a library and format for exchanging scientific data \
+                    between applications, based on HDF5. MED is part of the \
+                    SALOME digital simulation platform, a collaboration of \
+                    EDF France, CEA France, and OpenCASCADE.
+
+homepage            https://www.salome-platform.org/
+
+checksums           rmd160 3031e65721ed07641210c01fca5692a95c262fb1 \
+                    sha256 ee8b3b6d46bfee25c1d289308b16c7f248d1339161fd5448339382125e6119ad \
+                    size 46867685
+
+compiler.cxx_standard 2011
+
+mpi.setup           require_fortran -g95
+mpi.enforce_variant hdf5
+
+depends_lib-append  port:hdf5 \
+                    port:swig \
+                    port:swig-python \
+                    port:zlib
+
+patchfiles-append   med-4.1.0-0003-build-against-hdf5-1.14.patch
+
+patch.pre_args      -p1
+
+configure.args-append \
+                    -DMEDFILE_BUILD_PYTHON=ON \
+                    -DMEDFILE_INSTALL_DOC=OFF
+if {[mpi_variant_isset]} {
+    configure.args-append \
+                    -DMEDFILE_USE_MPI=YES
+}
+
+test.run            yes
+
+variant docs description {Build documentation} {
+    depends_build-append \
+                    path:bin/doxygen:doxygen
+    configure.args-delete \
+                    -DMEDFILE_INSTALL_DOC=OFF
+}
+
+set pythons_suffixes {27 37 38 39 310 311 312}
+
+set pythons_ports {}
+foreach s ${pythons_suffixes} {
+    lappend pythons_ports python${s}
+}
+
+foreach s ${pythons_suffixes} {
+    set p python${s}
+    set v [string index ${s} 0].[string range ${s} 1 end]
+    set i [lsearch -exact ${pythons_ports} ${p}]
+    set c [lreplace ${pythons_ports} ${i} ${i}]
+    variant ${p} description "Use Python ${v} for python bindings" conflicts {*}${c} "
+        depends_lib-append      port:${p}
+        pre-configure {
+            set python_prefix \[exec ${prefix}/bin/python${v}-config --prefix\]
+            configure.args-append \
+                -DMEDFILE_BUILD_PYTHON=ON \
+                -DPYTHON_LIBRARY=\${python_prefix}/Python \
+                -DPYTHON_INCLUDE_DIR=\${python_prefix}/Headers \
+                -DPYTHON_EXECUTABLE=\${python_prefix}/bin/python${v}
+        }
+    "
+}
+
+github.livecheck.regex  {(\d\.\d\+(\.\d+)?(?!_pre))}
