@@ -50,7 +50,7 @@ depends_build-append    path:bin/pkg-config:pkgconfig
 options qt_qmake_spec
 global qt_qmake_spec_32
 global qt_qmake_spec_64
-compiler.blacklist-append *gcc*
+compiler.cxx_standard 2011
 
 if {[vercmp ${qt5.version} >= 5.15]} {
     # only qt5 5.15.x has so far been built as arm64 on MacPorts
