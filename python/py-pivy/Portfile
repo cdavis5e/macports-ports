@@ -55,6 +55,13 @@ if {${name} ne ${subport}} {
                     "CMAKE_FRAMEWORK_PATH=${prefix}/Library/Frameworks:/System/Library/Frameworks" \
                     "CMAKE_MODULE_PATH=${prefix}/share/cmake/Modules" \
                     "CMAKE_PREFIX_PATH=${prefix}/share/cmake/Modules"
+    pre-configure {
+        if {[active_variants Coin framework]} {
+            python.add_ldflags yes
+            configure.ldflags-append \
+                    "-Wl,-rpath,${prefix}/Library/Frameworks"
+        }
+    }
 
     variant SoQt description {Support the SoQt component toolkit} {
         depends_lib-append \
