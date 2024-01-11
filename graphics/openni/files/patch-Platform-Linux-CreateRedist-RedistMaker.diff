@@ -1,0 +1,7 @@
+--- Platform/Linux/CreateRedist/RedistMaker~	2013-11-12 09:30:03.000000000 -0700
++++ Platform/Linux/CreateRedist/RedistMaker	2024-01-11 13:55:28.000000000 -0700
+@@ -1,3 +1,3 @@
+ #!/bin/bash -e
+-python Redist_OpenNi.py $*
++@PYTHON@ Redist_OpenNi.py $*
+ 

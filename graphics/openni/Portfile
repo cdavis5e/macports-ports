@@ -28,7 +28,8 @@ checksums           rmd160  2d78c4fce0908b1e4801649b6390c0d6a8afc68f \
                     sha256  4b3ac2f946849d6a2b6fa12f199025a9c141fda93d4d4bda967a3fb32268b5ce
 
 depends_build       path:bin/doxygen:doxygen \
-                    path:bin/dot:graphviz
+                    path:bin/dot:graphviz \
+                    path:bin/python2.7:python27
 
 depends_lib         path:lib/pkgconfig/libusb-1.0.pc:libusb
 
@@ -49,6 +50,7 @@ post-extract {
 
 patchfiles          patch-Platform-Linux-Build-Common-CommonCppMakefile.diff \
                     patch-Platform-Linux-Build-Common-Platform.x86.diff \
+                    patch-Platform-Linux-CreateRedist-RedistMaker.diff \
                     patch-Platform-Linux-CreateRedist-install.sh.diff \
                     patch-Source-OpenNI-XnOpenNI.cpp.diff
 
@@ -56,6 +58,7 @@ post-patch {
     reinplace "s|@PREFIX@|${prefix}|g"  ${build.dir}/install.sh \
                                         ${worksrcpath}/Platform/Linux/Build/Common/CommonCppMakefile \
                                         ${worksrcpath}/Source/OpenNI/XnOpenNI.cpp
+    reinplace "s|@PYTHON@|python2.7|g"  ${build.dir}/RedistMaker
 
     # Mavericks system headers have a function called "equivalent" with which this #define interferes.
     # https://github.com/OpenNI/OpenNI2/issues/52
