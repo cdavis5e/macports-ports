@@ -1,0 +1,83 @@
+--- libsrc/occ/Partition_Loop3d.hxx~	2024-03-05 00:37:56.000000000 -0700
++++ libsrc/occ/Partition_Loop3d.hxx	2024-05-06 00:07:43.000000000 -0600
+@@ -29,7 +29,6 @@
+ #if OCC_VERSION_HEX < 0x070000
+ #else
+    #include <TopTools_ShapeMapHasher.hxx>
+-   #include <TopTools_OrientedShapeMapHasher.hxx>
+    #include <TopTools_MapOfOrientedShape.hxx>
+ #endif
+ 
+--- libsrc/occ/occ_edge.cpp~	2024-03-05 00:37:56.000000000 -0700
++++ libsrc/occ/occ_edge.cpp	2024-05-06 00:23:42.000000000 -0600
+@@ -55,7 +55,7 @@
+ 
+     size_t OCCEdge::GetHash() const
+     {
+-      return edge.HashCode(std::numeric_limits<Standard_Integer>::max());
++      return std::hash<TopoDS_Edge>{}(edge);
+     }
+ 
+     void OCCEdge::ProjectPoint(Point<3>& p, EdgePointGeomInfo* gi) const
+--- libsrc/occ/occ_solid.hpp~	2024-03-05 00:37:56.000000000 -0700
++++ libsrc/occ/occ_solid.hpp	2024-05-06 00:25:55.000000000 -0600
+@@ -17,7 +17,7 @@
+             : solid(TopoDS::Solid(dshape))
+         { }
+ 
+-        size_t GetHash() const override { return solid.HashCode(std::numeric_limits<Standard_Integer>::max()); }
++        size_t GetHash() const override { return std::hash<TopoDS_Solid>{}(solid); }
+     };
+ }
+ 
+--- libsrc/occ/occ_face.cpp~	2024-03-05 00:37:56.000000000 -0700
++++ libsrc/occ/occ_face.cpp	2024-05-06 00:28:30.000000000 -0600
+@@ -32,7 +32,7 @@
+ 
+     size_t OCCFace::GetHash() const
+     {
+-      return face.HashCode(std::numeric_limits<Standard_Integer>::max());
++      return std::hash<TopoDS_Face>{}(face);
+     }
+ 
+     Point<3> OCCFace::GetCenter() const
+--- libsrc/occ/occ_vertex.cpp~	2024-03-05 00:37:56.000000000 -0700
++++ libsrc/occ/occ_vertex.cpp	2024-05-06 00:29:20.000000000 -0600
+@@ -19,6 +19,6 @@
+ 
+     size_t OCCVertex::GetHash() const
+     {
+-      return vertex.HashCode(std::numeric_limits<Standard_Integer>::max());
++      return std::hash<TopoDS_Vertex>{}(vertex);
+     }
+ }
+--- CMakeLists.txt~	2024-05-05 23:58:25.000000000 -0600
++++ CMakeLists.txt	2024-05-06 02:39:21.000000000 -0600
+@@ -373,25 +373,19 @@
+       TKGeomAlgo
+       TKGeomBase
+       TKHLR
+-      TKIGES
+       TKLCAF
+       TKMath
+       TKMesh
+       TKOffset
+       TKPrim
+-      TKSTEP
+-      TKSTEP209
+-      TKSTEPAttr
+-      TKSTEPBase
+-      TKSTL
+       TKService
+       TKShHealing
+       TKTopAlgo
+       TKV3d
+       TKVCAF
+       TKXCAF
+-      TKXDEIGES
+-      TKXDESTEP
++      TKDEIGES
++      TKDESTEP
+       TKXSBase
+       TKernel
+     )

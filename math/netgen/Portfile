@@ -221,3 +221,10 @@ variant tests description {Enable tests} {
         test.args-append    PYTHONPATH=${destroot}${frameworks_dir}/Python.framework/Versions/${pdv}/lib/python${pdv}/site-packages
     }
 }
+
+variant occ description {Enable OpenCASCADE geometry interface} {
+    depends_lib-append      port:opencascade
+    configure.args-replace  -DUSE_OCC=OFF \
+                            -DUSE_OCC=ON
+    patchfiles-append       patch-occ-recent.diff
+}
