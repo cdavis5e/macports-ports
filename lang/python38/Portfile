@@ -2,6 +2,7 @@
 
 PortSystem          1.0
 PortGroup           deprecated 1.0
+PortGroup           compiler_blacklist_versions 1.0
 
 name                python38
 
@@ -252,6 +253,20 @@ platform darwin {
     # Build failures on 10.9 and older
     if {${os.major} > 13} {
         default_variants    +optimizations
+    }
+}
+
+# n.b. MUST come after default variants!
+if {$universal_possible && [variant_isset universal] && [variant_isset optimizations]} {
+    if {"i386" in ${configure.universal_archs}} {
+        compiler.blacklist-append {clang >= 1000.0}
+        pre-configure {
+            # Whatever Clang we picked, we have to use the associated
+            # llvm-profdata.
+            if {[regexp {^macports-clang-(\d+(?:\.\d+)?)$} ${configure.compiler} -> suffix]} {
+                configure.env-append "LLVM_PROFDATA=${prefix}/bin/llvm-profdata-mp-${suffix}"
+            }
+        }
     }
 }
 

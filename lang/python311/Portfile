@@ -1,6 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
 PortSystem 1.0
+PortGroup compiler_blacklist_versions 1.0
 
 name                python311
 
@@ -65,7 +66,11 @@ depends_run         port:python_select-${pythonVerNoDot} \
 
 compiler.c_standard 2011
 # clang 15+ depend on python311, avoid circular dep
-compiler.blacklist  {macports-clang-1[5-9]}
+foreach clang {clang-15 clang-16 clang-17 clang-devel} {
+    if {[catch {registry_active ${clang}}]} {
+        compiler.blacklist-append  macports-${clang}
+    }
+}
 
 # ensurepip arg may be removed later, now conflicts with pip and setuptools
 # packages
@@ -259,6 +264,24 @@ platform darwin {
         }
         if {${os.major} > 13} {
             default_variants-append +optimizations
+        }
+    }
+}
+
+# n.b. MUST come after default variants!
+if {$universal_possible && [variant_isset universal] && [variant_isset optimizations]} {
+    if {"i386" in ${configure.universal_archs}} {
+        compiler.blacklist-append {clang >= 1000.0}
+        pre-configure {
+            # Whatever Clang we picked, we have to use the associated
+            # llvm-profdata.
+            if {[regexp {^macports-clang-(\d+(?:\.\d+)?)$} ${configure.compiler} -> suffix]} {
+                configure.env-append "LLVM_PROFDATA=${prefix}/bin/llvm-profdata-mp-${suffix}"
+            }
+        }
+        if {[variant_isset lto]} {
+            depends_build-append bin:ar:cctools
+            configure.env-append "LLVM_AR=${prefix}/bin/ar"
         }
     }
 }
