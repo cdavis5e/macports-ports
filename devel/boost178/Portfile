@@ -45,7 +45,7 @@ depends_lib-append \
                 port:expat \
                 path:lib/pkgconfig/icu-uc.pc:icu \
                 port:libiconv \
-                port:lzma \
+                port:xz \
                 port:zlib \
                 port:zstd
 
