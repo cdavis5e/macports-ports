@@ -33,7 +33,7 @@ checksums           rmd160  b82daea6a81d29aeb425bfceeb80826ff1ee1fb3 \
 set python_branch   3.12
 depends_build       port:python312
 depends_lib         port:bzip2 \
-                    port:lzma \
+                    port:xz \
                     port:sqlite3 \
                     port:zlib
 
