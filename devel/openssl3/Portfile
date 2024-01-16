@@ -11,7 +11,7 @@ legacysupport.newest_darwin_requires_legacy 8
 
 set major_v         3
 # For former rollback to 3.1.x release where needed. Must now stay.
-epoch               1
+epoch               2
 github.setup        openssl openssl ${major_v}.4.1 openssl-
 name                openssl3
 revision            0
@@ -48,7 +48,7 @@ distname            openssl-${version}
 # Old obsolete subport for overriding version holdback
 # Make it explicitly obsolete for now
 #
-if {${os.platform} eq "darwin" && ${os.major} < 18} {
+if {${os.platform} eq "darwin" && ${os.major} < 19} {
     subport ${name}-devel {
         PortGroup           obsolete 1.0
 
