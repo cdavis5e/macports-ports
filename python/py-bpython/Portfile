@@ -15,14 +15,13 @@ supported_archs         noarch
 maintainers             {aronnax @lpsinger} openmaintainer
 license                 MIT
 description             fancy interface to the Python interpreter
-long_description        a fancy interface to the Python interpreter for \
-                        Unix-like operating systems
+long_description        a {*}${description} for Unix-like operating systems
 
 homepage                https://www.bpython-interpreter.org
 checksums               rmd160  0137002b419d27edd596cb585a655f83a9bd1688 \
                         sha256  445468a66353b33f3e91a59e082a35ce24b2ea0ad05820047045611c8ccfd8d4 \
                         size    221484
-python.versions         39 310 311
+python.versions         39 310 311 312
 
 if {${name} ne ${subport}} {
     patchfiles-append   patch-sphinx-setuptools-integration.diff
