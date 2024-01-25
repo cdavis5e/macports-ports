@@ -25,6 +25,7 @@ checksums               rmd160  0137002b419d27edd596cb585a655f83a9bd1688 \
 python.versions         39 310 311
 
 if {${name} ne ${subport}} {
+    patchfiles-append   patch-sphinx-setuptools-integration.diff
     post-patch {
         # fix version detection
         set versionpath ${worksrcpath}/bpython/_version.py

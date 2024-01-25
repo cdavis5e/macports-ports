@@ -1,0 +1,106 @@
+--- setup.py~	2022-08-29 16:01:37.000000000 -0600
++++ setup.py	2024-01-21 17:21:37.000000000 -0700
+@@ -1,5 +1,7 @@
+ #!/usr/bin/env python3
+ 
++from __future__ import annotations
++
+ import os
+ import platform
+ import re
+@@ -17,7 +19,94 @@
+ 
+ try:
+     import sphinx
+-    from sphinx.setup_command import BuildDoc
++    try:
++        from sphinx.setup_command import BuildDoc
++    except ImportError:
++        # For some inexplicable reason, Sphinx deprecated their setuptools
++        # integration in 5.0 and removed it in 7.0. Here's a suitable cut-down
++        # replacement.
++
++        import sys
++        from io import StringIO
++
++        from sphinx.application import Sphinx
++        from sphinx.cmd.build import handle_exception
++        from sphinx.util.console import color_terminal, nocolor
++        from sphinx.util.docutils import docutils_namespace, patch_docutils
++        from sphinx.util.osutil import abspath
++
++        from setuptools import Command
++        from setuptools.errors import ExecError
++
++        class BuildDoc(Command):
++            description = 'Build Sphinx documentation'
++            user_options = [
++                ('source-dir=', 's', 'Source directory'),
++                ('build-dir=', None, 'Build directory'),
++                ('builder=', 'b', 'The builder (or builders) to use. Can be a comma- '
++                 'or space-separated list. Defaults to "html"'),
++            ]
++
++            def initialize_options(self) -> None:
++                self.source_dir: str | None = None
++                self.build_dir: str | None = None
++                self.builder = 'html'
++                # Link verbosity to distutils' (which uses 1 by default).
++                self.verbosity = self.distribution.verbose - 1
++                self.traceback = False
++
++            def _guess_source_dir(self) -> str:
++                for guess in ('doc', 'docs'):
++                    if not os.path.isdir(guess):
++                        continue
++                    for root, _dirnames, filenames in os.walk(guess):
++                        if 'conf.py' in filenames:
++                            return root
++                return os.curdir
++
++            def finalize_options(self) -> None:
++                self.ensure_string_list('builder')
++
++                if self.source_dir is None:
++                    self.source_dir = self._guess_source_dir()
++                    self.announce('Using source directory %s' % self.source_dir)
++
++                self.ensure_dirname('source_dir')
++
++                if self.build_dir is None:
++                    build = self.get_finalized_command('build')
++                    self.build_dir = os.path.join(abspath(build.build_base), 'sphinx')
++
++                self.doctree_dir = os.path.join(self.build_dir, 'doctrees')
++
++                self.builder_target_dirs = [
++                    (builder, os.path.join(self.build_dir, builder))
++                    for builder in self.builder]
++
++            def run(self) -> None:
++                if not color_terminal():
++                    nocolor()
++                if not self.verbose:
++                    status_stream = StringIO()
++                else:
++                    status_stream = sys.stdout  # type: ignore
++
++                for builder, builder_target_dir in self.builder_target_dirs:
++                    app = None
++
++                    try:
++                        confdir = self.source_dir
++                        with patch_docutils(confdir), docutils_namespace():
++                            app = Sphinx(self.source_dir, self.source_dir,
++                                         builder_target_dir, self.doctree_dir,
++                                         builder, {}, status_stream,
++                                         verbosity=self.verbosity)
++                            app.build()
++                            if app.statuscode:
++                                raise ExecError('caused by %s builder.' % app.builder.name)
++                    except Exception as exc:
++                        handle_exception(app, self, exc, sys.stderr)
++                        raise SystemExit(1) from exc
+ 
+     # Sphinx 1.5 and newer support Python 3.6
+     using_sphinx = sphinx.__version__ >= "1.5"
