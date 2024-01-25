@@ -1,0 +1,21 @@
+--- GraphBLAS/CMakeLists.txt~	2023-12-29 17:18:23.000000000 -0700
++++ GraphBLAS/CMakeLists.txt	2024-01-17 22:48:22.000000000 -0700
+@@ -392,6 +392,18 @@
+         else ( )
+             message ( STATUS "cpu_feautures doesn't have getauxval from sys/auxv.h" )
+         endif ( )
++		check_symbol_exists ( sysctlbyname "sys/sysctl.h" HAVE_SYSCTLBYNAME )
++		if ( HAVE_SYSCTLBYNAME )
++            message ( STATUS "cpu_features has sysctlbyname from sys/sysctl.h" )
++            if ( BUILD_SHARED_LIBS )
++				target_compile_definitions ( GraphBLAS PRIVATE HAVE_SYSCTLBYNAME )
++            endif ( )
++            if ( BUILD_STATIC_LIBS )
++				target_compile_definitions ( GraphBLAS_static PRIVATE HAVE_SYSCTLBYNAME )
++            endif ( )
++        else ( )
++            message ( STATUS "cpu_features doesn't have sysctlbyname from sys/sysctl.h" )
++        endif ( )
+     endif ( )
+ endif ( )
+ 
