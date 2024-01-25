@@ -12,6 +12,7 @@ maintainers         {cal @neverpanic} openmaintainer
 
 if {${name} eq ${subport}} {
     PortGroup           cmake 1.1
+    PortGroup           legacysupport 1.1
 
     version             14.1
     revision            0
@@ -33,6 +34,10 @@ if {${name} eq ${subport}} {
     master_sites        https://cdn.openttd.org/openttd-releases/${version}
     distfiles           openttd-${version}-source.tar.xz
     use_xz              yes
+
+    # Uses std::variant
+    legacysupport.newest_darwin_requires_legacy 17
+    legacysupport.use_mp_libcxx yes
 
     depends_build-append \
                         port:pkgconfig
