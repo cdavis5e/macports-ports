@@ -404,4 +404,14 @@ if {${name} ne ${subport}} {
                     zerovec-derive 0.10.3 6eafa6dfb17584ea3e2bd6e76e0cc15ad7af12b09abdd1ca55961bed9b1063c6 \
                     zip 2.1.6 40dd8c92efc296286ce1fbd16657c5dbefff44f1b4ca01cc5f517d8b7b3d3e2e \
                     zopfli 0.8.1 e5019f391bac5cf252e93bbcc53d039ffd62c7bfb7c150414d61369afe57e946
+
+    if {[variant_isset universal]} {
+        foreach arch ${configure.universal_archs} {
+            if {"${arch}" ne "${configure.build_arch}"} {
+                # Cross-compiled pyo3 must set PYO3_CROSS_LIB_DIR
+                build.env.${arch}-append "PYO3_CROSS_LIB_DIR=${prefix}/Library/Frameworks/Python.framework/Versions/${python.branch}/lib/python${python.branch}"
+                destroot.env.${arch}-append "PYO3_CROSS_LIB_DIR=${prefix}/Library/Frameworks/Python.framework/Versions/${python.branch}/lib/python${python.branch}"
+            }
+        }
+    }
 }
