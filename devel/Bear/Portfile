@@ -32,7 +32,7 @@ long_description    {*}${description} \
 
 patchfiles          patch-spdlog-header-only.diff
 
-set port_libfmt     libfmt9
+set port_libfmt     libfmt10
 cmake.module_path-append \
                     ${prefix}/lib/${port_libfmt}/cmake
 
