@@ -1225,6 +1225,11 @@ variant iodbc description {Link to libiodbc for the ODBC SQL Driver} requires od
     # This patch makes qmake use pkg-config to find libiodbc--crucial because,
     # in our setup, iodbc has different include and lib paths.
     patchfiles-append  patch-iodbc-pkgconfig.diff
+    configure.env-append \
+                       PKG_CONFIG_PATH=${prefix}/lib/libiodbc/pkgconfig
+    build.env-append   PKG_CONFIG_PATH=${prefix}/lib/libiodbc/pkgconfig
+    destroot.env-append \
+                       PKG_CONFIG_PATH=${prefix}/lib/libiodbc/pkgconfig
 }
 
 variant unixodbc description {Link to unixODBC for the ODBC SQL Driver} requires odbc conflicts iodbc {
