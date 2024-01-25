@@ -32,7 +32,13 @@ post-patch {
 variant universal   {}
 use_parallel_build  no
 
+# The makefile uses CCFLAGS to let users set compile flags, then sets CFLAGS
+# itself from several other flags. Therefore, *we must not override CFLAGS with
+# makefile.override*.
+build.args-append   "CCFLAGS=\"-c -DNeedFunctionPrototypes=1 -Wall -Wno-comment ${configure.cflags} [get_canonical_archflags cc]\""
+destroot.args-append "CCFLAGS=\"-c -DNeedFunctionPrototypes=1 -Wall -Wno-comment ${configure.cflags} [get_canonical_archflags cc]\""
 destroot.env        INSTALL_ROOT=${destroot}${prefix}
+makefile.has_destdir no
 
 post-destroot {
     move ${worksrcpath}/lib/libgsm.${version}.dylib ${destroot}${prefix}/lib
