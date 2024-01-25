@@ -96,6 +96,7 @@ if {[vercmp ${xcodeversion} 12.0] >= 0} {
 
 destroot {
     copy ${worksrcpath}/src/MacVim/build/Release/MacVim.app ${destroot}${applications_dir}
+    delete ${destroot}${applications_dir}/MacVim.app/Contents/Frameworks/Sparkle.framework
     ln -s ${applications_dir}/MacVim.app/Contents/bin/mvim ${destroot}${prefix}/bin/mvim
 
     # Create MacVim vimdiff, view, ex equivalents
