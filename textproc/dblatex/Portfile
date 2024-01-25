@@ -6,7 +6,7 @@ PortGroup           texlive 1.0
 
 name                dblatex
 version             0.3.12
-revision            2
+revision            3
 categories          textproc tex
 maintainers         {cal @neverpanic} openmaintainer
 license             GPL-2+
@@ -50,7 +50,7 @@ depends_lib         port:texlive-latex-extra \
                     port:docbook-xml-5.0
 
 python.link_binaries no
-python.default_version 310
+python.default_version 311
 python.pep517 no
 destroot.target-append --catalogs=${prefix}/etc/xml/catalog
 
