@@ -93,6 +93,11 @@ if {${muniversal.build_arch} in [list arm64 ppc64 x86_64]} {
                     -DBINARY64=ON
 }
 
+platform darwin {
+    configure.env-append \
+                    "SDKROOT=${configure.sysroot}"
+}
+
 configure.cflags    -O3
 configure.args-append \
                     -DCOMMON_PROF=-pg
