@@ -94,7 +94,10 @@ if {$subport eq $name} {
     compiler.cxx_standard 2020
 
     # /usr/include/c++/v1/optional:960:34: note: candidate function not viable: no known conversion from 'optional<...>' to 'const optional<...>' for object argument
-    compiler.blacklist-append {clang < 1100}
+    # mysql-8.0.35/libbinlogevents/include/buffer/managed_buffer.h:170:3: error: exception specification of explicitly defaulted move constructor does not match the calculated one
+    compiler.blacklist-append {clang < 1200}
+    # mysql-8.4.1/storage/ndb/plugin/ndb_binlog_purger.cc:79:20: error: no member named 'any_of' in namespace 'std::ranges'
+    compiler.blacklist-append macports-clang-15
 
     # Use default CMake build_types
     if {[variant_isset debug]} {
