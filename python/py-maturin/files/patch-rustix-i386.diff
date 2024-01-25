@@ -1,0 +1,104 @@
+--- src/backend/libc/fs/syscalls.rs~	2006-07-23 19:21:28.000000000 -0600
++++ src/backend/libc/fs/syscalls.rs	2024-01-22 03:52:12.000000000 -0700
+@@ -70,6 +70,8 @@
+ use crate::io;
+ #[cfg(all(target_env = "gnu", fix_y2038))]
+ use crate::timespec::LibcTimespec;
++#[cfg(apple)]
++use crate::timespec::Timespec;
+ #[cfg(not(target_os = "wasi"))]
+ use crate::ugid::{Gid, Uid};
+ #[cfg(all(apple, feature = "alloc"))]
+@@ -875,12 +877,15 @@
+ 
+         // If we have `utimensat`, use it.
+         if let Some(have_utimensat) = utimensat.get() {
++            #[cfg(not(fix_y2038))]
+             return ret(have_utimensat(
+                 borrowed_fd(dirfd),
+                 c_str(path),
+                 as_ptr(times).cast(),
+                 bitflags_bits!(flags),
+             ));
++            #[cfg(fix_y2038)]
++            return utimensat_old(dirfd, path, times, flags);
+         }
+ 
+         // Convert `times`. We only need this in the child, but do it before
+@@ -966,7 +971,7 @@
+ 	}
+ }
+ 
+-#[cfg(all(fix_y2038, not(apple)))]
++#[cfg(fix_y2038)]
+ fn utimensat_old(
+ 	dirfd: BorrowedFd<'_>,
+ 	path: &Cstr,
+@@ -998,6 +1003,7 @@
+                 .map_err(|_| io::Errno::OVERFLOW)?,
+         },
+     ];
++    #[cfg(not(apple))]
+     unsafe {
+         ret(c::utimensat(
+             borrowed_fd(dirfd),
+@@ -1006,6 +1012,25 @@
+             bitflags_bits!(flags),
+         ))
+     }
++    #[cfg(apple)]
++    unsafe {
++        // By this point, we know we have the function, but we still have to
++        // use weak linkage or loading will fail prior to 10.13.
++        weak! {
++            fn utimensat(
++                c::c_int,
++                *const c::c_char,
++                *const c::timespec,
++                c::c_int
++            ) -> c::c_int
++        }
++        ret(utimensat.get().unwrap()(
++            borrowed_fd(dirfd),
++            c_str(path),
++            old_times.as_ptr(),
++            bitflags_bits!(flags),
++        ))
++    }
+ }
+ 
+ #[cfg(not(target_os = "wasi"))]
+@@ -1563,7 +1588,10 @@
+ 
+         // If we have `futimens`, use it.
+         if let Some(have_futimens) = futimens.get() {
++            #[cfg(not(fix_y2038))]
+             return ret(have_futimens(borrowed_fd(fd), as_ptr(times).cast()));
++            #[cfg(fix_y2038)]
++            return futimens_old(fd, times);
+         }
+ 
+         // Otherwise use `fsetattrlist`.
+@@ -1576,7 +1604,7 @@
+ 	}
+ }
+ 
+-#[cfg(all(fix_y2038, not(apple)))]
++#[cfg(fix_y2038)]
+ fn futimens_old(fd: BorrowedFd<'_>, times: &Timestamps) -> io::Result<()> {
+ 	let old_times = [
+ 		c::timespec {
+@@ -1605,7 +1633,13 @@
+         },
+     ];
+ 
++    #[cfg(not(apple))]
+     unsafe { ret(c::futimens(borrowed_fd(fd), old_times.as_ptr())) }
++    #[cfg(apple)]
++    unsafe {
++        weak!(fn futimens(c::c_int, *const c::timespec) -> c::c_int);
++        ret(futimens.get().unwrap()(borrowed_fd(fd), old_times.as_ptr()))
++    }
+ }
+ 
+ #[cfg(not(any(

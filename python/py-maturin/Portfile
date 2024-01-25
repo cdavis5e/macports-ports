@@ -8,7 +8,7 @@ name                py-maturin
 version             1.8.2
 categories-append   devel
 license             MIT Apache-2
-supported_archs     arm64 x86_64
+supported_archs     arm64 x86_64 i386
 
 python.versions     38 39 310 311 312 313
 
@@ -25,10 +25,29 @@ checksums           ${distname}${extract.suffix} \
                     size    199276
 
 if {${name} ne ${subport}} {
+    set rustix_v 0.38.41
+
     depends_build-append \
                     port:py${python.version}-setuptools-rust
 
     patchfiles      patch-maturin-command.diff
+
+    if {${universal_possible} && [variant_isset universal] && "i386" in ${muniversal.architectures}} {
+        post-patch {
+            # We have to patch a crate, but changing the patch.dir could adversely
+            # affect the first patch above. Therefore, we will do this ourselves.
+            # The crate sources are all shared, so we have to make sure we run patch only once.
+            if {[muniversal::get_build_arch] eq "i386"} {
+                system -W "[option cargo.home]/macports/rustix-${rustix_v}" "${patch.cmd} ${patch.pre_args} <${filespath}/patch-rustix-i386.diff"
+            }
+        }
+        cargo.offline_cmd-replace --frozen --offline
+    } elseif {${os.arch} eq "i386"} {
+        post-patch {
+            system -W "[option cargo.home]/macports/rustix-${rustix_v}" "${patch.cmd} ${patch.pre_args} <${filespath}/patch-rustix-i386.diff"
+        }
+        cargo.offline_cmd-replace --frozen --offline
+    }
 
     if {${python.version} < 311} {
         depends_run-append \
@@ -259,7 +278,7 @@ if {${name} ne ${subport}} {
                     rustc-hash 2.0.0 583034fd73374156e66797ed8e5b0d5690409c9226b22d87cb7f19821c05d152 \
                     rustc_version 0.4.1 cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92 \
                     rustflags 0.1.6 d7fc92159fb50a431c5da366f7627751fe7263cf867f8a30f27fa6063ba02ac0 \
-                    rustix 0.38.41 d7f649912bc1495e167a6edee79151c84b1bad49748cb4f1f1167f459f6224f6 \
+                    rustix ${rustix_v} d7f649912bc1495e167a6edee79151c84b1bad49748cb4f1f1167f459f6224f6 \
                     rustls 0.23.19 934b404430bb06b3fae2cba809eb45a1ab1aecd64491213d7c3301b88393f8d1 \
                     rustls-pemfile 2.1.3 196fe16b00e106300d3e45ecfcb764fa292a535d7326a29a5875c579c7417425 \
                     rustls-pki-types 1.10.0 16f1201b3c9a7ee8039bcadc17b7e605e2945b27eee7631788c1bd2b0643674b \
