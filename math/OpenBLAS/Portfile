@@ -59,7 +59,8 @@ if {[string first "-devel" $subport] > 0} {
                     patch-OpenBLAS-i386-Apple.diff \
                     patch-cc.cmake-add-optflags-for-G5-and-G4-kernels.diff \
                     patch-cc.cmake-use-force_cpusubtype_ALL-for-Darwin-PPC.diff \
-                    patch-PPC970-drop-mcpu-970-which-seems-to-produce-faulty-c.diff
+                    patch-PPC970-drop-mcpu-970-which-seems-to-produce-faulty-c.diff \
+                    patch-pass-ldflags-to-dylib-link.diff
 
     if {![variant_isset native]} {
         notes "
