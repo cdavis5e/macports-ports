@@ -164,11 +164,13 @@ proc python_set_versions {option action args} {
             }
             if {${python.add_archflags}} {
                 if {[variant_exists universal] && [variant_isset universal]} {
-                    lappend pyldflags {*}${configure.universal_ldflags}
-                    lappend pycflags {*}${configure.universal_cflags}
-                    lappend pycxxflags {*}${configure.universal_cxxflags}
-                    lappend pyobjcflags {*}${configure.universal_objcflags}
-                    lappend pyobjcxxflags {*}${configure.universal_objcxxflags}
+                    if {![exists muniversal.architectures] && ![exists universal_archs_supported]} {
+                        lappend pyldflags {*}${configure.universal_ldflags}
+                        lappend pycflags {*}${configure.universal_cflags}
+                        lappend pycxxflags {*}${configure.universal_cxxflags}
+                        lappend pyobjcflags {*}${configure.universal_objcflags}
+                        lappend pyobjcxxflags {*}${configure.universal_objcxxflags}
+                    }
                 } else {
                     lappend pyf77flags {*}${configure.f77_archflags}
                     lappend pyf90flags {*}${configure.f90_archflags}
@@ -198,29 +200,56 @@ proc python_set_versions {option action args} {
                     lappend pycflags    -std=c99
                 }
             }
-            if {$pycflags ne ""} {
-                build.env-append        CFLAGS=[join $pycflags]
-            }
-            if {$pycxxflags ne ""} {
-                build.env-append        CXXFLAGS=[join $pycxxflags]
-            }
-            if {$pyobjcflags ne ""} {
-                build.env-append        OBJCFLAGS=[join $pyobjcflags]
-            }
-            if {$pyobjcxxflags ne ""} {
-                build.env-append        OBJCXXFLAGS=[join $pyobjcxxflags]
-            }
-            if {$pyf77flags ne ""} {
-                build.env-append        FFLAGS=[join $pyf77flags]
-            }
-            if {$pyf90flags ne ""} {
-                build.env-append        F90FLAGS=[join $pyf90flags]
-            }
-            if {$pyfcflags ne ""} {
-                build.env-append        FCFLAGS=[join $pyfcflags]
-            }
-            if {$pyldflags ne ""} {
-                build.env-append        LDFLAGS=[join $pyldflags]
+            if {[exists muniversal.architectures] && [variant_exists universal] && [variant_isset universal] && ${python.add_archflags}} {
+                # muniversal 1.1 PG is being used
+                foreach arch ${muniversal.architectures} {
+                    build.env.${arch}-append CFLAGS=[join [lreplace $pycflags end+1 -1 [muniversal::get_archflag cc ${arch}]]]
+                    build.env.${arch}-append CXXFLAGS=[join [lreplace $pycxxflags end+1 -1 [muniversal::get_archflag cxx ${arch}]]]
+                    build.env.${arch}-append OBJCFLAGS=[join [lreplace $pyobjcflags end+1 -1 [muniversal::get_archflag objc ${arch}]]]
+                    build.env.${arch}-append OBJCXXFLAGS=[join [lreplace $pyobjcxxflags end+1 -1 [muniversal::get_archflag objcxx ${arch}]]]
+                    build.env.${arch}-append FFLAGS=[join [lreplace $pyf77flags end+1 -1 [muniversal::get_archflag f77 ${arch}]]]
+                    build.env.${arch}-append F90FLAGS=[join [lreplace $pyf90flags end+1 -1 [muniversal::get_archflag f90 ${arch}]]]
+                    build.env.${arch}-append FCFLAGS=[join [lreplace $pyfcflags end+1 -1 [muniversal::get_archflag fc ${arch}]]]
+                    build.env.${arch}-append LDFLAGS=[join [lreplace $pyldflags end+1 -1 [muniversal::get_archflag ld ${arch}]]]
+                }
+            } elseif {[exists universal_archs_supported] && [variant_exists universal] && [variant_isset universal] && ${python.add_archflags}} {
+                # muniversal 1.0 PG is being used
+                foreach arch ${universal_archs_supported} {
+                    merger_build_env(${arch})-append CFLAGS=[join [lreplace $pycflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                    merger_build_env(${arch})-append CXXFLAGS=[join [lreplace $pycxxflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                    merger_build_env(${arch})-append OBJCFLAGS=[join [lreplace $pyobjcflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                    merger_build_env(${arch})-append OBJCXXFLAGS=[join [lreplace $pyobjcxxflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                    merger_build_env(${arch})-append FFLAGS=[join [lreplace $pyf77flags end+1 -1 [muniversal_get_arch_flag ${arch} fortran]]]
+                    merger_build_env(${arch})-append F90FLAGS=[join [lreplace $pyf90flags end+1 -1 [muniversal_get_arch_flag ${arch} fortran]]]
+                    merger_build_env(${arch})-append FCFLAGS=[join [lreplace $pyfcflags end+1 -1 [muniversal_get_arch_flag ${arch} fortran]]]
+                    merger_build_env(${arch})-append LDFLAGS=[join [lreplace $pyldflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                }
+            } else {
+                # muniversal 1.x PG is NOT being used
+                if {$pycflags ne ""} {
+                    build.env-append        CFLAGS=[join $pycflags]
+                }
+                if {$pycxxflags ne ""} {
+                    build.env-append        CXXFLAGS=[join $pycxxflags]
+                }
+                if {$pyobjcflags ne ""} {
+                    build.env-append        OBJCFLAGS=[join $pyobjcflags]
+                }
+                if {$pyobjcxxflags ne ""} {
+                    build.env-append        OBJCXXFLAGS=[join $pyobjcxxflags]
+                }
+                if {$pyf77flags ne ""} {
+                    build.env-append        FFLAGS=[join $pyf77flags]
+                }
+                if {$pyf90flags ne ""} {
+                    build.env-append        F90FLAGS=[join $pyf90flags]
+                }
+                if {$pyfcflags ne ""} {
+                    build.env-append        FCFLAGS=[join $pyfcflags]
+                }
+                if {$pyldflags ne ""} {
+                    build.env-append        LDFLAGS=[join $pyldflags]
+                }
             }
             if {${python.set_compiler}} {
                 # compiler_wrapper portgroup support
@@ -250,7 +279,7 @@ proc python_set_versions {option action args} {
                 }
                 if {${python.add_cxxflags}} {
                     lappend pycxxflags {*}${configure.cxxflags}
-                    lappend pyobjcxxflags {*}${configure.cxxflags}
+                    lappend pyobjcxxflags {*}${configure.objcxxflags}
                 }
                 if {${python.add_fflags}} {
                     lappend pyf77flags {*}${configure.fflags}
@@ -262,11 +291,13 @@ proc python_set_versions {option action args} {
                 }
                 if {${python.add_archflags}} {
                     if {[variant_exists universal] && [variant_isset universal]} {
-                        lappend pyldflags {*}${configure.universal_ldflags}
-                        lappend pycflags {*}${configure.universal_cflags}
-                        lappend pycxxflags {*}${configure.universal_cxxflags}
-                        lappend pyobjcflags {*}${configure.universal_cflags}
-                        lappend pyobjcxxflags {*}${configure.universal_cxxflags}
+                        if {![exists muniversal.architectures] && ![exists universal_archs_supported]} {
+                            lappend pyldflags {*}${configure.universal_ldflags}
+                            lappend pycflags {*}${configure.universal_cflags}
+                            lappend pycxxflags {*}${configure.universal_cxxflags}
+                            lappend pyobjcflags {*}${configure.universal_cflags}
+                            lappend pyobjcxxflags {*}${configure.universal_cxxflags}
+                        }
                     } else {
                         lappend pyf77flags {*}${configure.f77_archflags}
                         lappend pyf90flags {*}${configure.f90_archflags}
@@ -288,29 +319,56 @@ proc python_set_versions {option action args} {
                     lappend pyobjcflags -isysroot${configure.sysroot}
                     lappend pyobjcxxflags -isysroot${configure.sysroot}
                 }
-                if {$pycflags ne ""} {
-                    destroot.env-append        CFLAGS=[join $pycflags]
-                }
-                if {$pycxxflags ne ""} {
-                    destroot.env-append        CXXFLAGS=[join $pycxxflags]
-                }
-                if {$pyobjcflags ne ""} {
-                    destroot.env-append        OBJCFLAGS=[join $pyobjcflags]
-                }
-                if {$pyobjcxxflags ne ""} {
-                    destroot.env-append        OBJCXXFLAGS=[join $pyobjcxxflags]
-                }
-                if {$pyf77flags ne ""} {
-                    destroot.env-append        FFLAGS=[join $pyf77flags]
-                }
-                if {$pyf90flags ne ""} {
-                    destroot.env-append        F90FLAGS=[join $pyf90flags]
-                }
-                if {$pyfcflags ne ""} {
-                    destroot.env-append        FCFLAGS=[join $pyfcflags]
-                }
-                if {$pyldflags ne ""} {
-                    destroot.env-append        LDFLAGS=[join $pyldflags]
+                if {[exists muniversal.architectures] && [variant_exists universal] && [variant_isset universal] && ${python.add_archflags}} {
+                    # muniversal 1.1 PG is being used
+                    foreach arch ${muniversal.architectures} {
+                        destroot.env.${arch}-append CFLAGS=[join [lreplace $pycflags end+1 -1 [muniversal::get_archflag cc ${arch}]]]
+                        destroot.env.${arch}-append CXXFLAGS=[join [lreplace $pycxxflags end+1 -1 [muniversal::get_archflag cxx ${arch}]]]
+                        destroot.env.${arch}-append OBJCFLAGS=[join [lreplace $pyobjcflags end+1 -1 [muniversal::get_archflag objc ${arch}]]]
+                        destroot.env.${arch}-append OBJCXXFLAGS=[join [lreplace $pyobjcxxflags end+1 -1 [muniversal::get_archflag objcxx ${arch}]]]
+                        destroot.env.${arch}-append FFLAGS=[join [lreplace $pyf77flags end+1 -1 [muniversal::get_archflag f77 ${arch}]]]
+                        destroot.env.${arch}-append F90FLAGS=[join [lreplace $pyf90flags end+1 -1 [muniversal::get_archflag f90 ${arch}]]]
+                        destroot.env.${arch}-append FCFLAGS=[join [lreplace $pyfcflags end+1 -1 [muniversal::get_archflag fc ${arch}]]]
+                        destroot.env.${arch}-append LDFLAGS=[join [lreplace $pyldflags end+1 -1 [muniversal::get_archflag ld ${arch}]]]
+                    }
+                } elseif {[exists universal_archs_supported] && [variant_exists universal] && [variant_isset universal] && ${python.add_archflags}} {
+                    # muniversal 1.0 PG is being used
+                    foreach arch ${universal_archs_supported} {
+                        merger_destroot_env(${arch})-append CFLAGS=[join [lreplace $pycflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                        merger_destroot_env(${arch})-append CXXFLAGS=[join [lreplace $pycxxflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                        merger_destroot_env(${arch})-append OBJCFLAGS=[join [lreplace $pyobjcflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                        merger_destroot_env(${arch})-append OBJCXXFLAGS=[join [lreplace $pyobjcxxflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                        merger_destroot_env(${arch})-append FFLAGS=[join [lreplace $pyf77flags end+1 -1 [muniversal_get_arch_flag ${arch} fortran]]]
+                        merger_destroot_env(${arch})-append F90FLAGS=[join [lreplace $pyf90flags end+1 -1 [muniversal_get_arch_flag ${arch} fortran]]]
+                        merger_destroot_env(${arch})-append FCFLAGS=[join [lreplace $pyfcflags end+1 -1 [muniversal_get_arch_flag ${arch} fortran]]]
+                        merger_destroot_env(${arch})-append LDFLAGS=[join [lreplace $pyldflags end+1 -1 [muniversal_get_arch_flag ${arch}]]]
+                    }
+                } else {
+                    # muniversal 1.x PG is NOT being used
+                    if {$pycflags ne ""} {
+                        destroot.env-append        CFLAGS=[join $pycflags]
+                    }
+                    if {$pycxxflags ne ""} {
+                        destroot.env-append        CXXFLAGS=[join $pycxxflags]
+                    }
+                    if {$pyobjcflags ne ""} {
+                        destroot.env-append        OBJCFLAGS=[join $pyobjcflags]
+                    }
+                    if {$pyobjcxxflags ne ""} {
+                        destroot.env-append        OBJCXXFLAGS=[join $pyobjcxxflags]
+                    }
+                    if {$pyf77flags ne ""} {
+                        destroot.env-append        FFLAGS=[join $pyf77flags]
+                    }
+                    if {$pyf90flags ne ""} {
+                        destroot.env-append        F90FLAGS=[join $pyf90flags]
+                    }
+                    if {$pyfcflags ne ""} {
+                        destroot.env-append        FCFLAGS=[join $pyfcflags]
+                    }
+                    if {$pyldflags ne ""} {
+                        destroot.env-append        LDFLAGS=[join $pyldflags]
+                    }
                 }
                 if {${python.set_compiler}} {
                     # compiler_wrapper portgroup support
