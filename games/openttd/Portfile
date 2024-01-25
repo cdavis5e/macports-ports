@@ -49,7 +49,8 @@ if {${name} eq ${subport}} {
                         port:openttd-opensfx \
                         port:openttd-openmsx
 
-    patchfiles          patch-cmake-PackageBundle.diff
+    patchfiles          patch-cmake-PackageBundle.diff \
+                        patch-no-override-min-version.diff
 
     compiler.cxx_standard   2017
 
