@@ -32,7 +32,7 @@ configure.args-append   -DBUILD_SHARED_LIBS=ON \
                         -DLEVELDB_BUILD_TESTS=OFF \
                         -DLEVELDB_BUILD_BENCHMARKS=OFF
 
-variant tmalloc description {use tmalloc from gperftools} {
+variant tmalloc description {use tcmalloc from gperftools} {
     depends_lib-append  port:gperftools
 }
 
