@@ -107,6 +107,11 @@ platform darwin {
     # for linking on macOS, whether or not app bundle is built.
     patchfiles-append \
                     patch-fix-mac-wxgtk.diff
+
+    if {${os.major} < 19} {
+        # Still tries to use Gestalt in case kern.osproductversion isn't around.
+        configure.ldflags-append -framework CoreServices
+    }
 }
 
 # http://trac.filezilla-project.org/ticket/5473
