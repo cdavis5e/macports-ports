@@ -1,11 +1,14 @@
 --- siplib/siplib.c.orig
 +++ siplib/siplib.c
-@@ -13073,7 +13073,7 @@
-     name_str = _PyUnicode_AsString(name);
- #else
-     /* We don't handle Unicode names. */
--    if (!PyStringCheck(name))
-+    if (!PyString_Check(name))
+@@ -13747,7 +13747,11 @@
+ 
+     while (frame != NULL && depth > 0)
      {
-         PyErr_Format(PyExc_TypeError,
-                 "attribute name must be string, not '%.200s'",
++#if PY_VERSION_HEX >= 0x03090000
++        frame = PyFrame_GetBack(frame);
++#else
+         frame = frame->f_back;
++#endif
+         --depth;
+     }
+ 

@@ -49,7 +49,7 @@ version             4.19.25
 # SIP 4.16.[1-7] provides SIP API 11.1.
 # SIP 4.15.5 provided SIP API 11.0.
 
-python.versions     27 35 36 37 38 39 310
+python.versions     27 35 36 37 38 39 310 311 312
 
 if {${name} ne ${subport}} {
     master_sites        https://www.riverbankcomputing.com/static/Downloads/sip/${version}
@@ -68,7 +68,8 @@ if {${name} ne ${subport}} {
                         size   1056384
     revision            2
 
-    patchfiles          patch-siputils.py.diff \
+    patchfiles          patch-siplib_siplib.c.diff \
+                        patch-siputils.py.diff \
                         patch-specs_macx-g++.diff \
                         patch-configure.py.diff \
                         patch-add_ppc64.diff
@@ -132,6 +133,7 @@ if {${name} ne ${subport}} {
 
     destroot.cmd        make
     destroot.destdir    DESTDIR=${destroot}
+    destroot.target     install
 
     post-destroot {
         xinstall -m 755 -d ${destroot}${prefix}/share/doc
