@@ -1,0 +1,10 @@
+--- lib/unix/poller.cpp~	2022-04-01 06:35:07.000000000 -0600
++++ lib/unix/poller.cpp	2024-01-25 19:42:30.000000000 -0700
+@@ -6,6 +6,7 @@
+ #else
+ #include "../libfilezilla/glue/unix.hpp"
+ #endif
++#include <errno.h>
+ #include <unistd.h>
+ 
+ namespace fz {

@@ -38,7 +38,8 @@ checksums           rmd160  483bf576f3595851ffc2f109824bc1e3de505534 \
 
 worksrcdir          ${name}-${version}
 
-patchfiles-append   patch-util.diff
+patchfiles-append   patch-util.diff \
+                    patch-poller-errno.diff
 
 # unix/poller.cpp:45:11: error: use of undeclared identifier 'errno'
 patchfiles-append   patch-errno.diff
