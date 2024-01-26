@@ -1,0 +1,14 @@
+--- qpy/QtCore/qpycore_classinfo.cpp~	2017-06-30 02:47:26.000000000 -0600
++++ qpy/QtCore/qpycore_classinfo.cpp	2023-06-08 00:06:15.000000000 -0600
+@@ -36,7 +36,11 @@
+ 
+     // We need the frame we were called from, not the current one.
+     if (frame)
++#if PY_VERSION_HEX >= 0x03090000
++        frame = PyFrame_GetBack(frame);
++#else
+         frame = frame->f_back;
++#endif
+ 
+     if (!frame)
+     {

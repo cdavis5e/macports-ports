@@ -24,7 +24,7 @@ set patch       [lindex [split ${version} .] 2]
 
 # pre-declare provided subports
 
-python.versions 27 35 36 37 38 39 310
+python.versions 27 35 36 37 38 39 310 311 312
 python.default_version 27
 
 foreach py_ver ${python.versions} {
@@ -71,6 +71,9 @@ if {${name} ne ${subport}} {
     # fix location of MacPorts'-installed Qt .apps, step 1
 
     patchfiles-append patch-fix-qt_apps_dir.diff
+
+    # fix build with Python 3.11
+    patchfiles-append patch-python39.diff
 
     # because CPATH is set, pkgconfig does not include
     # ${prefix}/include even when requested the configure.py script,
@@ -200,6 +203,7 @@ if {${name} ne ${subport}} {
 
     destroot.cmd        ${build.cmd}
     destroot.destdir    DESTDIR=${destroot}
+    destroot.target     install
 
     test.run            yes
     test.cmd            cd qt && ${python.bin} -c 'import PyQt4'
