@@ -5,6 +5,7 @@ PortGroup               github 1.0
 PortGroup               cmake 1.1
 PortGroup               muniversal 1.0
 PortGroup               legacysupport 1.1
+PortGroup               conflicts_build 1.0
 
 github.setup            google leveldb 1.23
 github.tarball_from     archive
@@ -41,7 +42,7 @@ variant tmalloc description {use tcmalloc from gperftools} {
 #  - https://trac.macports.org/ticket/56164
 #  - https://trac.macports.org/ticket/56288
 if {![variant_isset tmalloc]} {
-    conflicts           gperftools
+    conflicts_build     gperftools
 }
 
 variant rtti description {build with RTTI} {
