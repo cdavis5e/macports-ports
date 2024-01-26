@@ -4,6 +4,7 @@ PortSystem          1.0
 PortGroup           python 1.0
 PortGroup           compilers 1.0
 PortGroup           compiler_blacklist_versions 1.0
+PortGroup           muniversal 1.1
 
 name                py-numpy
 version             1.26.4
@@ -32,13 +33,6 @@ compiler.cxx_standard 2017
 # be investigated right now
 compiler.blacklist-append {clang < 1100}
 
-if {${name} ne ${subport}} {
-    # the python PortGroup puts compiler names in build.env and destroot.env for
-    # this to be done correctly, the following must be located before python.versions
-    pre-build    { set_compilers }
-    pre-destroot { set_compilers }
-}
-
 python.versions     39 310 311 312 313
 python.pep517_backend meson
 
@@ -65,29 +59,6 @@ if {${name} ne ${subport}} {
             reinplace "s,'-O3','-O2'," \
                 ${worksrcpath}/numpy/distutils/fcompiler/gnu.py
         }
-
-        if { [use_wrapper] } {
-            # Prepare wrappers
-            file copy -force ${filespath}/wrapper-template \
-                ${worksrcpath}/c-wrapper
-            file copy -force ${filespath}/wrapper-template \
-                ${worksrcpath}/f-wrapper
-            file copy -force ${filespath}/wrapper-template \
-                ${worksrcpath}/cxx-wrapper
-
-            reinplace   "s|@@@|${configure.cc}|" ${worksrcpath}/c-wrapper
-            reinplace   "s|---|\\\\.c|" ${worksrcpath}/c-wrapper
-            reinplace   "s|&&&|${prefix}|" ${worksrcpath}/c-wrapper
-
-            reinplace   "s|@@@|${configure.cxx}|" ${worksrcpath}/cxx-wrapper
-            reinplace   "s#---#(\\\\.C|\\\\.cpp|\\\\.cc)#" \
-                ${worksrcpath}/cxx-wrapper
-            reinplace   "s|&&&|${prefix}|" ${worksrcpath}/cxx-wrapper
-
-            reinplace   "s|@@@|${configure.f90}|" ${worksrcpath}/f-wrapper
-            reinplace   "s|---|\\\\.f|" ${worksrcpath}/f-wrapper
-            reinplace   "s|&&&|${prefix}|" ${worksrcpath}/f-wrapper
-        }
     }
 
     depends_build-append \
@@ -95,6 +66,34 @@ if {${name} ne ${subport}} {
                         path:bin/cython-${python.branch}:py${python.version}-cython
 
     build.env-append    CYTHON=${prefix}/bin/cython-${python.branch}
+
+    if {${universal_possible} && [variant_isset universal]} {
+        foreach arch ${muniversal.architectures} {
+            build.env.${arch}-append \
+                                "ARCHFLAGS=[muniversal::get_archflag ld ${arch}]"
+            destroot.env.${arch}-append \
+                                "ARCHFLAGS=[muniversal::get_archflag ld ${arch}]"
+            test.env.${arch}-append \
+                                "ARCHFLAGS=[muniversal::get_archflag ld ${arch}]"
+        }
+        destroot.target {}
+        pre-destroot {
+            foreach arch ${muniversal.architectures} {
+                destroot.post_args.${arch} \
+                                [glob -directory ${workpath} *_${arch}.whl]
+            }
+        }
+    } else {
+        pre-build {
+            build.env-append    ARCHFLAGS=[get_canonical_archflags ld]
+        }
+        pre-destroot {
+            destroot.env-append ARCHFLAGS=[get_canonical_archflags ld]
+        }
+        pre-test {
+            test.env-append     ARCHFLAGS=[get_canonical_archflags ld]
+        }
+    }
 
     # do not allow fallback to (slow) NumPy-internal routines if no external BLAS/LAPACK libraries are found
     build.args-append -Csetup-args=-Dallow-noblas=false
@@ -197,33 +196,4 @@ if {${name} ne ${subport}} {
                     port:py${python.version}-mypy \
                     port:py${python.version}-typing_extensions \
                     port:py${python.version}-tz
-
-    # determine if special wrapper values are needed for compiler names
-    # a procedure is needed since variants from PortGroup compilers must
-    # be evaluated before it can be determined if clang is being used
-    proc use_wrapper {} {
-        global configure.cc
-
-        if {[variant_exists universal] && [variant_isset universal]} {
-            if {![string match *clang* ${configure.cc}]} {
-                # gcc compilers do not handle multiple -arch values properly
-                return 1
-            }
-        }
-        return 0
-    }
-
-    # set compiler names
-    proc set_compilers {} {
-        global configure.cc configure.cxx configure.fc worksrcpath
-
-        if {[use_wrapper]} {
-            # override values set in compilers PortGroup
-            configure.cc  ${worksrcpath}/c-wrapper
-            configure.cxx ${worksrcpath}/cxx-wrapper
-            configure.fc  ${worksrcpath}/f-wrapper
-            configure.f77 ${worksrcpath}/f-wrapper
-            configure.f90 ${worksrcpath}/f-wrapper
-        }
-    }
 }
