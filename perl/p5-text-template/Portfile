@@ -18,10 +18,6 @@ checksums           rmd160  764b6f3cd9fa0dc37e4608a3ad1e5e988547fbb9 \
                     size    50421
 
 if {${perl5.major} != ""} {
-    depends_build-append \
-                    port:p${perl5.major}-test-more-utf8 \
-                    port:p${perl5.major}-test-warnings
-
     depends_lib-append \
                     port:p${perl5.major}-encode
 
