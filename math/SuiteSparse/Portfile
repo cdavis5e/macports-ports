@@ -59,6 +59,7 @@ subport SuiteSparse_config {
 }
 
 subport SuiteSparse_AMD {
+    PortGroup               muniversal 1.1
     version                 3.3.2
     revision                0
     depends_lib-append      port:SuiteSparse_config
@@ -263,7 +264,9 @@ if {${subport} eq ${name}} {
     PortGroup               compilers 1.0
     PortGroup               cmake 1.1
 
-    compilers.choose        cc cpp cxx
+    if {${subport} ne "SuiteSparse_AMD"} {
+        compilers.choose        cc cpp cxx
+    }
     compilers.setup
 
     if {${subport} eq "SuiteSparse_config"} {
