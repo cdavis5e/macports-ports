@@ -2,6 +2,7 @@
 
 PortSystem              1.0
 PortGroup               github 1.0
+PortGroup               muniversal 1.1
 
 github.setup            festvox flite 2.2 v
 # Change github.tarball_from to 'releases' or 'archive' next update
