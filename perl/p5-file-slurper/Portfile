@@ -19,9 +19,6 @@ checksums           rmd160  5080928e50a055494230dab8138d9c27fc64d1e7 \
                     size    16064
 
 if {${perl5.major} != ""} {
-    depends_build-append \
-                    port:p${perl5.major}-test-warnings
-
     depends_lib-append \
                     port:p${perl5.major}-encode
 }
