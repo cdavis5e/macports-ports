@@ -1,0 +1,12 @@
+--- share/qt/Info.plist.in~	2023-12-04 03:45:21.000000000 -0700
++++ share/qt/Info.plist.in	2024-01-26 02:16:50.000000000 -0700
+@@ -2,9 +2,6 @@
+ <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+ <plist version="0.9">
+ <dict>
+-  <key>LSMinimumSystemVersion</key>
+-  <string>11</string>
+-
+   <key>LSArchitecturePriority</key>
+   <array>
+     <string>x86_64</string>

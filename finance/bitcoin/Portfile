@@ -119,7 +119,8 @@ variant gui description {Build the Qt5 GUI} {
     PortGroup qt5 1.0
 
     depends_lib-append port:qt5 port:qrencode
-    patchfiles-append       patch-appbundle-target.diff
+    patchfiles-append       patch-appbundle-target.diff \
+                            patch-no-min-system-version.diff
     configure.args-replace  --with-gui=no --with-gui=qt5
     configure.args-append   --with-qrencode --enable-gui-tests
     build.target-replace all appbundle
