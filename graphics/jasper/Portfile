@@ -28,6 +28,9 @@ compiler.c_standard 2011
 cmake.out_of_source yes
 
 configure.args-append   -DGLUT_glut_LIBRARY=${configure.sdkroot}/System/Library/Frameworks/GLUT.framework \
+                        -DGLUT_cocoa_LIBRARY=${configure.sdkroot}/System/Library/Frameworks/Cocoa.framework \
+                        -DOPENGL_gl_LIBRARY=${configure.sdkroot}/System/Library/Frameworks/OpenGL.framework \
+                        -DOPENGL_glu_LIBRARY=${configure.sdkroot}/System/Library/Frameworks/OpenGL.framework \
                         -DJAS_ENABLE_LIBHEIF=OFF \
                         -DJAS_ENABLE_DOC=OFF \
                         -DJAS_PACKAGING=ON
