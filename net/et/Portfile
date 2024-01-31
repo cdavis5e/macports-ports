@@ -11,7 +11,7 @@ legacysupport.newest_darwin_requires_legacy 10
 github.setup        MisterTea EternalTerminal 6.2.8 et-v
 # Change github.tarball_from to 'releases' or 'archive' next update
 github.tarball_from tarball
-revision            1
+revision            2
 name                et
 categories          net
 license             Apache-2
@@ -51,3 +51,11 @@ startupitem.install     yes
 startupitem.custom_file ${worksrcpath}/init/launchd/homebrew.mxcl.et.plist
 startupitem.plist       dev.eternalterminal.et.plist
 startupitem.type        launchd
+
+post-destroot {
+    # Remove extraneous httplib artifacts that would conflict with a hypothetical
+    # cpp-httplib port.
+    delete ${destroot}${prefix}/include/httplib.h
+    delete ${destroot}${prefix}/lib/cmake/httplib
+}
+
