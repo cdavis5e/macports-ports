@@ -1,0 +1,43 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+PortGroup           github 1.0
+PortGroup           makefile 1.0
+
+github.setup        altlinux libutempter 63825e2244629d44dae21132b1065d7ecc0491c0
+#github.tarball_from 
+version             1.2.2-alt1
+revision            0
+categories          sysutils
+license             LGPL-2+
+maintainers         openmaintainer
+description         utmp(5) maintenance library
+long_description    libutempter is a utility library that uses a helper binary \
+                    to update the utmp(5) and wtmp(5) files in a safe and \
+                    secure way.
+
+checksums           rmd160  a62683c8b44aa55885673a1ff8a9f9732797f1a3 \
+                    sha256  54905d4401493ba0dc9bb214b59a95338636dfecd66a1ebe796cb94dd5462c26 \
+                    size    20248
+
+worksrcdir          ${worksrcdir}/libutempter
+
+patchfiles          patch-darwin.diff
+patch.pre_args      -p1
+
+foreach phase {build destroot} {
+    ${phase}.args-append   libdir=${prefix}/lib \
+                           libexecdir=${prefix}/libexec \
+                           includedir=${prefix}/include \
+                           mandir=${prefix}/share/man \
+                           MAP=libutempter.exp \
+                           LINK_NOW= \
+                           LINK_RELRO= \
+                           LINK_STATS=-Wl,-print_statistics \
+                           "COMPILE.c='\$(CC) -c \$(CPPFLAGS) \$(CFLAGS)'" \
+                           "LINK.c='\$(CC) \$(CPPFLAGS) \$(CFLAGS) \$(LDFLAGS)'" \
+                           "LINK.o='\$(CC) \$(LDFLAGS)'" \
+                           "OUTPUT_OPTION='-o \$@'"
+}
+
+makefile.override   DESTDIR INSTALL

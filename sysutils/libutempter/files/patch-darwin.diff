@@ -1,0 +1,183 @@
+diff --git a/Makefile b/Makefile
+index 256f1f8..3fdd006 100644
+--- a/Makefile
++++ b/Makefile
+@@ -22,8 +22,8 @@ PROJECT = utempter
+ VERSION = $(shell sed '/^Version: */!d;s///;q' libutempter.spec)
+ MAJOR = 0
+ 
+-SHAREDLIB = lib$(PROJECT).so
+-SONAME = $(SHAREDLIB).$(MAJOR)
++SHAREDLIB = lib$(PROJECT).dylib
++SONAME = lib$(PROJECT).$(MAJOR).dylib
+ STATICLIB = lib$(PROJECT).a
+ MAP = lib$(PROJECT).map
+ 
+@@ -65,8 +65,11 @@ $(PROJECT): utempter.c diag.h
+ 
+ $(SHAREDLIB): iface.os $(MAP)
+ 	$(LINK.o) -shared \
+-		-Wl,-soname,$(SONAME),--version-script=$(MAP),-z,defs \
+-		-lc $< $(OUTPUT_OPTION)
++		-Wl,-install_name,$(libdir)/$(SONAME) \
++		-Wl,-current_version,$(VERSION) \
++		-Wl,-compatibility_version,$(MAJOR) \
++		-Wl,-exported_symbols_list,$(MAP) \
++		$< $(OUTPUT_OPTION)
+ 
+ $(STATICLIB): iface.o
+ 	$(AR) $(ARFLAGS) $@ $<
+@@ -81,8 +84,8 @@ install:
+ 		$(DESTDIR)$(includedir) $(DESTDIR)$(man3dir)
+ 	$(INSTALL) -p -m2711 $(PROJECT) $(DESTDIR)$(libexecdir)/$(PROJECT)/
+ 	$(INSTALL) -p -m644 $(PROJECT).h $(DESTDIR)$(includedir)/
+-	$(INSTALL) -p -m755 $(SHAREDLIB) $(DESTDIR)$(libdir)/$(SHAREDLIB).$(VERSION)
+-	ln -s $(SHAREDLIB).$(VERSION) $(DESTDIR)$(libdir)/$(SONAME)
++	$(INSTALL) -p -m755 $(SHAREDLIB) $(DESTDIR)$(libdir)/lib$(PROJECT).$(VERSION).dylib
++	ln -s lib$(PROJECT).$(VERSION).dylib $(DESTDIR)$(libdir)/$(SONAME)
+ 	ln -s $(SONAME) $(DESTDIR)$(libdir)/$(SHAREDLIB)
+ 	$(INSTALL) -p -m644 $(PROJECT).3 $(DESTDIR)$(man3dir)/
+ 	for n in lib$(PROJECT) utempter_add_record utempter_remove_record \
+diff --git a/iface.c b/iface.c
+index 37c74a8..72ee6f2 100644
+--- a/iface.c
++++ b/iface.c
+@@ -45,6 +45,25 @@
+ 
+ #define UTEMPTER_DEFAULT_PATHNAME	LIBEXECDIR "/utempter/utempter"
+ 
++#ifdef __APPLE__	/* No getresgid(2) here */
++static gid_t my_sgid = (gid_t)-1;
++static void __attribute__((__constructor__))
++getsgid(void)
++{
++		/* This is sadly the best we can do. */
++		my_sgid = getegid();
++}
++
++static int
++getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid)
++{
++		*rgid = getgid();
++		*egid = getegid();
++		*sgid = my_sgid == (gid_t)-1 ? *egid : my_sgid;
++		return 0;
++}
++#endif
++
+ static const char *utempter_pathname;
+ static int saved_fd = -1;
+ 
+@@ -70,7 +89,7 @@ do_child(int master_fd, const char *path, char *const *argv)
+ 		if (sgid == egid)
+ 			break;
+ 
+-		if (setgid(sgid))
++		if (setegid(sgid))
+ 			break;
+ 
+ 		(void) execv(path, argv);
+diff --git a/utempter.c b/utempter.c
+index 55dc790..79c54f4 100644
+--- a/utempter.c
++++ b/utempter.c
+@@ -33,7 +33,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+ #include <sys/time.h>
+-#include <utmp.h>
++#include <utmpx.h>
+ 
+ #include "diag.h"
+ 
+@@ -79,45 +79,46 @@ static int
+ write_uwtmp_record(const char *user, const char *term, const char *host,
+ 		   pid_t pid, int add)
+ {
+-	struct utmp ut;
++	struct utmpx utx;
+ 	struct timeval tv;
+ 	size_t len, offset;
+ 
+-	memset(&ut, 0, sizeof(ut));
++	memset(&utx, 0, sizeof(utx));
+ 
+ 	memset(&tv, 0, sizeof(tv));
+ 	(void) gettimeofday(&tv, 0);
+ 
+ 	len = strlen(user);
+-	memcpy(ut.ut_name, user, MIN(sizeof(ut.ut_name), len));
++	memcpy(utx.ut_user, user, MIN(sizeof(utx.ut_user), len));
+ 
+ 	if (host) {
+ 		len = strlen(host);
+-		memcpy(ut.ut_host, host, MIN(sizeof(ut.ut_host), len));
++		memcpy(utx.ut_host, host, MIN(sizeof(utx.ut_host), len));
+ 	}
+ 
+ 	len = strlen(term);
+-	memcpy(ut.ut_line, term, MIN(sizeof(ut.ut_line), len));
++	memcpy(utx.ut_line, term, MIN(sizeof(utx.ut_line), len));
+ 
+-	offset = len <= sizeof(ut.ut_id) ? 0 : len - sizeof(ut.ut_id);
+-	memcpy(ut.ut_id, term + offset, len - offset);
++	offset = len <= sizeof(utx.ut_id) ? 0 : len - sizeof(utx.ut_id);
++	memcpy(utx.ut_id, term + offset, len - offset);
+ 
+ 	if (add)
+-		ut.ut_type = USER_PROCESS;
++		utx.ut_type = USER_PROCESS;
+ 	else
+-		ut.ut_type = DEAD_PROCESS;
++		utx.ut_type = DEAD_PROCESS;
+ 
+-	ut.ut_pid = pid;
++	utx.ut_pid = pid;
+ 
+-	ut.ut_tv.tv_sec = (__typeof__(ut.ut_tv.tv_sec)) tv.tv_sec;
+-	ut.ut_tv.tv_usec = (__typeof__(ut.ut_tv.tv_usec)) tv.tv_usec;
++	utx.ut_tv.tv_sec = (__typeof__(utx.ut_tv.tv_sec)) tv.tv_sec;
++	utx.ut_tv.tv_usec = (__typeof__(utx.ut_tv.tv_usec)) tv.tv_usec;
+ 
+-	setutent();
+-	if (!pututline(&ut))
+-		fatal_error("pututline: %s", strerror(errno));
+-	endutent();
++	setutxent();
++	if (!pututxline(&utx))
++		fatal_error("pututxline: %s", strerror(errno));
++	endutxent();
+ 
+-	(void) updwtmp(_PATH_WTMP, &ut);
++	/* Darwin does this automatically */
++	/*(void) updwtmp(_PATH_WTMP, &ut);*/
+ 
+ 	debug_msg("utmp/wtmp record %s for terminal '%s'",
+ 		  add ? "added" : "removed", term);
+--- /dev/null	2024-04-13 18:53:54
++++ b/libutempter.exp	2024-04-13 17:22:52
+@@ -0,0 +1,24 @@
++#
++# Copyright (C) 2002,2005  Dmitry V. Levin <ldv@altlinux.org>
++#
++# Linker version script for the libutempter project.
++#
++# This library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++#
++# This library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with this library; if not, write to the Free Software
++# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++#
++
++_utempter_add_record
++_utempter_remove_record
++_utempter_remove_added_record
++_utempter_set_helper
