@@ -1,0 +1,48 @@
+--- Modules/WriteBasicConfigVersionFile.cmake~	2024-04-11 08:12:19.000000000 -0600
++++ Modules/WriteBasicConfigVersionFile.cmake	2024-05-05 01:44:32.000000000 -0600
+@@ -47,7 +47,36 @@
+   endif()
+ 
+   if(NOT CVF_ARCH_INDEPENDENT)
+-    set(CVF_ARCH_INDEPENDENT_CHECK "
++    if(APPLE)
++      if (CMAKE_OSX_ARCHITECTURES)
++        set(CVF_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES})
++      else()
++        set(CVF_OSX_ARCHITECTURES ${CMAKE_HOST_SYSTEM_PROCESSOR})
++      endif()
++      set(CVF_ARCH_INDEPENDENT_CHECK "
++# if the using project didn't set CMAKE_OSX_ARCHITECTURES, infer it from the host:
++if(CMAKE_OSX_ARCHITECTURES)
++  set(_OSX_ARCHITECTURES \${CMAKE_OSX_ARCHITECTURES})
++else()
++  set(_OSX_ARCHITECTURES \${CMAKE_HOST_SYSTEM_PROCESSOR})
++endif()
++# n.b. IMPORTANT: the list of installed architectures must be constructed in
++# this fashion so e.g. MacPorts' muniversal can merge these files together
++set(_INSTALLED_OSX_ARCHITECTURES)
++list(APPEND _INSTALLED_OSX_ARCHITECTURES ${CVF_OSX_ARCHITECTURES})
++
++# check that the installed version has the same architectures as the one which is currently searching:
++list(REMOVE_ITEM _OSX_ARCHITECTURES \${_INSTALLED_OSX_ARCHITECTURES})
++list(LENGTH _OSX_ARCHITECTURES num_archs)
++if(NOT num_archs EQUAL 0)
++  set(PACKAGE_VERSION \"\${PACKAGE_VERSION} (\${_INSTALLED_OSX_ARCHITECTURES} - missing \${_OSX_ARCHITECTURES})\")
++  set(PACKAGE_VERSION_UNSUITABLE TRUE)
++endif()
++unset(_OSX_ARCHITECTURES)
++unset(_INSTALLED_OSX_ARCHITECTURES)
++unset(num_archs)")
++    else()
++      set(CVF_ARCH_INDEPENDENT_CHECK "
+ # if the installed or the using project don't have CMAKE_SIZEOF_VOID_P set, ignore it:
+ if(\"\${CMAKE_SIZEOF_VOID_P}\" STREQUAL \"\" OR \"${CMAKE_SIZEOF_VOID_P}\" STREQUAL \"\")
+   return()
+@@ -59,6 +88,7 @@
+   set(PACKAGE_VERSION \"\${PACKAGE_VERSION} (\${installedBits}bit)\")
+   set(PACKAGE_VERSION_UNSUITABLE TRUE)
+ endif()")
++    endif()
+   endif()
+ 
+   configure_file("${versionTemplateFile}" "${_filename}" @ONLY)
