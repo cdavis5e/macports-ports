@@ -60,10 +60,8 @@ compiler.blacklist  {clang < 700} macports-clang-3.3 macports-clang-3.4
 # Clean automatically set options that apply to both host and target architectures (which we do not want)
 build.post_args-append  CCOPT= CCOPT_x86= TARGET_STRIP='@:'
 foreach arch ${muniversal.architectures} {
-    build.args.${arch}-append  TARGET_FLAGS+="[muniversal::get_archflag cc ${arch}]"
-    build.post_args.${arch}-append \
-        CFLAGS="${configure.cflags} [configure.cflags.${arch}]" \
-        LDFLAGS="${configure.ldflags} [configure.ldflags.${arch}]"
+    build.args.${arch}-append  TARGET_FLAGS+="[muniversal::get_archflag cc ${arch}]" \
+                               HOST_CC="${configure.cc} [muniversal::get_archflag cc ${arch}]"
 }
 
 # changes to compiler flags must be made before `CFLAGS=...`
