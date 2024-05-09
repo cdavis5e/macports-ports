@@ -1,5 +1,14 @@
 --- mesonpy/__init__.py.orig	2023-10-26 04:49:15
 +++ mesonpy/__init__.py	2023-10-29 13:21:10
+@@ -676,7 +676,7 @@
+                     x = os.environ.setdefault('_PYTHON_HOST_PLATFORM', f'macosx-{macver}-{arch}')
+                     if not x.endswith(arch):
+                         raise ConfigError(f'$ARCHFLAGS={archflags!r} and $_PYTHON_HOST_PLATFORM={x!r} do not agree')
+-                    family = 'aarch64' if arch == 'arm64' else arch
++                    family = 'aarch64' if arch == 'arm64' else 'x86' if arch == 'i386' else arch
+                     cross_file_data = textwrap.dedent(f'''
+                         [binaries]
+                         c = ['cc', '-arch', {arch!r}]
 @@ -937,7 +937,7 @@
      if meson.endswith('.py'):
          cmd = [sys.executable, meson]
