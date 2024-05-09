@@ -505,6 +505,18 @@ proc muniversal::merge {base1 base2 base prefixDir arch1 arch2 merger_dont_diff 
                                 *-config {
                                     muniversal::strip_arch_flags ${dir1} ${dir2} ${dir} ${fl}
                                 }
+                                *ConfigVersion.cmake -
+                                *-config-version.cmake {
+                                    # These files contain an architecture check.
+                                    # The check is specifically crafted to work with interleaving.
+                                    set diffFormatCombine {--old-group-format='%<' --new-group-format='%>' --unchanged-group-format='%=' --changed-group-format='%<%>'}
+                                    ui_debug "universal: merge: created ${prefixDir}/${fl} by combining ${prefixDir}/${arch1}-${fl} ${prefixDir}/${arch1}-${fl}"
+                                    system "[muniversal::muniversal_get_diff_to_use] -dw ${diffFormatCombine} \"${dir1}/${fl}\" \"${dir2}/${fl}\" > \"${dir}/${fl}\"; test \$? -le 1"
+                                }
+                                *.cmake {
+                                    ui_debug "universal: don't know how to merge other cmake files!"
+                                    return -code error "${prefixDir}/${fl} differs in ${base1} and ${base2} and cannot be merged"
+                                }
                                 *.la {
                                     if {[option destroot.delete_la_files]} {
                                         ui_debug "universal: merge: ${prefixDir}/${fl} differs in ${base1} and ${base2}; ignoring due to delete_la_files"
