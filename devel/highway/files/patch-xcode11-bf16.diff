@@ -1,0 +1,13 @@
+--- hwy/detect_compiler_arch.h~	2024-05-31 09:31:10.000000000 -0600
++++ hwy/detect_compiler_arch.h	2024-06-09 20:31:52.000000000 -0600
+@@ -93,7 +93,9 @@
+ #define HWY_COMPILER_CLANG 1100
+ #elif __has_warning("-Wmisleading-indentation")
+ #define HWY_COMPILER_CLANG 1000
+-#elif defined(__FILE_NAME__)
++// Xcode 11 has __FILE_NAME__, but not the bf16 intrinsics.
++#elif defined(__FILE_NAME__) && \
++    (!defined(__apple_build_version__) || __apple_build_version__ > 11000033)
+ #define HWY_COMPILER_CLANG 900
+ #elif __has_warning("-Wextra-semi-stmt") || \
+     __has_builtin(__builtin_rotateleft32)
