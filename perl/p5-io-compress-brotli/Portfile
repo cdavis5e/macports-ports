@@ -27,12 +27,18 @@ if {${perl5.major} != ""} {
     patchfiles      Makefile.PL.patch
 
     post-patch {
+        set sdkroot ${configure.sysroot}
+        if {${sdkroot} eq ""} {
+            set sdkroot "/"
+        }
         set re [list \
             "s|@CC@|${configure.cc}|g" \
             "s|@CFLAGS@|${configure.cflags} [get_canonical_archflags cc]|g" \
             "s|@LDFLAGS@|${configure.ldflags} [get_canonical_archflags ld]|g" \
+            "s|@SYSROOT@|${sdkroot}|g" \
         ]
         reinplace [join ${re} {;}] ${worksrcpath}/Makefile.PL
+        unset sdkroot
     }
 
     # Makefile.PL uses Alien-cmake3 to use cmake and then make (without
