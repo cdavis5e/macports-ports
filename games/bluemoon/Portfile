@@ -1,6 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
 PortSystem          1.0
+PortGroup           conflicts_build 1.0
 
 name                bluemoon
 version             2.13
@@ -35,6 +36,9 @@ master_sites        ${homepage} \
 checksums           rmd160  a0994d7aa386beb09e85efc573f007366a97ee45 \
                     sha256  e4b40cad1b58f2c7c136fde780539a4a7eb12b28cdd479f8d0d2d08a34fd5076 \
                     size    12618
+
+# Installation tries to remove the old one
+conflicts_build     bluemoon
 
 patch {
     reinplace s|/usr|${prefix}|g ${worksrcpath}/Makefile
