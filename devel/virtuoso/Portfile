@@ -16,14 +16,20 @@ if { ${configure.build_arch} in [list ppc ppc64] } {
     depends_build       port:${name}-5
     version             5.0.15
     revision            0
+    supported_archs     ppc ppc64
+    installs_libs       no
 } elseif { ${configure.build_arch} eq "i386" } {
     depends_build       port:${name}-6
     version             6.1.7
     revision            2
+    supported_archs     i386
+    installs_libs       no
 } else {
     depends_build       port:${name}-7
     version             7.1.0
     revision            2
+    supported_archs     x86_64 arm64
+    installs_libs       no
 }
 
 livecheck.type		none
