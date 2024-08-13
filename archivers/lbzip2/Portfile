@@ -22,6 +22,8 @@ description             ${name} - parallel bzip2 compression utility
 long_description        ${name} is a free, multi-threaded compression utility \
                         with support for bzip2 compressed file format.
 
+installs_libs           no
+
 # Change to one of these with next version update.
 #github.tarball_from     archive
 #github.tarball_from     releases
