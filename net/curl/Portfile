@@ -2,6 +2,7 @@
 
 PortSystem                      1.0
 PortGroup                       clang_dependency 1.0
+PortGroup                       conflicts_build 1.0
 
 # Increase the revision of p5-www-curl whenever the version of curl gets updated.
 
@@ -197,8 +198,9 @@ if {${name} eq ${subport}} {
 
     variant gss description {Support the Generic Security Service API} {
         # This needs to use the system's Kerberos, not MacPorts' gss or kerberos5.
-        conflicts-append        gss kerberos5
         configure.args-replace  --without-gssapi --with-gssapi
+        configure.args-append   --with-gssapi-includes=/usr/include \
+                                ac_cv_header_gss_h=no
     }
 
     variant http2 description {Support HTTP/2} {
