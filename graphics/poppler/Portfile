@@ -4,6 +4,7 @@ PortSystem          1.0
 PortGroup           gobject_introspection 1.0
 PortGroup           cmake 1.1
 PortGroup           legacysupport 1.1
+PortGroup           compiler_blacklist_versions 1.0
 
 name                poppler
 conflicts           poppler-devel xpdf-tools
@@ -71,6 +72,8 @@ gobject_introspection yes
 compiler.cxx_standard 2020
 compiler.c_standard   2011
 compiler.thread_local_storage yes
+compiler.blacklist-append \
+                    {clang < 1200.0}
 
 legacysupport.newest_darwin_requires_legacy 18
 legacysupport.use_mp_libcxx yes
