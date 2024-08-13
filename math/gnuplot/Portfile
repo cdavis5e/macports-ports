@@ -98,8 +98,14 @@ variant pangocairo description "Enable cairo-based terminals" {
     configure.args-delete       --without-cairo
 }
 
-variant wxwidgets description "Enable wxt terminal" {
+variant wxwidgets conflicts wxwidgets32 description "Enable wxt terminal with wxWidgets-3.0" {
     wxWidgets.use               wxWidgets-3.0
+    depends_lib-append          port:${wxWidgets.port}
+    configure.args-replace      --disable-wxwidgets --with-wx=${wxWidgets.wxdir}
+}
+
+variant wxwidgets32 conflicts wxwidgets description "Enable wxt terminal with wxWidgets-3.2" {
+    wxWidgets.use               wxWidgets-3.2
     depends_lib-append          port:${wxWidgets.port}
     configure.args-replace      --disable-wxwidgets --with-wx=${wxWidgets.wxdir}
 }
@@ -158,11 +164,11 @@ if {${os.platform} eq "darwin" && ${os.major} > 8} {
     default_variants-append     +aquaterm
 }
 # wxWidgets 3.0 requires 10.5 or later (or non-Darwin)
-if {${os.platform} ne "darwin" || ${os.major} > 8} {
+if {${os.platform} ne "darwin" || ${os.major} > 8 && ![variant_isset wxwidgets32]} {
     default_variants-append     +wxwidgets
 }
 
-if {[variant_isset pangocairo] || [variant_isset wxwidgets]} {
+if {[variant_isset pangocairo] || [variant_isset wxwidgets] || [variant_isset wxwidgets32]} {
     depends_lib-append          path:lib/pkgconfig/pango.pc:pango
 }
 
