@@ -130,6 +130,20 @@ variant old_bitmap_terminals description "Enable PBM (Portable Bit Map) and othe
     configure.args-replace      --without-bitmap-terminals --with-bitmap-terminals
 }
 
+variant latex description "Install TeX configuration" {
+    depends_run-append          port:texlive-basic
+    # gnuplot's makefile does all this already, but we need to do this manually
+    # anyway, particularly when building with lua support--see below.
+    post-destroot {
+        set texmf ${destroot}${texlive_texmfports}
+        xinstall -d -m 0755 ${texmf}/tex/latex/gnuplot
+        xinstall -m 0644 ${worksrcpath}/share/LaTex/gnuplot.cfg ${texmf}/tex/latex/gnuplot
+    }
+    post-activate {
+        system texhash
+    }
+}
+
 default_variants                +luaterm +pangocairo
 if {![variant_isset qt] && ![variant_isset qt5]} {
     if {${os.platform} eq "darwin" && ${os.major} < 19} {
