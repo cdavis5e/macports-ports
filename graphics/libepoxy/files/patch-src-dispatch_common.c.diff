@@ -1,0 +1,76 @@
+--- src/dispatch_common.c.orig	2022-02-17 05:56:12.000000000 -0700
++++ src/dispatch_common.c	2024-07-15 01:33:39.000000000 -0600
+@@ -174,6 +174,7 @@
+ #include "dispatch_common.h"
+ 
+ #if defined(__APPLE__)
++#define X11_LIB "/opt/X11/lib/libX11.6.dylib"
+ #define GLX_LIB "/opt/X11/lib/libGL.1.dylib"
+ #define OPENGL_LIB "/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
+ #define GLES1_LIB "libGLESv1_CM.so"
+@@ -301,7 +302,17 @@
+     }
+ 
+ #ifdef _WIN32
+-    *handle = LoadLibraryA(lib_name);
++    if (!load)
++        GetModuleHandleExA(0, lib_name, handle);
++    else
++        *handle = LoadLibraryA(lib_name);
++    if (!*handle && exit_on_fail) {
++        char *msg;
++
++        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), (LPSTR)&msg, 0, NULL);
++        fprintf(stderr, "Couldn't open %s: %s\n", lib_name, msg);
++        abort();
++    }
+ #else
+     pthread_mutex_lock(&api.mutex);
+     if (!*handle) {
+@@ -325,6 +336,16 @@
+     return *handle != NULL;
+ }
+ 
++static void
++close_lib_handle(void *handle)
++{
++#ifdef _WIN32
++    FreeLibrary(handle);
++#else
++    dlclose(handle);
++#endif
++}
++
+ static void *
+ do_dlsym(void **handle, const char *name, bool exit_on_fail)
+ {
+@@ -333,6 +354,8 @@
+ 
+ #ifdef _WIN32
+     result = GetProcAddress(*handle, name);
++    if (!result)
++        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), (LPSTR)&msg, 0, NULL);
+ #else
+     result = dlsym(*handle, name);
+     if (!result)
+@@ -667,6 +690,20 @@
+ 	return;
+ 
+ #if defined(_WIN32) || defined(__APPLE__)
++# if PLATFORM_HAS_GLX
++    void *x11_handle = NULL;
++    // If an X11 interface is loaded, try GLX. This isn't a perfect heuristic,
++    // but it should work for the vast majority of cases.
++    get_dlopen_handle(&x11_handle, X11_LIB, false, false);
++    if (x11_handle) {
++        get_dlopen_handle(&api.glx_handle, GLX_LIB, false, true);
++        if (api.glx_handle)
++            api.gl_handle = api.glx_handle;
++        close_lib_handle(x11_handle);
++        if (api.gl_handle)
++            return;
++    }
++# endif
+     get_dlopen_handle(&api.gl_handle, OPENGL_LIB, true, true);
+ #else
+ 
