@@ -1,6 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
 PortSystem              1.0
+PortGroup               conflicts_build 1.0
 
 name                    libgsasl
 version                 1.10.0
@@ -42,4 +43,6 @@ livecheck.regex         "${name}-(\\d+(?:\\.\\d+)*)${extract.suffix}"
 variant gssapi_mit description {Use MIT GSS-API implementation} {
     depends_lib-delete port:gss
     configure.args-append --with-gssapi-impl=mit
+    # Prevent a phantom dependency on the kerberos5 port.
+    conflicts_build kerberos5
 }
