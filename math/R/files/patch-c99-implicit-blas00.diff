@@ -1,0 +1,11 @@
+--- src/extra/blas/Makefile.in~	2024-03-26 17:02:03.000000000 -0600
++++ src/extra/blas/Makefile.in	2024-07-20 23:25:14.000000000 -0600
+@@ -15,7 +15,7 @@
+ .f90.o:
+ 	$(FC) $(ALL_FCFLAGS) -c @FCFLAGS_f90@ $< -o $@
+ 
+-ALL_CFLAGS = $(ALL_CFLAGS_LO)
++ALL_CFLAGS = $(ALL_CFLAGS_LO) -Wno-implicit-function-declaration
+ ALL_FFLAGS = $(ALL_FFLAGS_LO)
+ ALL_FCFLAGS = $(ALL_FFLAGS_LO)
+ 

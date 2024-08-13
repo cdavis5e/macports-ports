@@ -96,6 +96,8 @@ if {${os.platform} eq "darwin" && ${os.major} < 11} {
     patchfiles-append       patch-fix-10.6.diff
 }
 
+patchfiles-append           patch-c99-implicit-blas00.diff
+
 # We wanna ensure the same compiler is used for R itself and R packages.
 # See R PortGroup.
 if {[string match macports-clang-* ${configure.compiler}]} {
