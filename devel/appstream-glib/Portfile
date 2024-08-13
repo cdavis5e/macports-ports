@@ -29,6 +29,7 @@ checksums           rmd160  79f1000cc42ac91bab7187c9a71bfba5a3ca3852 \
 depends_build-append \
                     port:pkgconfig \
                     port:gettext \
+                    port:gperf \
                     port:gtk-doc
 
 depends_lib-append \
@@ -41,7 +42,6 @@ depends_lib-append \
                     path:lib/pkgconfig/gdk-pixbuf-2.0.pc:gdk-pixbuf2 \
                     path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     path:lib/pkgconfig/gobject-introspection-1.0.pc:gobject-introspection \
-                    port:gperf \
                     path:lib/pkgconfig/gtk+-3.0.pc:gtk3 \
                     port:json-glib \
                     port:libarchive \
