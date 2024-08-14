@@ -60,7 +60,7 @@ configure.python        ${prefix}/bin/python${py_ver}
 installs_libs           no
 license_noconflict      perl5 python${py_ver_nodot}
 # 59037
-conflicts_build         libmd
+conflicts_build         libmd spdlog
 
 patchfiles-append       patch-src-portable_c.c.diff
 patchfiles-append       patch-CMakeLists.txt.diff
