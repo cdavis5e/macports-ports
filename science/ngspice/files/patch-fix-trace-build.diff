@@ -1,0 +1,110 @@
+--- src/frontend/subckt.c~	2024-07-12 17:33:45.000000000 -0600
++++ src/frontend/subckt.c	2024-07-12 18:11:09.000000000 -0600
+@@ -175,9 +175,14 @@
+ #ifdef TRACE
+     {
+         int i;
++        struct nghash_iter_rec iter;
++        void *k, *v;
+         printf("***Global node option has been found.***\n");
+-        for (i = 0; i < num_global_nodes; i++)
+-            printf("***Global node no.%d is %s.***\n", i, global_nodes[i]);
++        NGHASH_FIRST(&iter);
++        for (i = 0, v = nghash_enumeratekRE(glonodes, &k, &iter);
++             v;
++             i++, v = nghash_enumeratekRE(glonodes, &k, &iter))
++            printf("***Global node no.%d is %s.***\n", i, k);
+         printf("\n");
+     }
+ #endif
+@@ -1936,7 +1940,7 @@
+ 
+ #ifdef TRACE
+             /* SDB debug statement */
+-            printf("In devmodtranslate, translated codemodel line= %s\n", buffer);
++            printf("In devmodtranslate, translated codemodel line= %s\n", bxx_buffer(&buffer));
+ #endif
+ 
+             bxx_put_cstring(&buffer, t);
+--- src/spicelib/analysis/cktsens.c~	2023-12-27 11:58:03.000000000 -0700
++++ src/spicelib/analysis/cktsens.c	2024-07-12 18:22:26.000000000 -0600
+@@ -395,9 +395,9 @@
+ 
+ #ifdef ASDEBUG
+             DEBUG(2) {
+-                printf("E/iE: %x/%x; delta_I/iI: %x/%x\n",
++                printf("E/iE: %p/%p; delta_I/iI: %p/%p\n",
+                     E, iE, delta_I, delta_iI);
+-                printf("cktrhs/irhs: %x/%x\n",
++                printf("cktrhs/irhs: %p/%p\n",
+                     ckt->CKTrhs, ckt->CKTirhs);
+ 
+                 if (sg->is_instparam)
+--- src/spicelib/analysis/distoan.c~	2023-12-27 11:58:03.000000000 -0700
++++ src/spicelib/analysis/distoan.c	2024-07-12 18:24:41.000000000 -0600
+@@ -48,7 +48,7 @@
+     runDesc *acPlot = NULL;
+     DISTOAN *job = (DISTOAN *) ckt->CKTcurJob;
+     static char *nof2src = "No source with f2 distortion input";
+-#ifdef DISTODEBUG
++#ifdef D_DBG_BLOCKTIMES
+     double time,time1;
+ #endif
+ 
+--- src/spicelib/devices/bjt/bjtdisto.c~	2023-12-27 11:58:03.000000000 -0700
++++ src/spicelib/devices/bjt/bjtdisto.c	2024-07-12 18:30:06.000000000 -0600
+@@ -40,7 +40,7 @@
+     double r2h1m2z = 0.0, i2h1m2z = 0.0;
+     double temp, itemp;
+     BJTinstance *here;
+-#ifdef DISTODEBUG
++#ifdef D_DBG_SMALLTIMES
+     double time;
+ #endif
+ 
+--- src/frontend/variable.c~	2023-12-27 11:58:03.000000000 -0700
++++ src/frontend/variable.c	2024-07-12 20:05:34.000000000 -0600
+@@ -695,7 +695,9 @@
+ 
+ #ifdef TRACE
+     /* SDB debug statement */
+-    fprintf(stderr, "in cp_getvar, trying to get value of variable %s.\n", name);
++    /* n.b. MUST NOT use our wrapper to avoid infinite recursion */
++    if (strcmp(name, "addescape"))
++        fprintf(stderr, "in cp_getvar, trying to get value of variable %s.\n", name);
+ #endif
+ 
+     for (v = variables; v; v = v->va_next)
+--- src/spicelib/devices/bjt/bjtsload.c~	2023-12-27 11:58:03.000000000 -0700
++++ src/spicelib/devices/bjt/bjtsload.c	2024-07-12 20:07:11.000000000 -0600
+@@ -78,7 +78,7 @@
+ #ifdef SENSDEBUG
+     printf("BJTsenload \n");
+     printf("CKTtime = %.5e\n",ckt->CKTtime);
+-    printf("CKTorder = %.5e\n",ckt->CKTorder);
++    printf("CKTorder = %d\n",ckt->CKTorder);
+     printf("tag0=%.7e,tag1=%.7e\n",tag0,tag1);
+ #endif /* SENSDEBUG */
+     info = ckt->CKTsenInfo;
+--- src/spicelib/devices/dio/diosload.c~	2023-12-27 11:58:03.000000000 -0700
++++ src/spicelib/devices/dio/diosload.c	2024-07-12 20:07:44.000000000 -0600
+@@ -58,7 +58,7 @@
+     printf("DIOsenload\n");
+     fprintf(stdout,"DIOsenload\n");
+     fprintf(stdout,"CKTtime = %.5e\n",ckt->CKTtime);
+-    fprintf(stdout,"CKTorder = %.5e\n",ckt->CKTorder);
++    fprintf(stdout,"CKTorder = %d\n",ckt->CKTorder);
+     fprintf(stdout,"tag0 = %.5e tag1 = %.5e\n",tag0,tag1);
+ #endif /* SENSDEBUG */
+ 
+--- src/spicelib/devices/dio/diosupd.c~	2023-12-27 11:58:03.000000000 -0700
++++ src/spicelib/devices/dio/diosupd.c	2024-07-12 20:07:31.000000000 -0600
+@@ -38,7 +38,7 @@
+ #ifdef SENSDEBUG
+     printf("DIOsenUpdate\n");
+     printf("CKTtime = %.5e\n",ckt->CKTtime);
+-    printf("CKTorder = %.5e\n",ckt->CKTorder);
++    printf("CKTorder = %d\n",ckt->CKTorder);
+ #endif /* SENSDEBUG */
+ 
+     /*  loop through all the diode models */

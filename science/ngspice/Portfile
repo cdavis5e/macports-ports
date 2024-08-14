@@ -106,6 +106,21 @@ if {${name} eq ${subport}} {
         depends_run-append      port:ngspice-lib
     }
 
+    variant debug description {Enable debugging code} {
+        patchfiles-append       patch-fix-trace-build.diff
+        configure.args-delete   --disable-debug
+        configure.args-append   --enable-ftedebug \
+                                --enable-cpdebug \
+                                --enable-sensdebug \
+                                --enable-asdebug \
+                                --enable-stepdebug \
+                                --enable-pzdebug \
+                                --enable-blktmsdebug \
+                                --enable-smltmsdebug
+        configure.cppflags-append \
+                                -DTRACE
+    }
+
     variant openmp description {Add OpenMP support variant} {
         # ngspice does not specify what openmp version they require
         # version 2.5 is the least strict, and works
@@ -212,6 +227,21 @@ subport ngspice-lib {
         xinstall -m 644 -W ${worksrcpath} \
             src/include/ngspice/sharedspice.h \
             ${destroot}${prefix}/include/ngspice
+    }
+
+    variant debug description {Enable debugging code} {
+        patchfiles-append       patch-fix-trace-build.diff
+        configure.args-delete   --disable-debug
+        configure.args-append   --enable-ftedebug \
+                                --enable-cpdebug \
+                                --enable-sensdebug \
+                                --enable-asdebug \
+                                --enable-stepdebug \
+                                --enable-pzdebug \
+                                --enable-blktmsdebug \
+                                --enable-smltmsdebug
+        configure.cppflags-append \
+                                -DTRACE
     }
 
     variant openmp description {Add OpenMP support variant} {
