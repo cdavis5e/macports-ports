@@ -75,6 +75,7 @@ variant netcdf4 description {enable support for netcdf-4 API} {
                             port:zstd
     configure.args-delete   -DENABLE_NETCDF_4=OFF
     configure.args-append   -DENABLE_NETCDF_4=ON
+    configure.cflags-append -DH5Literate_vers=2
 }
 
 variant hdf4 description {enable support for hdf4} {
