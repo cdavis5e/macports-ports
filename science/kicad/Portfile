@@ -66,7 +66,7 @@ if {${name} eq ${subport}} {
         port:glew \
         port:glm \
         port:curl \
-        port:ngspice \
+        port:ngspice-lib \
         port:opencascade \
         port:py${py_ver_no_dot}-wxpython-4.0 \
         port:zlib \
