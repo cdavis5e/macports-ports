@@ -1,0 +1,19 @@
+--- ng/encoding.hpp~	2024-05-05 23:58:25.000000000 -0600
++++ ng/encoding.hpp	2024-05-06 02:37:07.000000000 -0600
+@@ -21,6 +21,8 @@
+ #include <libswresample/swresample.h>
+ }
+ 
++namespace netgen {
++
+ constexpr int BITRATE = 50000000;
+ 
+ class Mpeg {
+@@ -256,5 +258,7 @@
+         is_started = false;
+     }
+ };
++
++}
+ #endif // FFMPEG
+ #endif // ENCODING_HPP_INCLUDED__
