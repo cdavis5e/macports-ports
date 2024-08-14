@@ -1,0 +1,37 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem              1.0
+PortGroup               python 1.0
+
+name                    py-pycxx
+version                 7.1.8
+revision                0
+categories-append       devel
+license                 BSD
+platforms               {darwin any}
+supported_archs         noarch
+maintainers             openmaintainer
+
+description             Python-C++ Connection
+long_description        PyCXX is a set of classes to help create Python \
+                        extensions in the C++ language. These encapsulate \
+                        CPython's API, provide support for Python exceptions \
+                        and reference counting, and support building Python \
+                        extensions in C++.
+
+homepage                http://cxx.sourceforge.net/
+master_sites            sourceforge:cxx
+distname                pycxx-${version}
+
+checksums               md5     da769e5a91c981eb89fc70367d7ed6d0 \
+                        sha1    5a17a3a3ef81eb147d436800cda8ea646ecfe870 \
+                        rmd160  a64783ca9ac0ff99c95e639e80eac722478e8851 \
+                        size    154789
+
+python.versions         27 38 39 310 311 312
+
+if {${name} ne ${subport}} {
+    post-patch {
+        reinplace "s;\"Src/;\";" ${worksrcpath}/Src/cxxextensions.c
+    }
+}
