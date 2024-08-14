@@ -1,0 +1,17 @@
+--- eeschema/sim/spice_generator.cpp~	2024-02-21 05:39:11.000000000 -0700
++++ eeschema/sim/spice_generator.cpp	2024-07-13 18:46:29.000000000 -0600
+@@ -163,7 +163,13 @@
+         else
+         {
+             long symbolPinIndex = std::distance( aItem.pinNumbers.begin(), it );
+-            result.append( fmt::format( " {}", aItem.pinNetNames.at( symbolPinIndex ) ) );
++            const std::string& netname = aItem.pinNetNames.at( symbolPinIndex );
++            // If the netname contains a comment char, we must quote it.
++            if( netname.find( "//" ) != std::string::npos ||
++                netname.find_first_of( "$;" ) != std::string::npos )
++                result.append( fmt::format( " '{}'", netname ) );
++            else
++                result.append( fmt::format( " {}", netname ) );
+         }
+     }
+ 
