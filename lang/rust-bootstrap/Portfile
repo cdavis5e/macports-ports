@@ -7,8 +7,15 @@ PortGroup   rust_build      1.0
 name                        rust-bootstrap
 
 # the version should only be increased in conjunction with updating the version the rust port
-version                     1.77.0
-set version_current         1.78.0
+if {${os.platform} eq "darwin" && ${os.major} > 16} {
+    version                     1.80.1
+    set version_current         1.81.0
+    rust_build.stage0_versions  {1.79.0 1.78.0}
+} else {
+    version                     1.77.0
+    set version_current         1.78.0
+    rust_build.stage0_versions  {1.76.0 1.75.0}
+}
 # the values of revision are used in the rust_build PG
 # see the `checksums` of the MacPorts stage0 compilers and the value of `full_stage0_version`
 subport ${name}             { revision 0 }
