@@ -213,4 +213,19 @@ subport ngspice-lib {
             src/include/ngspice/sharedspice.h \
             ${destroot}${prefix}/include/ngspice
     }
+
+    variant openmp description {Add OpenMP support variant} {
+        # ngspice does not specify what openmp version they require
+        # version 2.5 is the least strict, and works
+        compiler.openmp_version  2.5
+        configure.args-replace   --disable-openmp --enable-openmp
+        compiler.blacklist-append   {clang < 1200.0.0}
+
+        # see https://trac.macports.org/ticket/64511
+        # not too much sure
+        #configure.cflags-append "-mcmodel=large"
+        #configure.cxxflags-append "-mcmodel=large"
+        #configure.ldflags-append "-mcmodel=large"
+    }
+
 }
