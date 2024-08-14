@@ -14,6 +14,7 @@ set audacity_dir    ${applications_dir}/Audacity.app/Contents
 subport ${name} {
     PortGroup           cmake 1.1
     PortGroup           wxWidgets 1.0
+    PortGroup           compiler_blacklist_versions 1.0
 
     github.setup        audacity audacity ${version} Audacity-
     github.tarball_from releases
@@ -61,6 +62,9 @@ subport ${name} {
                         -DwxWidgets_CONFIG_EXECUTABLE=${wxWidgets.wxconfig}
 
     compiler.cxx_standard   2017
+    # needs deduction guide for shared_ptr<T>(unique_ptr<T>)
+    compiler.blacklist-append \
+                        {clang < 1200.0}
 
     # if not present some menu items appear in another language
     destroot.keepdirs   ${destroot}${audacity_dir}/Resources/en.lproj
