@@ -2,6 +2,7 @@
 
 PortSystem          1.0
 PortGroup           cmake 1.1
+PortGroup           boost 1.0
 PortGroup           mpi 1.0
 PortGroup           github 1.0
 
@@ -50,7 +51,7 @@ if {[ mpi_variant_isset ]} {
 
 compiler.cxx_standard 2011
 
-set pythons_suffixes {27 37 38 39 310 311}
+set pythons_suffixes {27 37 38 39 310 311 312}
 
 set pythons_ports {}
 foreach s ${pythons_suffixes} {
