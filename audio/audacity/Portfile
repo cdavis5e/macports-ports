@@ -61,6 +61,10 @@ subport ${name} {
     configure.args      -Daudacity_conan_enabled=OFF \
                         -Daudacity_has_vst3=OFF \
                         -DwxWidgets_CONFIG_EXECUTABLE=${wxWidgets.wxconfig}
+    if {![tbool configure.ccache]} {
+        configure.args-append \
+                        -DCCACHE_PROGRAM=NO
+    }
 
     compiler.cxx_standard   2017
     # needs deduction guide for shared_ptr<T>(unique_ptr<T>)
