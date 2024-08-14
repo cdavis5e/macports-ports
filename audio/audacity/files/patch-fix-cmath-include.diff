@@ -1,0 +1,11 @@
+--- libraries/lib-wave-track/WaveClip.cpp~	2024-04-24 05:00:43.000000000 -0600
++++ libraries/lib-wave-track/WaveClip.cpp	2024-07-10 03:12:24.000000000 -0600
+@@ -15,7 +15,7 @@
+ *//*******************************************************************/
+ #include "WaveClip.h"
+ 
+-#include <math.h>
++#include <cmath>
+ #include <numeric>
+ #include <optional>
+ #include <vector>

@@ -50,7 +50,8 @@ subport ${name} {
 
     depends_run         port:ffmpeg7
 
-    patchfiles          patch-offline-manual.diff
+    patchfiles          patch-offline-manual.diff \
+                        patch-fix-cmath-include.diff
 
     post-patch {
         # truncate/disable this script which changes library paths
