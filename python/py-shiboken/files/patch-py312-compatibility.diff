@@ -1,0 +1,14 @@
+--- libshiboken/sbkstring.cpp~	2015-10-14 12:12:33.000000000 -0600
++++ libshiboken/sbkstring.cpp	2024-07-18 05:52:41.000000000 -0600
+@@ -173,7 +173,11 @@
+         return 0;
+ 
+     if (PyUnicode_Check(str))
++#if PY_VERSION_HEX > 0x03030000
++        return PyUnicode_GET_LENGTH(str);
++#else
+         return PyUnicode_GET_SIZE(str);
++#endif
+ 
+     if (PyBytes_Check(str))
+         return PyBytes_GET_SIZE(str);

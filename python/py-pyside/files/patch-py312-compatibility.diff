@@ -1,0 +1,35 @@
+--- PySide/QtCore/typesystem_core_common.xml~	2015-10-14 12:13:04.000000000 -0600
++++ PySide/QtCore/typesystem_core_common.xml	2024-07-18 15:51:22.000000000 -0600
+@@ -201,6 +201,24 @@
+         </native-to-target>
+         <target-to-native>
+             <add-conversion type="PyUnicode">
++            #if PY_VERSION_HEX &gt;= 0x03030000
++            switch (PyUnicode_KIND(%in)) {
++            case PyUnicode_1BYTE_KIND:
++                %out = QString::fromLatin1((const char*)PyUnicode_1BYTE_DATA(%in), PyUnicode_GET_LENGTH(%in));
++                break;
++            case PyUnicode_2BYTE_KIND:
++                %out = QString::fromUtf16(PyUnicode_2BYTE_DATA(%in), PyUnicode_GET_LENGTH(%in));
++                break;
++            case PyUnicode_4BYTE_KIND:
++                %out = QString::fromUcs4(PyUnicode_4BYTE_DATA(%in), PyUnicode_GET_LENGTH(%in));
++                break;
++            #if PY_VERSION_HEX &lt; 0x030C0000
++            case PyUnicode_WCHAR_KIND:
++                %out = QString::fromWCharArray(PyUnicode_AS_UNICODE(%in), PyUnicode_GET_SIZE(%in));
++                break;
++            #endif
++            }
++            #else
+             Py_UNICODE* unicode = PyUnicode_AS_UNICODE(%in);
+             #if defined(Py_UNICODE_WIDE)
+             // cast as Py_UNICODE can be a different type
+@@ -208,6 +226,7 @@
+             #else
+             %out = QString::fromUtf16((const ushort*)unicode, PyUnicode_GET_SIZE(%in));
+             #endif
++            #endif
+             </add-conversion>
+             <add-conversion type="PyString" check="py2kStrCheck(%in)">
+             #ifndef IS_PY3K
