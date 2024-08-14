@@ -429,18 +429,46 @@ platform darwin {
         # cmake will add the correct -arch flag(s) based on the value of CMAKE_OSX_ARCHITECTURES.
         if {[variant_exists universal] && [variant_isset universal]} {
             if {[info exists muniversal.arch_flag]} {
-                foreach arch ${muniversal.architectures} {
-                    configure.args.${arch}-append -DCMAKE_OSX_ARCHITECTURES=${arch}
+                proc do_arch_setup {arch} {
+                    if {[option cmake.set_osx_architectures]} {
+                        configure.args.${arch}-append -DCMAKE_OSX_ARCHITECTURES=${arch}
+                    }
+                    # Manually remap the source dir. But only do this if cmake.source_dir were overridden.
+                    global worksrcpath
+                    if {[option cmake.source_dir] ne ${worksrcpath}} {
+                        configure.post_args-delete [option cmake.source_dir]
+                        configure.post_args.${arch}-append [muniversal::get_arch_dir [option cmake.source_dir] ${arch}]
+                    }
                 }
+                if {[info exists muniversal.current_arch]} {
+                    do_arch_setup ${muniversal.current_arch}
+                } else {
+                    foreach arch ${muniversal.architectures} {
+                        do_arch_setup ${arch}
+                    }
+                }
+                rename do_arch_setup ""
             } elseif {[info exists universal_archs_supported]} {
                 merger_arch_compiler no
                 merger_arch_flag no
-                if {${cmake.set_osx_architectures}} {
-                    global merger_configure_args
-                    foreach arch ${universal_archs_to_use} {
+                proc do_arch_setup {arch} {
+                    global merger_configure_args worksrcpath
+                    if {[option cmake.set_osx_architectures]} {
                         lappend merger_configure_args(${arch}) -DCMAKE_OSX_ARCHITECTURES=${arch}
                     }
+                    if {[option cmake.source_dir] ne ${worksrcpath}} {
+                        configure.post_args-delete [option cmake.source_dir]
+                        lappend merger_configure_args(${arch}) [string map {[string map [list "-${arch}" ""] ${worksrcpath}] "${worksrcpath}"} [option cmake.source_dir]]
+                    }
                 }
+                if {[info exists muniversal.current_arch]} {
+                    do_arch_setup ${muniversal.current_arch}
+                } else {
+                    foreach arch ${universal_archs_to_use} {
+                        do_arch_setup ${arch}
+                    }
+                }
+                rename do_arch_setup ""
             } elseif {${cmake.set_osx_architectures}} {
                 configure.universal_args-append \
                     -DCMAKE_OSX_ARCHITECTURES="[join ${configure.universal_archs} \;]"

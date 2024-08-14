@@ -284,9 +284,14 @@ proc muniversal::get_build_arch {} {
 proc muniversal::get_arch_dir {dir arch} {
     global worksrcpath configure.dir
 
-    if { [string match "${worksrcpath}/*" ${dir}] } {
+    if { [string match "*-${arch}" ${worksrcpath}] } {
+        set base_worksrcpath [string map [list "-${arch}" ""] ${worksrcpath}]
+    } else {
+        set base_worksrcpath ${worksrcpath}
+    }
+    if { [string match "${base_worksrcpath}/*" ${dir}] } {
         # the directory is inside the source directory, so put in the new source directory name
-        return [string map "${worksrcpath} ${worksrcpath}-${arch}" ${dir}]
+        return [string map "${base_worksrcpath} ${base_worksrcpath}-${arch}" ${dir}]
     } elseif { [string match "${configure.dir}/*" ${dir}] } {
         # the directory is outside the source directory but is a subdirectory of ${configure.dir}, so
         #    append ${arch} to the ${configure.dir} part
