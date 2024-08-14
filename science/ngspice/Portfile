@@ -50,6 +50,8 @@ if {${name} eq ${subport}} {
     # https://trac.macports.org/ticket/70175
     patchfiles-append   patch-fix-linking.diff
 
+    patchfiles-append   patch-fix-xspice-subckt-warning.diff
+
     depends_lib-append  port:readline \
                         port:libtool \
                         port:xorg-libX11 \
@@ -164,6 +166,8 @@ subport ngspice-lib {
 
     # TASK_BASIC_INFO_COUNT and friends were renamed in 10.8
     patchfiles-append   patch-ngspice-older-MACH-defines.diff
+
+    patchfiles-append   patch-fix-xspice-subckt-warning.diff
 
     depends_lib-append  port:autoconf \
                         port:automake \

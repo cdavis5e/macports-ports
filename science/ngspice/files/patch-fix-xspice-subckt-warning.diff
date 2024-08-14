@@ -1,0 +1,12 @@
+--- src/frontend/subckt.c~	2023-12-27 11:58:03.000000000 -0700
++++ src/frontend/subckt.c	2024-07-11 01:29:14.000000000 -0600
+@@ -2232,6 +2232,9 @@
+     case ' ':
+     case '\t':
+     case '.':
++#ifdef XSPICE
++    case 'a':
++#endif
+     case 'x':
+     case '*':
+     case '$':
