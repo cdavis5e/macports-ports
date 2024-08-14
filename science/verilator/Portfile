@@ -6,7 +6,7 @@ PortGroup               github 1.0
 github.setup            verilator verilator 5.028 v
 # Change github.tarball_from to 'releases' or 'archive' next update
 github.tarball_from     tarball
-revision                0
+revision                1
 categories              science electronics
 license                 {LGPL-3 Artistic-2}
 maintainers             {mcalhoun @MarcusCalhoun-Lopez} openmaintainer
@@ -38,8 +38,8 @@ configure.env-append    LEX=${prefix}/bin/flex
 depends_build-append    port:bison
 configure.env-append    YACC=${prefix}/bin/bison
 
-depends_lib-append      port:python311
-configure.python        ${prefix}/bin/python3.11
+depends_lib-append      port:python312
+configure.python        ${prefix}/bin/python3.12
 configure.env-append    PYTHON3=${configure.python}
 
 post-patch {
