@@ -57,29 +57,35 @@ proc legacysupport::get_library_name {} {
 
 proc legacysupport::get_cpp_flags {} {
     global os.platform os.major prefix
+    set cppflags ""
     if {${os.platform} eq "darwin" && ${os.major} <= [option legacysupport.newest_darwin_requires_legacy]} {
         if { [option legacysupport.disable_function_wrap] } {
-            return "-isystem${prefix}/include/LegacySupport -D__DISABLE_MP_LEGACY_SUPPORT_REALPATH_WRAP__=1 -D__DISABLE_MP_LEGACY_SUPPORT_SYSCONF_WRAP__=1"
+            append cppflags "-isystem${prefix}/include/LegacySupport -D__DISABLE_MP_LEGACY_SUPPORT_REALPATH_WRAP__=1 -D__DISABLE_MP_LEGACY_SUPPORT_SYSCONF_WRAP__=1"
         } else {
-            return  -isystem${prefix}/include/LegacySupport
+            append cppflags "-isystem${prefix}/include/LegacySupport"
         }
-    } else {
-        return ""
+        if {[option legacysupport.use_mp_libcxx] && [option configure.cxx_stdlib] eq "libc++"} {
+            append cppflags " -nostdinc++ -isystem${prefix}/include/libcxx/v1"
+        }
     }
+    return ${cppflags}
 }
 
 proc legacysupport::get_library_link_flags {} {
     global prefix os.platform os.major
+    set ldflags ""
     if {${os.platform} eq "darwin" && ${os.major} <= [option legacysupport.newest_darwin_requires_legacy]} {
         set lib [legacysupport::get_library_name]
         if {[option legacysupport.use_static]} {
-            return ${lib}
+            append ldflags ${lib}
         } else {
-            return -L${prefix}/lib\ ${lib}
+            append ldflags -L${prefix}/lib\ ${lib}
         }
-    } else {
-        return ""
+        if {[option legacysupport.use_mp_libcxx] && [option configure.cxx_stdlib] eq "libc++"} {
+            append ldflags " -L${prefix}/lib/libcxx"
+        }
     }
+    return ${ldflags}
 }
 
 # Returns the newest Darwin version for which the legacy support
@@ -154,7 +160,7 @@ set ls_cache_cppflags [list]
 proc legacysupport::add_legacysupport {} {
     global prefix os.platform os.major
     global ls_cache_incpath ls_cache_ldflags ls_cache_cppflags
-    global configure.cxx_stdlib
+    global configure.cxx_stdlib configure.sdkroot
 
     if { ${os.platform} eq "darwin" && ${os.major} <= [option legacysupport.newest_darwin_requires_legacy] } {
 
@@ -179,8 +185,6 @@ proc legacysupport::add_legacysupport {} {
         if { [option legacysupport.use_mp_libcxx] && ${configure.cxx_stdlib} eq "libc++" } {
             legacysupport::add_once depends_lib append port:macports-libcxx
             append ls_cache_incpath  " ${prefix}/include/libcxx/v1"
-            append ls_cache_ldflags  " -L${prefix}/lib/libcxx"
-            append ls_cache_cppflags " -nostdinc++ -isystem${prefix}/include/libcxx/v1"
         }
 
         ui_debug "legacysupport: ldflags  ${ls_cache_ldflags}"
