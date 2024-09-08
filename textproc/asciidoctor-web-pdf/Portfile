@@ -1,0 +1,30 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+PortGroup           npm 1.0
+
+name                asciidoctor-web-pdf
+npm.rootname        asciidoctor-pdf
+version             1.0.0-alpha.16
+revision            0
+
+categories          textproc
+platforms           {darwin any}
+supported_archs     noarch
+
+license             MIT
+maintainers         openmaintainer
+description         Convert AsciiDoc documents to PDF using web technologies
+long_description    ${name} is a PDF converter for AsciiDoc based on web \
+                    technologies. It allows complex layouts to be defined with \
+                    CSS and JavaScript, while writing the content in AsciiDoc. \
+                    ${name} has support for LaTeX-style mathematical equations \
+                    via MathJax, and syntax highlighting via highlight.js. \
+                    Many more features can be added by importing an existing \
+                    JavaScript or CSS framework.
+homepage            https://asciidoctor.org/
+
+checksums           rmd160  359764ae4e310a47e33a014a336a31dd59c46ec1 \
+                    sha256  2b0c8351257be28331282c07f99178fc9236c5eebefdd24ad893d3d4104c87f2 \
+                    size    1435044
+
