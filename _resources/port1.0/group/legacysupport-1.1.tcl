@@ -187,6 +187,11 @@ proc legacysupport::add_legacysupport {} {
             append ls_cache_incpath  " ${prefix}/include/libcxx/v1"
         }
 
+        if { ${configure.sdkroot} eq "" || ${configure.sdkroot} eq "/" } {
+            # Make sure /usr/include appears last
+            append ls_cache_incpath  " /usr/include"
+        }
+
         ui_debug "legacysupport: ldflags  ${ls_cache_ldflags}"
         ui_debug "legacysupport: cppflags ${ls_cache_cppflags}"
         ui_debug "legacysupport: incpath  ${ls_cache_incpath}"
