@@ -1,6 +1,20 @@
 --- buildtools/config.py.orig
 +++ buildtools/config.py
-@@ -840,7 +840,7 @@
+@@ -235,10 +235,13 @@
+             else:
+                 for lst in [self.cflags, self.cxxflags]:
+                     lst.append('-O3')
++            self.cflags.extend(os.environ.get('CFLAGS', '').split())
++            self.cxxflags.extend(os.environ.get('CXXFLAGS', '').split())
+ 
+             lflags = self.getWxConfigValue('--libs')
+             self.MONOLITHIC = (lflags.find("_xrc") == -1)
+             self.lflags = lflags.split()
++            self.lflags.extend(os.environ.get('LDFLAGS', '').split())
+ 
+             self.WXBASENAME = self.getWxConfigValue('--basename')
+             self.WXRELEASE  = self.getWxConfigValue('--release')
+@@ -840,7 +843,7 @@
                  line = line.strip()
                  endPos = line.rfind(' (')
                  curName = line[:endPos]

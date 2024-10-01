@@ -62,6 +62,10 @@ if {${name} ne ${subport}} {
         system -W ${worksrcpath} "${python.bin} build.py dox etg sip ${wxpython_options}"
         system -W ${worksrcpath} "${python.bin} build.py build_py ${wxpython_options}"
     }
+    # error: found '<::' after a reinterpret_cast which forms the digraph '<:' (aka '[') and a ':', did you mean '< ::'?
+    # (and sip really needs to be fixed upstream not to do this)
+    python.add_cxxflags yes
+    configure.cxxflags-append -fno-digraphs
     build.env-append SIP=${python.prefix}/bin/sip
     build.env-append PATH=${python.prefix}/bin:$env(PATH)
 

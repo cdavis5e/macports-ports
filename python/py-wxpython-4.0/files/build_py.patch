@@ -1,19 +1,19 @@
---- build.py.orig
-+++ build.py
-@@ -1504,11 +1504,6 @@
+--- build.py.orig	2024-09-11 17:27:32
++++ build.py	2024-09-29 04:04:07
+@@ -1528,11 +1528,6 @@
+         if  isDarwin:
              if options.osx_cocoa:
                  build_options.append("--osx_cocoa")
- 
+-
 -            if options.mac_arch:
 -                build_options.append("--mac_universal_binary=%s" % options.mac_arch)
 -            else:
 -                build_options.append("--mac_universal_binary=default")
--
+ 
          if options.no_config:
              build_options.append('--no_config')
-         elif not options.force_config:
-@@ -1589,9 +1584,6 @@
- 
+@@ -1616,9 +1611,6 @@
+             "         rebuilt. Please install gettext and associated tools.")
  
  def copyWxDlls(options):
 -    if options.no_magic or options.use_syswx:
@@ -22,7 +22,7 @@
      if isWindows:
          # Copy the wxWidgets DLLs to the wxPython package folder
          msw = getMSWSettings(options)
-@@ -1634,8 +1626,6 @@
+@@ -1661,8 +1653,6 @@
          cfg = Config()
          wxlibdir = os.path.join(getBuildDir(options), "lib")
          dlls = glob.glob(wxlibdir + '/*.dylib')
@@ -31,3 +31,12 @@
  
          # Now use install_name_tool to change the extension modules to look
          # in the same folder for the wx libs, instead of the build dir. Also
+@@ -1717,7 +1707,7 @@
+             compiler = cmd[0]
+             flags = cmd[1:]
+             #os.environ[compName] = compiler  # don't reset the compiler here, it will be done later
+-            os.environ[flagName] = ' '.join(flags)
++            os.environ[flagName] = os.environ.get(flagName, '') + ' ' + ' '.join(flags)
+ 
+         _getWxCompiler('--cc', 'CC', 'CFLAGS')
+         _getWxCompiler('--cxx', 'CXX', 'CXXFLAGS')
