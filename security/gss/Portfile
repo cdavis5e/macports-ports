@@ -46,7 +46,9 @@ configure.args      --docdir=${docdir} \
                     --disable-kerberos5 \
                     --disable-silent-rules \
                     --with-libiconv-prefix=${prefix} \
-                    --with-libintl-prefix=${prefix}
+                    --with-libintl-prefix=${prefix} \
+                    AUTOMAKE=${prefix}/bin/automake \
+                    ACLOCAL=${prefix}/bin/aclocal
 
 test.run            yes
 test.target         check

@@ -21,3 +21,34 @@
  [
    AC_CACHE_CHECK([for wint_t], [gt_cv_c_wint_t],
      [AC_COMPILE_IFELSE(
+--- m4/extern-inline.m4~	2022-08-06 06:30:53
++++ m4/extern-inline.m4	2024-09-09 04:10:54
+@@ -39,16 +39,18 @@
+    OS X 10.9 has a macro __header_inline indicating the bug is fixed for C and
+    for clang but remains for g++; see <http://trac.macports.org/ticket/41033>.
+    Assume DragonFly and FreeBSD will be similar.  */
+-#if (((defined __APPLE__ && defined __MACH__) \
+-      || defined __DragonFly__ || defined __FreeBSD__) \
+-     && (defined __header_inline \
+-         ? (defined __cplusplus && defined __GNUC_STDC_INLINE__ \
+-            && ! defined __clang__) \
+-         : ((! defined _DONT_USE_CTYPE_INLINE_ \
+-             && (defined __GNUC__ || defined __cplusplus)) \
+-            || (defined _FORTIFY_SOURCE && 0 < _FORTIFY_SOURCE \
+-                && defined __GNUC__ && ! defined __cplusplus))))
+-# define _GL_EXTERN_INLINE_STDHEADER_BUG
++#if ((defined __APPLE__ && defined __MACH__) \
++     || defined __DragonFly__ || defined __FreeBSD__)
++# include <sys/cdefs.h>
++# if (defined __header_inline \
++      ? (defined __cplusplus && defined __GNUC_STDC_INLINE__ \
++         && ! defined __clang__) \
++      : ((! defined _DONT_USE_CTYPE_INLINE_ \
++          && (defined __GNUC__ || defined __cplusplus)) \
++         || (defined _FORTIFY_SOURCE && 0 < _FORTIFY_SOURCE \
++             && defined __GNUC__ && ! defined __cplusplus)))
++#  define _GL_EXTERN_INLINE_STDHEADER_BUG
++# endif
+ #endif
+ #if ((__GNUC__ \
+       ? defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__ \
