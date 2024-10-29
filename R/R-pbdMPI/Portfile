@@ -18,8 +18,13 @@ checksums           rmd160  4e672b2544e8a7409da46b5a78bdf5f411bc8646 \
                     size    421132
 
 if {[string match macports-clang-* ${configure.compiler}]} {
-    set mpi_suffix  mp
-    set mpi_port    mpich-default
+    set clang_v [
+        string range ${configure.compiler} [
+            string length macports-clang-
+        ] end
+    ]
+    set mpi_suffix  clang${clang_v}
+    set mpi_port    mpich-${mpi_suffix}
 } elseif {[string match macports-gcc-* ${configure.compiler}]} {
     set gcc_v [
         string range ${configure.compiler} [
@@ -28,6 +33,9 @@ if {[string match macports-clang-* ${configure.compiler}]} {
     ]
     set mpi_suffix  gcc${gcc_v}
     set mpi_port    mpich-${mpi_suffix}
+} else {
+    set mpi_suffix  mp
+    set mpi_port    mpich-default
 }
 
 depends_lib-append  port:${mpi_port} \
