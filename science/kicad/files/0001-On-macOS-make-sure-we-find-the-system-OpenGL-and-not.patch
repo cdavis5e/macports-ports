@@ -1,0 +1,36 @@
+From 4494e191ff14fc3ba1240714896f72af6c3f875f Mon Sep 17 00:00:00 2001
+From: Charles Davis <cdavis5x@gmail.com>
+Date: Mon, 28 Oct 2024 17:52:39 -0600
+Subject: [PATCH] On macOS, make sure we find the system OpenGL, and not Mesa.
+
+MacPorts likes to set `CMAKE_FIND_FRAMEWORK` to `LAST`, which causes
+CMake to prefer Mesa to `OpenGL.framework`.
+
+Signed-off-by: Charles Davis <cdavis5x@gmail.com>
+---
+ CMakeLists.txt | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git CMakeLists.txt CMakeLists.txt
+index 9be7e27058..b3bf0245b0 100644
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -733,7 +733,15 @@ if( KICAD_USE_EGL )
+     find_package( OpenGL REQUIRED COMPONENTS OpenGL EGL )
+ else()
+     set( OpenGL_GL_PREFERENCE "LEGACY" )     # CMake 3.11+ setting; see 'cmake --help-policy CMP0072'
++    set( old_CMAKE_FIND_FRAMEWORK ${CMAKE_FIND_FRAMEWORK} )
++    set( CMAKE_FIND_FRAMEWORK FIRST )
+     find_package( OpenGL REQUIRED )
++    if( ${old_CMAKE_FIND_FRAMEWORK} STREQUAL "" )
++        unset( CMAKE_FIND_FRAMEWORK )
++    else()
++        set( CMAKE_FIND_FRAMEWORK ${old_CMAKE_FIND_FRAMEWORK} )
++    endif()
++    unset( old_CMAKE_FIND_FRAMEWORK )
+ endif()
+ 
+ #
+-- 
+2.46.1
+

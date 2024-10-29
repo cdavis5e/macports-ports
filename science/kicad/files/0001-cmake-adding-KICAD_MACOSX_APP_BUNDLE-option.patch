@@ -367,15 +367,15 @@
      set( SCRIPTING_HELPER "1" )
 --- kicad/tools/kicad_manager_control.cpp
 +++ kicad/tools/kicad_manager_control.cpp
-@@ -866,7 +866,7 @@ int KICAD_MANAGER_CONTROL::Execute( const TOOL_EVENT& aEvent )
+@@ -873,7 +873,7 @@ int KICAD_MANAGER_CONTROL::Execute( const TOOL_EVENT& aEvent )
  
      if( pid > 0 )
      {
 -#ifdef __WXMAC__
 +#ifdef __MACOSX_APP__
-         // This non-parameterized use of wxExecute is fine because execFile is not derived
-         // from user input.
-         wxExecute( "osascript -e 'activate application \"" + execFile + "\"'" );
+         wxString script = wxString::Format( wxS( "tell application \"System Events\"\n"
+                           "  set frontmost of the first process whose unix id is %l to true\n"
+                           "end tell" ), pid );
 --- pagelayout_editor/CMakeLists.txt
 +++ pagelayout_editor/CMakeLists.txt
 @@ -57,7 +57,7 @@ if( WIN32 )
@@ -585,3 +585,25 @@
      # puts binaries into the *.app bundle while linking
      set_target_properties( idfcyl idfrect dxf2idf idf2vrml PROPERTIES
          RUNTIME_OUTPUT_DIRECTORY ${OSX_BUNDLE_BUILD_BIN_DIR}
+--- common/CMakeLists.txt
++++ common/CMakeLists.txt
+@@ -174,7 +174,7 @@
+     COMPONENT binary
+     )
+ 
+-if( APPLE )
++if( KICAD_MACOSX_APP_BUNDLE )
+     # puts library into the main kicad.app bundle in build tree
+     set_target_properties( kicommon PROPERTIES
+         LIBRARY_OUTPUT_DIRECTORY "${OSX_BUNDLE_BUILD_LIB_DIR}"
+--- common/gal/CMakeLists.txt
++++ common/gal/CMakeLists.txt
+@@ -102,7 +102,7 @@
+     SOVERSION      ${KICAD_MAJOR_MINOR_PATCH_VERSION}
+     )
+ 
+-if( APPLE )
++if( KICAD_MACOSX_APP_BUNDLE )
+     # puts library into the main kicad.app bundle in build tree
+     set_target_properties( gal PROPERTIES
+         LIBRARY_OUTPUT_DIRECTORY "${OSX_BUNDLE_BUILD_LIB_DIR}"

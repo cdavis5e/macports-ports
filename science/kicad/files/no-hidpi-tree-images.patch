@@ -1,0 +1,11 @@
+--- kicad/project_tree.cpp~	2024-09-06 10:28:40
++++ kicad/project_tree.cpp	2024-10-27 22:31:06
+@@ -71,7 +71,7 @@
+     // KiCad for macOS currently has backported high-DPI support for this control
+     // that is not in a released version of wxWidgets 3.2 yet.  This can become the
+     // main codepath once wxWidgets 3.4 is released.
+-#ifdef __WXMAC__
++#if 0
+     wxVector<wxBitmapBundle> images;
+     images.push_back( KiBitmapBundle( BITMAPS::project ) );                // TREE_LEGACY_PROJECT
+     images.push_back( KiBitmapBundle( BITMAPS::project_kicad ) );          // TREE_JSON_PROJECT
