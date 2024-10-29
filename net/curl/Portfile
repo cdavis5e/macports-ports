@@ -251,6 +251,10 @@ if {${name} eq ${subport}} {
         configure.args-append   --with-ca-bundle=${prefix}/share/curl/curl-ca-bundle.crt
     }
 
+    variant websockets description {Support WebSocket connections} {
+        configure.args-append   --enable-websockets
+    }
+
     variant zstd description {Support zstd compression} {
         depends_lib-append      port:zstd
         configure.args-replace  --without-zstd --with-zstd
