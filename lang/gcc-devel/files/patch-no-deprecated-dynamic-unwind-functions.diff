@@ -1,0 +1,15 @@
+--- libgcc/config/darwin-unwind.ver~	2024-08-01 02:17:17
++++ libgcc/config/darwin-unwind.ver	2024-09-23 00:28:56
+@@ -19,12 +19,5 @@
+ __Unwind_GetIPInfo
+ 
+ ___register_frame
+-___register_frame_table
+-___register_frame_info
+-___register_frame_info_bases
+-___register_frame_info_table
+-___register_frame_info_table_bases
+ 
+ ___deregister_frame
+-___deregister_frame_info
+-___deregister_frame_info_bases

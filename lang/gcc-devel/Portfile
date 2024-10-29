@@ -170,6 +170,11 @@ if { ${os.platform} eq "darwin" } {
     if { ${os.major} == 18 } {
         patchfiles-append  patch-OSX10.14-ucred-atomic-define.diff
     }
+    # Starting in the macOS 15 SDK, some of the __[de]register_frame* functions
+    # were removed.
+    if { ${os.major} >= 24 } {
+        patchfiles-append patch-no-deprecated-dynamic-unwind-functions.diff
+    }
 }
 
 # Since GCC 7.4.0, during configure, it detects features supported by target-as.
