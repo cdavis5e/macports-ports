@@ -10,6 +10,15 @@ See https://trac.macports.org/ticket/61454
  /* end confdefs.h.  */
  #include "$libreplacedir/test/shared_mmap.c"
  _ACEOF
+@@ -9545,7 +9546,7 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
+-main() {
++int main() {
+   struct stat st;
+   char tpl[20]="/tmp/test.XXXXXX";
+   int fd = mkstemp(tpl);
 @@ -9657,6 +9658,7 @@
  #include <stdio.h>
  #include <stdarg.h>
@@ -18,14 +27,25 @@ See https://trac.macports.org/ticket/61454
  void foo(const char *format, ...) {
         va_list ap;
         int len;
-@@ -10366,6 +10368,7 @@
+@@ -9683,7 +9685,7 @@
+ 
+        exit(0);
+ }
+-main() { foo("hello"); }
++int main() { foo("hello"); }
+ 
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+@@ -10366,7 +10368,8 @@
  
  #include <sys/time.h>
  #include <unistd.h>
+-main() { struct timeval tv; exit(gettimeofday(&tv, NULL));}
 +#include <stdlib.h>
- main() { struct timeval tv; exit(gettimeofday(&tv, NULL));}
++int main() { struct timeval tv; exit(gettimeofday(&tv, NULL));}
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
+   libreplace_cv_HAVE_GETTIMEOFDAY_TZ=yes
 @@ -11233,6 +11236,7 @@
    libreplace_cv_STRPTIME_OK="assuming not"
  else
@@ -42,7 +62,7 @@ See https://trac.macports.org/ticket/61454
  		#ifdef HAVE_DIRECT_H
  		#include <direct.h>
  		#endif
-@@ -13159,6 +13164,8 @@
+@@ -13159,10 +13164,12 @@
  #include <unistd.h>
  #include <sys/types.h>
  #include <netinet/in.h>
@@ -51,6 +71,11 @@ See https://trac.macports.org/ticket/61454
  #ifdef HAVE_ARPA_INET_H
  #include <arpa/inet.h>
  #endif
+-main() { struct in_addr ip; ip.s_addr = 0x12345678;
++int main() { struct in_addr ip; ip.s_addr = 0x12345678;
+ if (strcmp(inet_ntoa(ip),"18.52.86.120") &&
+     strcmp(inet_ntoa(ip),"120.86.52.18")) { exit(0); }
+ exit(1);}
 @@ -13717,6 +13724,7 @@
  #include <sys/types.h>
  #include <netdb.h>
@@ -59,110 +84,172 @@ See https://trac.macports.org/ticket/61454
  
  int
  main ()
-@@ -15484,6 +15492,7 @@
+@@ -15484,7 +15492,8 @@
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  #include <errno.h>
+-main() { setresuid(1,1,1); setresuid(2,2,2); exit(errno==EPERM?0:1);}
 +#include <stdlib.h>
- main() { setresuid(1,1,1); setresuid(2,2,2); exit(errno==EPERM?0:1);}
++int main() { setresuid(1,1,1); setresuid(2,2,2); exit(errno==EPERM?0:1);}
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -15519,6 +15528,7 @@
+   samba_cv_have_setresuid=yes
+@@ -15519,7 +15528,8 @@
  /* end confdefs.h.  */
  #include <unistd.h>
  #include <errno.h>
+-main() { errno = 0; setresgid(1,1,1); exit(errno != 0 ? (errno==EPERM ? 0 : 1) : 0);}
 +#include <stdlib.h>
- main() { errno = 0; setresgid(1,1,1); exit(errno != 0 ? (errno==EPERM ? 0 : 1) : 0);}
++int main() { errno = 0; setresgid(1,1,1); exit(errno != 0 ? (errno==EPERM ? 0 : 1) : 0);}
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -21442,6 +21452,7 @@
+   samba_cv_have_setresgid=yes
+@@ -19129,7 +19139,7 @@
+ 
+ 		cat > conftest.c <<EOF
+ int foo;
+-main () { return 0;}
++int main () { return 0;}
+ EOF
+ 		if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -Wl,-z,relro -o conftest conftest.c 1>&5'
+   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+@@ -21442,7 +21452,8 @@
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  #include <stdio.h>
+-main() { long long x = 1000000; x *= x; exit(((x/1000000) == 1000000)? 0: 1); }
 +#include <stdlib.h>
- main() { long long x = 1000000; x *= x; exit(((x/1000000) == 1000000)? 0: 1); }
++int main() { long long x = 1000000; x *= x; exit(((x/1000000) == 1000000)? 0: 1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -21534,6 +21545,7 @@
+   samba_cv_have_longlong=yes
+@@ -21534,7 +21545,8 @@
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  #include <time.h>
+-main() { exit((sizeof(time_t) == 8) ? 0 : 1); }
 +#include <stdlib.h>
- main() { exit((sizeof(time_t) == 8) ? 0 : 1); }
++int main() { exit((sizeof(time_t) == 8) ? 0 : 1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -21566,6 +21578,7 @@
+   samba_cv_SIZEOF_TIME_T=yes
+@@ -21566,7 +21578,8 @@
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  #include <time.h>
+-main() {
 +#include <stdlib.h>
- main() {
++int main() {
  	struct tm *tm;
  	if (sizeof(time_t) == 8) {
-@@ -21616,6 +21629,7 @@
+ 		time_t max_time = 0x7fffffffffffffffll;
+@@ -21616,7 +21629,8 @@
  /* end confdefs.h.  */
  #include <stdio.h>
  #include <sys/stat.h>
+-main() { exit((sizeof(off_t) == 8) ? 0 : 1); }
 +#include <stdlib.h>
- main() { exit((sizeof(off_t) == 8) ? 0 : 1); }
++int main() { exit((sizeof(off_t) == 8) ? 0 : 1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -21653,6 +21667,7 @@
+   samba_cv_SIZEOF_OFF_T=yes
+@@ -21653,7 +21667,8 @@
  #endif
  #include <stdio.h>
  #include <sys/stat.h>
+-main() { struct stat64 st; off64_t s; if (sizeof(off_t) == sizeof(off64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
 +#include <stdlib.h>
- main() { struct stat64 st; off64_t s; if (sizeof(off_t) == sizeof(off64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
++int main() { struct stat64 st; off64_t s; if (sizeof(off_t) == sizeof(off64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -21690,6 +21705,7 @@
+   samba_cv_HAVE_OFF64_T=yes
+@@ -21690,7 +21705,8 @@
  #endif
  #include <stdio.h>
  #include <sys/stat.h>
+-main() { exit((sizeof(ino_t) == 8) ? 0 : 1); }
 +#include <stdlib.h>
- main() { exit((sizeof(ino_t) == 8) ? 0 : 1); }
++int main() { exit((sizeof(ino_t) == 8) ? 0 : 1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -21727,6 +21743,7 @@
+   samba_cv_SIZEOF_INO_T=yes
+@@ -21727,7 +21743,8 @@
  #endif
  #include <stdio.h>
  #include <sys/stat.h>
+-main() { struct stat64 st; ino64_t s; if (sizeof(ino_t) == sizeof(ino64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
 +#include <stdlib.h>
- main() { struct stat64 st; ino64_t s; if (sizeof(ino_t) == sizeof(ino64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
++int main() { struct stat64 st; ino64_t s; if (sizeof(ino_t) == sizeof(ino64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -21764,6 +21781,7 @@
+   samba_cv_HAVE_INO64_T=yes
+@@ -21764,7 +21781,8 @@
  #endif
  #include <stdio.h>
  #include <sys/stat.h>
+-main() { exit((sizeof(dev_t) == 8) ? 0 : 1); }
 +#include <stdlib.h>
- main() { exit((sizeof(dev_t) == 8) ? 0 : 1); }
++int main() { exit((sizeof(dev_t) == 8) ? 0 : 1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -21801,6 +21819,7 @@
+   samba_cv_SIZEOF_DEV_T=yes
+@@ -21801,7 +21819,8 @@
  #endif
  #include <stdio.h>
  #include <sys/stat.h>
+-main() { struct stat64 st; dev64_t s; if (sizeof(dev_t) == sizeof(dev64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
 +#include <stdlib.h>
- main() { struct stat64 st; dev64_t s; if (sizeof(dev_t) == sizeof(dev64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
++int main() { struct stat64 st; dev64_t s; if (sizeof(dev_t) == sizeof(dev64_t)) exit(1); exit((lstat64("/dev/null", &st)==0)?0:1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -22015,6 +22034,7 @@
+   samba_cv_HAVE_DEV64_T=yes
+@@ -21911,7 +21930,7 @@
+ #include <unistd.h>
+ #endif
+ #include <sys/types.h>
+-main() { dev_t dev; int i = major(dev); return 0; }
++int main() { dev_t dev; int i = major(dev); return 0; }
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+   samba_cv_HAVE_DEVICE_MAJOR_FN=yes
+@@ -21947,7 +21966,7 @@
+ #include <unistd.h>
+ #endif
+ #include <sys/types.h>
+-main() { dev_t dev; int i = minor(dev); return 0; }
++int main() { dev_t dev; int i = minor(dev); return 0; }
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+   samba_cv_HAVE_DEVICE_MINOR_FN=yes
+@@ -21983,7 +22002,7 @@
+ #include <unistd.h>
+ #endif
+ #include <sys/types.h>
+-main() { dev_t dev = makedev(1,2); return 0; }
++int main() { dev_t dev = makedev(1,2); return 0; }
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+   samba_cv_HAVE_MAKEDEV=yes
+@@ -22015,7 +22034,8 @@
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  #include <stdio.h>
+-main() { char c; c=250; exit((c > 0)?0:1); }
 +#include <stdlib.h>
- main() { char c; c=250; exit((c > 0)?0:1); }
++int main() { char c; c=250; exit((c > 0)?0:1); }
  _ACEOF
  if ac_fn_c_try_run "$LINENO"; then :
-@@ -22118,6 +22138,7 @@
+   samba_cv_HAVE_UNSIGNED_CHAR=yes
+@@ -22118,7 +22138,8 @@
  /* end confdefs.h.  */
  #include <sys/types.h>
  #include <dirent.h>
+-main() { struct dirent *di; DIR *d = opendir("."); di = readdir(d);
 +#include <stdlib.h>
- main() { struct dirent *di; DIR *d = opendir("."); di = readdir(d);
++int main() { struct dirent *di; DIR *d = opendir("."); di = readdir(d);
  if (di && di->d_name[-2] == '.' && di->d_name[-1] == 0 &&
  di->d_name[0] == 0) exit(0); exit(1);}
+ _ACEOF
 @@ -22150,6 +22171,7 @@
  /* end confdefs.h.  */
  #include <sys/types.h>
@@ -171,7 +258,43 @@ See https://trac.macports.org/ticket/61454
  int
  main ()
  {
-@@ -23246,6 +23268,7 @@
+@@ -22973,7 +22995,7 @@
+ /* end confdefs.h.  */
+ 
+ #include <$jm_cv_include>
+-main(){
++int main(){
+     iconv_t cd = iconv_open("$j", "UCS-2LE");
+     if (cd == 0 || cd == (iconv_t)-1) {
+ 	return -1;
+@@ -23012,7 +23034,7 @@
+ /* end confdefs.h.  */
+ 
+ #include <$jm_cv_include>
+-main(){
++int main(){
+     iconv_t cd = iconv_open("$j", "UCS-2LE");
+     if (cd == 0 || cd == (iconv_t)-1) {
+ 	return -1;
+@@ -23051,7 +23073,7 @@
+ /* end confdefs.h.  */
+ 
+ #include <$jm_cv_include>
+-main(){
++int main(){
+     iconv_t cd = iconv_open("$j", "UCS-2LE");
+     if (cd == 0 || cd == (iconv_t)-1) {
+ 	return -1;
+@@ -23207,7 +23229,7 @@
+ #ifndef F_GETLEASE
+ #define F_GETLEASE	1025
+ #endif
+-main() {
++int main() {
+        int fd = open("/dev/null", O_RDONLY);
+        return fcntl(fd, F_GETLEASE, 0) == -1;
+ }
+@@ -23246,10 +23268,11 @@
  #include <sys/types.h>
  #include <fcntl.h>
  #include <signal.h>
@@ -179,7 +302,12 @@ See https://trac.macports.org/ticket/61454
  #ifndef F_NOTIFY
  #define F_NOTIFY 1026
  #endif
-@@ -23879,6 +23902,7 @@
+-main() {
++int main() {
+        	exit(fcntl(open("/tmp", O_RDONLY), F_NOTIFY, 0) == -1 ?  1 : 0);
+ }
+ 
+@@ -23879,11 +23902,12 @@
  #include <fcntl.h>
  #include <signal.h>
  #include <sys/file.h>
@@ -187,6 +315,12 @@ See https://trac.macports.org/ticket/61454
  #ifndef LOCK_MAND
  #define LOCK_MAND	32
  #define LOCK_READ	64
+ #endif
+-main() {
++int main() {
+        	exit(flock(open("/dev/null", O_RDWR), LOCK_MAND|LOCK_READ) != 0);
+ }
+ 
 @@ -24313,6 +24337,7 @@
    samba_cv_HAVE_FTRUNCATE_EXTEND=cross
  else
@@ -203,7 +337,16 @@ See https://trac.macports.org/ticket/61454
  /* end confdefs.h.  */
  #include "${srcdir-.}/../tests/getgroups.c"
  _ACEOF
-@@ -25048,6 +25074,7 @@
+@@ -24801,7 +24827,7 @@
+ #ifdef HAVE_SYS_FCNTL_H
+ #include <sys/fcntl.h>
+ #endif
+-main() { struct flock64 fl64;
++int main() { struct flock64 fl64;
+ #if defined(F_SETLKW64) && defined(F_SETLK64) && defined(F_GETLK64)
+ exit(0);
+ #else
+@@ -25048,12 +25074,13 @@
  #include <stdio.h>
  #include <limits.h>
  #include <signal.h>
@@ -211,14 +354,23 @@ See https://trac.macports.org/ticket/61454
  
  void exit_on_core(int ignored) {
  	exit(1);
-@@ -33594,6 +33621,7 @@
+ }
+ 
+-main() {
++int main() {
+ 	char *newpath;
+ 	signal(SIGSEGV, exit_on_core);
+ 	newpath = realpath("/tmp", NULL);
+@@ -33594,7 +33621,8 @@
  #endif
  #include <sys/types.h>
  #include <sys/statvfs.h>
+-  main ()
 +#include <stdlib.h>
-   main ()
++  int main ()
    {
      struct statvfs64 fsd;
+     exit (statvfs64 (".", &fsd));
 @@ -35969,6 +35997,7 @@
    samba_cv_HAVE_BROKEN_READLINK=cross
  else
@@ -227,3 +379,102 @@ See https://trac.macports.org/ticket/61454
  /* end confdefs.h.  */
  #include "${srcdir-.}/../tests/readlink.c"
  _ACEOF
+--- ../tests/trivial.c.orig	2015-02-22 07:11:32
++++ ../tests/trivial.c	2024-10-30 23:08:37
+@@ -1,7 +1,7 @@
+ 
+ void exit(int);
+ 
+-main()
++int main()
+ {
+ 	exit(0);
+ }
+--- ../tests/summary.c.orig	2015-02-22 07:11:32
++++ ../tests/summary.c	2024-10-30 23:16:33
+@@ -2,7 +2,7 @@
+ 
+ void exit(int);
+ 
+-main()
++int main()
+ {
+     exit (0);
+ #if !(defined(HAVE_FCNTL_LOCK) || defined(HAVE_STRUCT_FLOCK64))
+--- ../tests/getgroups.c.orig	2015-02-22 07:11:32
++++ ../tests/getgroups.c	2024-10-30 23:16:51
+@@ -16,7 +16,7 @@
+ #include <unistd.h>
+ #include <grp.h>
+ 
+-main()
++int main()
+ {
+ 	int i;
+ 	int *igroups;
+--- ../tests/ftruncate.c.orig	2015-02-22 07:11:32
++++ ../tests/ftruncate.c	2024-10-30 23:17:03
+@@ -11,7 +11,7 @@
+ #define DATA "conftest.trunc"
+ #define LEN 7663
+ 
+-main()
++int main()
+ {
+ 	int *buf;
+ 	int fd = open(DATA,O_RDWR|O_CREAT|O_TRUNC,0666);
+--- ../tests/crypttest.c.orig	2015-02-22 07:11:32
++++ ../tests/crypttest.c	2024-10-30 23:17:17
+@@ -789,7 +789,7 @@
+ #define crypt ufc_crypt
+ #endif
+ 
+-main()
++int main()
+ {
+ 	char passwd[9];
+ 	char salt[9];
+--- ../tests/shared_mmap.c.orig	2015-02-22 07:11:32
++++ ../tests/shared_mmap.c	2024-10-30 23:17:25
+@@ -15,7 +15,7 @@
+ #define MAP_FILE 0
+ #endif
+ 
+-main()
++int main()
+ {
+ 	int *buf;
+ 	int i; 
+--- ../tests/readlink.c.orig	2015-02-22 07:11:32
++++ ../tests/readlink.c	2024-10-30 23:17:31
+@@ -11,7 +11,7 @@
+ #define DATA "readlink.test"
+ #define FNAME "rdlnk.file"
+ 
+-main()
++int main()
+ {
+ 	char buf[7];
+ 	int ret;
+--- ../lib/replace/test/shared_mmap.c.orig	2015-02-22 07:11:32
++++ ../lib/replace/test/shared_mmap.c	2024-10-31 03:32:57
+@@ -15,7 +15,7 @@
+ #define MAP_FILE 0
+ #endif
+ 
+-main()
++int main()
+ {
+ 	int *buf;
+ 	int i; 
+--- lib/util_sec.c.orig	2015-02-22 07:11:32
++++ lib/util_sec.c	2024-10-31 03:53:44
+@@ -437,7 +437,7 @@
+ 	return 0;
+ }
+ 
+-main()
++int main()
+ {
+         if (getuid() != 0) {
+ #if (defined(AIX) && defined(USE_SETREUID))
