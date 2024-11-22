@@ -1,0 +1,26 @@
+--- OpenSP.xs.orig	2007-12-05 22:58:10
++++ OpenSP.xs	2024-11-16 16:00:20
+@@ -162,7 +162,11 @@
+     {
+         d = m_temp;
+         for (i = 0; i < s.len; ++i)
++#if PERL_VERSION_GE(5,37,0)
++            d = uvchr_to_utf8_flags(d, s.ptr[i], 0);
++#else
+             d = uvuni_to_utf8_flags(d, s.ptr[i], 0);
++#endif
+         result = newSVpvn((const char*)m_temp, d - m_temp);
+     }
+     else
+@@ -171,7 +175,11 @@
+         for (i = 0; i < s.len; ++i)
+         {
+             d = (U8 *)SvGROW(result, SvCUR(result) + UTF8_MAXLEN + 1);
++#if PERL_VERSION_GE(5,37,0)
++            d = uvchr_to_utf8_flags(d + SvCUR(result), s.ptr[i], 0);
++#else
+             d = uvuni_to_utf8_flags(d + SvCUR(result), s.ptr[i], 0); 
++#endif
+             SvCUR_set(result, d - (U8 *)SvPVX(result));
+         }
+     }
