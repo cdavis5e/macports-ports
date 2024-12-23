@@ -291,6 +291,8 @@ variant smyrna description {Include the Smyrna large graph viewer} {
                                 port:gtkglext \
                                 port:libglade2
 
+    patchfiles-append           patch-cmd-smyrna-main.c.diff
+
     configure.args-replace      --without-gdk --with-gdk
     configure.args-replace      --without-glade --with-glade
     configure.args-replace      --without-gtk --with-gtk

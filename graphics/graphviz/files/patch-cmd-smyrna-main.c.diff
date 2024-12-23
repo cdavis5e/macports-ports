@@ -1,0 +1,11 @@
+--- cmd/smyrna/main.c~	2024-12-06 16:55:56
++++ cmd/smyrna/main.c	2024-12-23 01:44:09
+@@ -178,7 +178,7 @@
+     gtk_main();
+ }
+ 
+-#if !defined(__APPLE__) && !defined(_WIN32)
++#if !defined(_WIN32)
+ /// `readlink`-alike but dynamically allocates
+ static char *readln(const char *path) {
+ 
