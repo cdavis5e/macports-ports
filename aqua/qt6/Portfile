@@ -444,7 +444,7 @@ array set modules {
         ""
         ""
         "qtbase qtdeclarative"
-        {"Qt SCXML"}
+        {"Qt SCXML" "Qt State Machine"}
         ""
         "variant overrides: "
         "revision 0"
