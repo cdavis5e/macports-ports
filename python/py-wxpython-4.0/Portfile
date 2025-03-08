@@ -56,18 +56,27 @@ if {${name} ne ${subport}} {
         port:py${python.version}-numpy \
         port:py${python.version}-Pillow
 
-    set wxpython_options "--no_magic --release --python ${python.bin} --osx_cocoa --nodoc --prefix=${python.prefix}"
-    build {
-        system -W ${worksrcpath} "${python.bin} build.py build_wx ${wxpython_options}"
-        system -W ${worksrcpath} "${python.bin} build.py dox etg sip ${wxpython_options}"
-        system -W ${worksrcpath} "${python.bin} build.py build_py ${wxpython_options}"
-    }
     # error: found '<::' after a reinterpret_cast which forms the digraph '<:' (aka '[') and a ':', did you mean '< ::'?
     # (and sip really needs to be fixed upstream not to do this)
     python.add_cxxflags yes
+    python.set_compiler yes
     configure.cxxflags-append -fno-digraphs
     build.env-append SIP=${python.prefix}/bin/sip
     build.env-append PATH=${python.prefix}/bin:$env(PATH)
+    set wxpython_options "--no_magic --release --python ${python.bin} --osx_cocoa --nodoc --prefix=${python.prefix}"
+    build {
+        # Can't use ${build.env} directly, because some vars have spaces in them
+        global build.env_array
+        parse_environment build
+        ui_debug "Environment: [environment_array_to_string build.env_array]"
+        set saved_env [array get env]
+        array set env [array get build.env_array]
+        system -W ${worksrcpath} "${python.bin} build.py build_wx ${wxpython_options}"
+        system -W ${worksrcpath} "${python.bin} build.py dox etg sip ${wxpython_options}"
+        system -W ${worksrcpath} "${python.bin} build.py build_py ${wxpython_options}"
+        array unset env *
+        array set env ${saved_env}
+    }
 
     destroot.cmd ${python.bin} build.py
     destroot.target install
